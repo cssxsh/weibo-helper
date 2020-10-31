@@ -73,7 +73,7 @@ object WeiboCommand : CompositeCommand(
                         taskContacts.getValue(uid).forEach { contact ->
                             blog.runCatching {
                                 contact.sendMessage(buildList<Message> {
-                                    add(PlainText("${user.screenName}有新消息：\n$rawText"))
+                                    add(PlainText("微博${user.screenName}有新动态：\n$rawText"))
                                     addAll(pics.mapNotNull { pid ->
                                         runCatching {
                                             weiboClient.useHttpClient<InputStream> { it.get(pid.large.url) }.uploadAsImage(contact)
