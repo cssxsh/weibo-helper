@@ -76,7 +76,7 @@ object WeiboCommand : CompositeCommand(
                                     add(PlainText("微博${user.screenName}有新动态：\n$rawText"))
                                     addAll(pics.mapNotNull { pid ->
                                         runCatching {
-                                            weiboClient.useHttpClient<InputStream> { it.get(pid.large.url) }.uploadAsImage(contact)
+                                            weiboClient.useHttpClient<ByteArray> { it.get(pid.large.url) }.inputStream().uploadAsImage(contact)
                                         }.getOrNull()
                                     })
                                 }.asMessageChain())
