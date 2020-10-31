@@ -1,0 +1,15 @@
+# Project exclude paths
+**/.gradle/
+**/build/
+
+# idea
+/.idea/
+
+# mirai
+/data/
+/plugins/
+/logs/
+/test/
+
+# temp
+/temp/
