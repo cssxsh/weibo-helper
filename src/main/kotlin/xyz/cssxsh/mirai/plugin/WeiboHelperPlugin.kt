@@ -20,10 +20,6 @@ object WeiboHelperPlugin : KotlinPlugin(
     }
 ) {
 
-    @ConsoleExperimentalApi
-    override val autoSaveIntervalMillis: LongRange
-        get() = 3.minutesToMillis..30.hoursToMillis
-
     override fun onEnable() {
         WeiboTaskData.reload()
         WeiboCommand.onInit()

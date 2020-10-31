@@ -3,7 +3,7 @@
 object Versions {
     // mirai
     const val core = "1.3.2"
-    const val console = "1.0-RC-dev-31"
+    const val console = "1.0-RC-1"
     // kotlin
     const val kotlin = "1.4.10"
     const val serialization = "1.0-M1-1.4.0-rc"
