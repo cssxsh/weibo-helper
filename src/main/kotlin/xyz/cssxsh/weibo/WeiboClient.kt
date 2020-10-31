@@ -10,19 +10,28 @@ import io.ktor.client.features.json.serializer.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 
-class WeiboClient(cookies: Map<String, String> = emptyMap()) {
+class WeiboClient(initCookies: Map<String, String> = emptyMap()) {
 
     private val cookiesStorage = AcceptAllCookiesStorage().apply {
         runBlocking {
-            cookies.forEach { (name, value) ->
+            initCookies.forEach { (name, value) ->
                 addCookie("https://m.weibo.cn/", Cookie(name = name, value = value))
             }
         }
     }
 
+    companion object {
+        private val KOTLINX_SERIALIZER = KotlinxSerializer(kotlinx.serialization.json.Json {
+            prettyPrint = true
+            ignoreUnknownKeys = true
+            isLenient = true
+            allowStructuredMapKeys = true
+        })
+    }
+
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = HttpClient(OkHttp) {
         install(JsonFeature) {
-            serializer = KotlinxSerializer()
+            serializer = KOTLINX_SERIALIZER
         }
         install(HttpTimeout) {
             socketTimeoutMillis = 30_000
