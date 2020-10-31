@@ -24,7 +24,6 @@ import xyz.cssxsh.mirai.plugin.data.WeiboTaskData.minIntervalMillis
 import xyz.cssxsh.weibo.WeiboClient
 import xyz.cssxsh.weibo.api.cardData
 import xyz.cssxsh.weibo.api.getBlogs
-import java.io.InputStream
 import kotlin.coroutines.CoroutineContext
 
 object WeiboCommand : CompositeCommand(
@@ -61,6 +60,19 @@ object WeiboCommand : CompositeCommand(
         }
     }
 
+    private suspend fun List<Any>.sendMessageToTaskContacts(uid: Long) = taskContacts.getValue(uid).forEach { contact ->
+        contact.runCatching {
+            sendMessage(map {
+                when(it) {
+                    is String -> PlainText(it)
+                    is Message -> it
+                    is ByteArray -> it.inputStream().uploadAsImage(contact)
+                    else -> PlainText(it.toString())
+                }
+            }.asMessageChain())
+        }
+    }
+
     private fun addListener(uid: Long): Job = launch {
         while (isActive) {
             runCatching {
@@ -70,18 +82,17 @@ object WeiboCommand : CompositeCommand(
                     }.filter {
                         it.id.toLong() > WeiboTaskData.tasks.getOrPut(uid) { WeiboTaskData.TaskInfo() }.last
                     }.forEach { blog ->
-                        taskContacts.getValue(uid).forEach { contact ->
-                            blog.runCatching {
-                                contact.sendMessage(buildList<Message> {
-                                    add(PlainText("微博${user.screenName}有新动态：\n$rawText"))
-                                    addAll(pics.mapNotNull { pid ->
-                                        runCatching {
-                                            weiboClient.useHttpClient<ByteArray> { it.get(pid.large.url) }.inputStream().uploadAsImage(contact)
-                                        }.getOrNull()
-                                    })
-                                }.asMessageChain())
-                            }
-                        }
+                        buildList<Any> {
+                            add(buildString {
+                                appendLine("微博${blog.user.screenName}有新动态：")
+                                append(blog.rawText)
+                            })
+                            addAll(blog.pics.mapNotNull { pid ->
+                                runCatching {
+                                    weiboClient.useHttpClient<ByteArray> { it.get(pid.large.url) }
+                                }.getOrNull()
+                            })
+                        }.sendMessageToTaskContacts(uid)
                     }
                     maxByOrNull { it.id.toLong() }?.let { blog ->
                         logger.verbose("(${uid})[${blog.user.screenName}]>最新微博号为<${blog.id}>")
