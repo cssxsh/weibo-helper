@@ -10,7 +10,7 @@ import io.ktor.client.features.json.serializer.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 
-class WeiboClient(initCookies: Map<String, String> = emptyMap()) {
+class WeiboClient(initCookies: Map<String, String>) {
 
     private val cookiesStorage = AcceptAllCookiesStorage().apply {
         runBlocking {
@@ -44,9 +44,7 @@ class WeiboClient(initCookies: Map<String, String> = emptyMap()) {
             identity()
         }
         install(HttpCookies) {
-            default {
-                storage = cookiesStorage
-            }
+            storage = cookiesStorage
         }
         BrowserUserAgent()
     }.use { block(it) }

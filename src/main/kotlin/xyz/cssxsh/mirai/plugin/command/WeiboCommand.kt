@@ -46,7 +46,7 @@ object WeiboCommand : CompositeCommand(
 
     private val intervalMillis = minIntervalMillis..maxIntervalMillis
 
-    private val weiboClient = WeiboClient()
+    private val weiboClient = WeiboClient(emptyMap())
 
     private fun WeiboTaskData.TaskInfo.getContacts(bot: Bot): Set<Contact> =
         (bot.groups.filter { it.id in groups } + bot.friends.filter { it.id in friends }).toSet()
