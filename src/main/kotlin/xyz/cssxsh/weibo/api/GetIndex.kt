@@ -36,8 +36,18 @@ fun CardData.getBlogs(): List<Blog> = data.cards.mapNotNull {
     it.jsonObject["mblog"]?.jsonObject
 }.map {
     when(it["mblogtype"]?.jsonPrimitive?.content) {
-        "0" -> Json.decodeFromJsonElement(TextBlog.serializer(), it)
-        "2" -> Json.decodeFromJsonElement(VideoBlog.serializer(), it)
+        "0" -> Json {
+            prettyPrint = true
+            ignoreUnknownKeys = true
+            isLenient = true
+            allowStructuredMapKeys = true
+        }.decodeFromJsonElement(TextBlog.serializer(), it)
+        "2" -> Json {
+            prettyPrint = true
+            ignoreUnknownKeys = true
+            isLenient = true
+            allowStructuredMapKeys = true
+        }.decodeFromJsonElement(VideoBlog.serializer(), it)
         else -> throw IllegalArgumentException("未知类型, json: $it")
     }
 }

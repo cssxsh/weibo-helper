@@ -9,6 +9,7 @@ import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 class WeiboClient(initCookies: Map<String, String>) {
 
@@ -21,7 +22,7 @@ class WeiboClient(initCookies: Map<String, String>) {
     }
 
     companion object {
-        private val KOTLINX_SERIALIZER = KotlinxSerializer(kotlinx.serialization.json.Json {
+        private val KOTLINX_SERIALIZER = KotlinxSerializer(Json {
             prettyPrint = true
             ignoreUnknownKeys = true
             isLenient = true
