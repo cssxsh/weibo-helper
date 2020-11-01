@@ -112,5 +112,7 @@ data class TextBlog(
     @SerialName("version")
     val version: Int? = null,
     @SerialName("weibo_position")
-    val weiboPosition: Int
+    val weiboPosition: Int,
+    @SerialName("attitude_dynamic_adid")
+    val attitudeDynamicAdId: String? = null
 ): Blog
