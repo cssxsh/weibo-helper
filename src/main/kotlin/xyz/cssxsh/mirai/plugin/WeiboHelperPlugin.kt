@@ -6,9 +6,6 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.plugin.jvm.JvmPlugin
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.console.util.ConsoleExperimentalApi
-import net.mamoe.mirai.utils.hoursToMillis
-import net.mamoe.mirai.utils.minutesToMillis
 import xyz.cssxsh.mirai.plugin.command.WeiboCommand
 import xyz.cssxsh.mirai.plugin.data.WeiboTaskData
 
