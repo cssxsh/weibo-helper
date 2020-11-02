@@ -62,7 +62,7 @@ data class TextBlog(
     @SerialName("more_info_type")
     val moreInfoType: Int,
     @SerialName("number_display_strategy")
-    val numberDisplayStrategy: NumberDisplayStrategy,
+    val numberDisplayStrategy: NumberDisplayStrategy? = null,
     @SerialName("original_pic")
     val originalPic: String? = null,
     @SerialName("obj_ext")
