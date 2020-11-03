@@ -19,8 +19,6 @@ import net.mamoe.mirai.message.data.asMessageChain
 import net.mamoe.mirai.message.uploadAsImage
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin
 import xyz.cssxsh.mirai.plugin.data.WeiboTaskData
-import xyz.cssxsh.mirai.plugin.data.WeiboTaskData.maxIntervalMillis
-import xyz.cssxsh.mirai.plugin.data.WeiboTaskData.minIntervalMillis
 import xyz.cssxsh.weibo.WeiboClient
 import xyz.cssxsh.weibo.api.cardData
 import xyz.cssxsh.weibo.api.getBlogs
@@ -43,8 +41,6 @@ object WeiboCommand : CompositeCommand(
     private val taskJobs = mutableMapOf<Long, Job>()
 
     private val taskContacts = mutableMapOf<Long, Set<Contact>>()
-
-    private val intervalMillis = minIntervalMillis..maxIntervalMillis
 
     private val weiboClient = WeiboClient(emptyMap())
 
@@ -74,6 +70,9 @@ object WeiboCommand : CompositeCommand(
     }
 
     private fun addListener(uid: Long): Job = launch {
+        val intervalMillis = WeiboTaskData.tasks.getValue(uid).run {
+            minIntervalMillis..maxIntervalMillis
+        }
         while (isActive) {
             runCatching {
                 weiboClient.cardData(uid).getBlogs().apply {
@@ -102,13 +101,12 @@ object WeiboCommand : CompositeCommand(
                     }
                 }
             }.onSuccess {
-                (intervalMillis.random()).let {
+                delay(intervalMillis.random().also {
                     logger.info("(${uid}): ${WeiboTaskData.tasks[uid]}监听任务完成一次, 即将进入延时delay(${it}ms)。")
-                    delay(it)
-                }
+                })
             }.onFailure {
                 logger.warning("(${uid})监听任务执行失败", it)
-                delay(minIntervalMillis)
+                delay(intervalMillis.last)
             }
         }
     }.also { logger.info("添加对${uid}的监听任务, 添加完成${it}") }
