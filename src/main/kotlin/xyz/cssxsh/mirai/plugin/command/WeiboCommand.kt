@@ -73,7 +73,7 @@ object WeiboCommand : CompositeCommand(
         val intervalMillis = WeiboTaskData.tasks.getValue(uid).run {
             minIntervalMillis..maxIntervalMillis
         }
-        while (isActive) {
+        while (isActive && taskContacts[uid].isNullOrEmpty().not()) {
             runCatching {
                 weiboClient.cardData(uid).getBlogs().apply {
                     sortedBy {
@@ -150,7 +150,6 @@ object WeiboCommand : CompositeCommand(
         taskContacts.removeUid(uid, fromEvent.subject)
         taskJobs.compute(uid) { _, job ->
             if (taskContacts[uid].isNullOrEmpty()) {
-                job?.cancel()
                 WeiboTaskData.tasks.remove(uid)
                 null
             } else {
