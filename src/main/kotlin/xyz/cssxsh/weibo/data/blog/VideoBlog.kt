@@ -34,7 +34,7 @@ data class VideoBlog(
     @SerialName("edit_count")
     val editCount: Int? = null,
     @SerialName("enable_comment_guide")
-    val enableCommentGuide: Boolean,
+    val enableCommentGuide: Boolean? = null,
     @SerialName("extern_safe")
     val externSafe: Int,
     @SerialName("expire_time")
