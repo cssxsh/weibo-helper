@@ -50,9 +50,8 @@ object WeiboCommand : CompositeCommand(
     fun onInit() = WeiboHelperPlugin.subscribeAlways<BotOnlineEvent> {
         logger.info("开始初始化${bot}联系人列表")
         WeiboTaskData.tasks.toMap().forEach { (uid, info) ->
-            taskContacts[uid] = info.getContacts(bot).also {
-                if (it.isNotEmpty()) addListener(uid)
-            }
+            taskContacts[uid] = info.getContacts(bot)
+            addListener(uid)
         }
     }
 
