@@ -14,7 +14,7 @@ data class CardData(
     @Serializable
     data class Data(
         @SerialName("banners")
-        val banners: JsonElement?,
+        val banners: JsonElement? = null,
         @SerialName("cardlistInfo")
         val cardListInfo: CardListInfo,
         @SerialName("cards")
