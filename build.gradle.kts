@@ -1,3 +1,4 @@
+
 plugins {
     kotlin("jvm") version Versions.kotlin
     kotlin("plugin.serialization") version Versions.kotlin
@@ -61,11 +62,10 @@ tasks {
     }
 
     shadowJar {
-        val block: com.github.jengelman.gradle.plugins.shadow.internal.DependencyFilter.() -> Unit = {
+        dependencies {
             exclude { "org.jetbrains" in it.moduleGroup }
             exclude { "net.mamoe" in it.moduleGroup }
         }
-        dependencies(block)
     }
 
     compileKotlin {
