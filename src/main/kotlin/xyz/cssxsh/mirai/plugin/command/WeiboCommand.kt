@@ -27,7 +27,7 @@ import kotlin.coroutines.CoroutineContext
 object WeiboCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "weibo", "微博",
-    description = "缓存指令",
+    description = "微博指令",
 ), CoroutineScope {
 
     @ExperimentalCommandDescriptors
