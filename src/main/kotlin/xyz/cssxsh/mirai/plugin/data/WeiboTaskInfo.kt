@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import net.mamoe.mirai.utils.minutesToMillis
 
 @Serializable
-data class TaskInfo(
+data class WeiboTaskInfo(
     @SerialName("last")
     val last: Long = 0,
     @SerialName("min_interval_millis")

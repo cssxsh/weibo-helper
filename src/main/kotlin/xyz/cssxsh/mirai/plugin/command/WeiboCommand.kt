@@ -19,7 +19,7 @@ import net.mamoe.mirai.message.data.asMessageChain
 import net.mamoe.mirai.message.uploadAsImage
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
-import xyz.cssxsh.mirai.plugin.data.TaskInfo
+import xyz.cssxsh.mirai.plugin.data.WeiboTaskInfo
 import xyz.cssxsh.mirai.plugin.data.WeiboTaskData.tasks
 import xyz.cssxsh.weibo.WeiboClient
 import xyz.cssxsh.weibo.api.cardData
@@ -44,7 +44,7 @@ object WeiboCommand : CompositeCommand(
 
     private val weiboClient = WeiboClient(emptyMap())
 
-    private fun TaskInfo.getContacts(bot: Bot): Set<Contact> =
+    private fun WeiboTaskInfo.getContacts(bot: Bot): Set<Contact> =
         (bot.groups.filter { it.id in groups } + bot.friends.filter { it.id in friends }).toSet()
 
     fun onInit() = WeiboHelperPlugin.subscribeAlways<BotOnlineEvent> {
@@ -78,7 +78,7 @@ object WeiboCommand : CompositeCommand(
                     sortedBy {
                         it.id.toLong()
                     }.filter {
-                        it.id.toLong() > tasks.getOrPut(uid) { TaskInfo() }.last
+                        it.id.toLong() > tasks.getOrPut(uid) { WeiboTaskInfo() }.last
                     }.forEach { blog ->
                         buildList<Any> {
                             add(buildString {
@@ -113,7 +113,7 @@ object WeiboCommand : CompositeCommand(
     private fun MutableMap<Long, Set<Contact>>.addUid(uid: Long, subject: Contact) = compute(uid) { _, list ->
         (list ?: emptySet()) + subject.also { contact ->
             tasks.compute(uid) { _, info ->
-                (info ?: TaskInfo()).run {
+                (info ?: WeiboTaskInfo()).run {
                     when (contact) {
                         is Friend -> copy(friends = friends + contact.id)
                         is Group -> copy(groups = groups + contact.id)
