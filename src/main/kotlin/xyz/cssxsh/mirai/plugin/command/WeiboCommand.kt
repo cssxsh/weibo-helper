@@ -18,7 +18,9 @@ import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.asMessageChain
 import net.mamoe.mirai.message.uploadAsImage
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin
-import xyz.cssxsh.mirai.plugin.data.WeiboTaskData
+import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
+import xyz.cssxsh.mirai.plugin.data.TaskInfo
+import xyz.cssxsh.mirai.plugin.data.WeiboTaskData.tasks
 import xyz.cssxsh.weibo.WeiboClient
 import xyz.cssxsh.weibo.api.cardData
 import xyz.cssxsh.weibo.api.getBlogs
@@ -34,8 +36,6 @@ object WeiboCommand : CompositeCommand(
     @ConsoleExperimentalApi
     override val prefixOptional: Boolean = true
 
-    private val logger get() = WeiboHelperPlugin.logger
-
     override val coroutineContext: CoroutineContext = CoroutineName("Weibo-Listener")
 
     private val taskJobs = mutableMapOf<Long, Job>()
@@ -44,12 +44,12 @@ object WeiboCommand : CompositeCommand(
 
     private val weiboClient = WeiboClient(emptyMap())
 
-    private fun WeiboTaskData.TaskInfo.getContacts(bot: Bot): Set<Contact> =
+    private fun TaskInfo.getContacts(bot: Bot): Set<Contact> =
         (bot.groups.filter { it.id in groups } + bot.friends.filter { it.id in friends }).toSet()
 
     fun onInit() = WeiboHelperPlugin.subscribeAlways<BotOnlineEvent> {
         logger.info("开始初始化${bot}联系人列表")
-        WeiboTaskData.tasks.toMap().forEach { (uid, info) ->
+        tasks.toMap().forEach { (uid, info) ->
             taskContacts[uid] = info.getContacts(bot)
             addListener(uid)
         }
@@ -69,7 +69,7 @@ object WeiboCommand : CompositeCommand(
     }
 
     private fun addListener(uid: Long): Job = launch {
-        val intervalMillis = WeiboTaskData.tasks.getValue(uid).run {
+        val intervalMillis = tasks.getValue(uid).run {
             minIntervalMillis..maxIntervalMillis
         }
         while (isActive && taskContacts[uid].isNullOrEmpty().not()) {
@@ -78,7 +78,7 @@ object WeiboCommand : CompositeCommand(
                     sortedBy {
                         it.id.toLong()
                     }.filter {
-                        it.id.toLong() > WeiboTaskData.tasks.getOrPut(uid) { WeiboTaskData.TaskInfo() }.last
+                        it.id.toLong() > tasks.getOrPut(uid) { TaskInfo() }.last
                     }.forEach { blog ->
                         buildList<Any> {
                             add(buildString {
@@ -94,14 +94,14 @@ object WeiboCommand : CompositeCommand(
                     }
                     maxByOrNull { it.id.toLong() }?.let { blog ->
                         logger.verbose("(${uid})[${blog.user.screenName}]>最新微博号为<${blog.id}>")
-                        WeiboTaskData.tasks.compute(uid) { _, info ->
+                        tasks.compute(uid) { _, info ->
                             info?.copy(last = blog.id.toLong())
                         }
                     }
                 }
             }.onSuccess {
                 delay(intervalMillis.random().also {
-                    logger.info("(${uid}): ${WeiboTaskData.tasks[uid]}监听任务完成一次, 即将进入延时delay(${it}ms)。")
+                    logger.info("(${uid}): ${tasks[uid]}监听任务完成一次, 即将进入延时delay(${it}ms)。")
                 })
             }.onFailure {
                 logger.warning("(${uid})监听任务执行失败", it)
@@ -112,8 +112,8 @@ object WeiboCommand : CompositeCommand(
 
     private fun MutableMap<Long, Set<Contact>>.addUid(uid: Long, subject: Contact) = compute(uid) { _, list ->
         (list ?: emptySet()) + subject.also { contact ->
-            WeiboTaskData.tasks.compute(uid) { _, info ->
-                (info ?: WeiboTaskData.TaskInfo()).run {
+            tasks.compute(uid) { _, info ->
+                (info ?: TaskInfo()).run {
                     when (contact) {
                         is Friend -> copy(friends = friends + contact.id)
                         is Group -> copy(groups = groups + contact.id)
@@ -125,10 +125,8 @@ object WeiboCommand : CompositeCommand(
     }
 
     private fun MutableMap<Long, Set<Contact>>.removeUid(uid: Long, subject: Contact) = compute(uid) { _, list ->
-        (list ?: emptySet()) - subject.also {
-            WeiboTaskData.tasks.remove(uid)
-        }
-    }
+        (list ?: emptySet()) - subject
+    }.also { tasks.remove(uid) }
 
     @SubCommand("task", "订阅")
     @Suppress("unused")
@@ -149,7 +147,7 @@ object WeiboCommand : CompositeCommand(
         taskContacts.removeUid(uid, fromEvent.subject)
         taskJobs.compute(uid) { _, job ->
             if (taskContacts[uid].isNullOrEmpty()) {
-                WeiboTaskData.tasks.remove(uid)
+                tasks.remove(uid)
                 null
             } else {
                 job
@@ -166,7 +164,7 @@ object WeiboCommand : CompositeCommand(
     suspend fun CommandSenderOnMessage<MessageEvent>.list() = runCatching {
         buildString {
             appendLine("监听状态:")
-            WeiboTaskData.tasks.toMap().forEach { (uid, info) ->
+            tasks.toMap().forEach { (uid, info) ->
                 if (fromEvent.subject.id in info.groups + info.friends) {
                     appendLine("$uid -> ${taskJobs.getValue(uid)}")
                 }
