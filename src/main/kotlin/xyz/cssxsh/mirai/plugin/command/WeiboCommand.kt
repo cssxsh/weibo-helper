@@ -87,11 +87,15 @@ object WeiboCommand : CompositeCommand(
                                 appendLine("链接: https://m.weibo.cn/detail/${blog.id}")
                                 appendLine(blog.rawText)
                             })
-                            addAll(blog.pics.mapNotNull { pid ->
+                            blog.pics.forEach { pic ->
                                 runCatching {
-                                    weiboClient.useHttpClient<ByteArray> { it.get(pid.large.url) }
-                                }.getOrNull()
-                            })
+                                    weiboClient.useHttpClient<ByteArray> { it.get(pic.large.url) }
+                                }.onSuccess {
+                                    add(it)
+                                }.onFailure {
+                                    logger.warning("微博图片下载失败: ${pic.large.url}", it)
+                                }
+                            }
                         }.sendMessageToTaskContacts(uid)
                     }
                     maxByOrNull { it.id.toLong() }?.let { blog ->
