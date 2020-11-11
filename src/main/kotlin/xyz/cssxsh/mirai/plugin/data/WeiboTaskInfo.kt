@@ -7,7 +7,7 @@ import net.mamoe.mirai.utils.minutesToMillis
 @Serializable
 data class WeiboTaskInfo(
     @SerialName("last")
-    val last: Long = 0,
+    val last: Long = 9999999999999999L,
     @SerialName("min_interval_millis")
     val minIntervalMillis: Long = 5.minutesToMillis,
     @SerialName("max_interval_millis")
