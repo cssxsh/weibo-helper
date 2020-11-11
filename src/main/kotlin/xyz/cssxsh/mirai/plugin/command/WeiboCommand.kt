@@ -82,8 +82,10 @@ object WeiboCommand : CompositeCommand(
                     }.forEach { blog ->
                         buildList<Any> {
                             add(buildString {
-                                appendLine("微博${blog.user.screenName}有新动态：")
-                                append(blog.rawText)
+                                appendLine("微博 ${blog.user.screenName} 有新动态：")
+                                appendLine("时间: ${blog.createdAt}")
+                                appendLine("链接: https://m.weibo.cn/detail/${blog.id}")
+                                appendLine(blog.rawText)
                             })
                             addAll(blog.pics.mapNotNull { pid ->
                                 runCatching {
