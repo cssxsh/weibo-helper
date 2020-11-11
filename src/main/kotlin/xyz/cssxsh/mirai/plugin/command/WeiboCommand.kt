@@ -78,7 +78,7 @@ object WeiboCommand : CompositeCommand(
                     sortedBy {
                         it.id.toLong()
                     }.filter {
-                        it.id.toLong() > tasks.getOrPut(uid) { WeiboTaskInfo() }.last
+                        it.id.toLong() > tasks.getValue(uid).last
                     }.forEach { blog ->
                         buildList<Any> {
                             add(buildString {
