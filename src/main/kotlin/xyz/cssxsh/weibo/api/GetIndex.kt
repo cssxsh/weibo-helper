@@ -2,15 +2,13 @@ package xyz.cssxsh.weibo.api
 
 import io.ktor.client.request.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import xyz.cssxsh.weibo.WeiboClient
 import xyz.cssxsh.weibo.data.CardData
-import xyz.cssxsh.weibo.data.BlogCard
 import xyz.cssxsh.weibo.data.UserData
-import xyz.cssxsh.weibo.data.blog.Blog
-import xyz.cssxsh.weibo.data.blog.TextBlog
-import xyz.cssxsh.weibo.data.blog.VideoBlog
+import xyz.cssxsh.weibo.data.blog.*
 
 suspend fun WeiboClient.userData(
     uid: Long,
@@ -32,22 +30,24 @@ suspend fun WeiboClient.cardData(
     }
 }
 
-fun CardData.getBlogs(): List<Blog> = data.cards.mapNotNull {
-    it.jsonObject["mblog"]?.jsonObject
-}.map {
-    when(it["mblogtype"]?.jsonPrimitive?.content) {
-        "0" -> Json {
+fun CardData.getBlogs(
+    ignore: (JsonObject, Throwable) -> Boolean = { _, _ -> true }
+): List<Blog> = data.cards.mapNotNull { it.jsonObject["mblog"]?.jsonObject }.map { jsonObject ->
+    runCatching {
+        when(jsonObject.getValue("mblogtype").jsonPrimitive.content) {
+            "0" -> Json.decodeFromJsonElement(TextBlog.serializer(), jsonObject)
+            "1" -> Json.decodeFromJsonElement(PicBlog.serializer(), jsonObject)
+            "2" -> Json.decodeFromJsonElement(VideoBlog.serializer(), jsonObject)
+            else -> throw IllegalArgumentException("未知类型, json: $jsonObject")
+        }
+    }.onFailure {
+        if (ignore(jsonObject, it).not()) throw it
+    }.getOrElse {
+        Json {
             prettyPrint = true
             ignoreUnknownKeys = true
             isLenient = true
             allowStructuredMapKeys = true
-        }.decodeFromJsonElement(TextBlog.serializer(), it)
-        "2" -> Json {
-            prettyPrint = true
-            ignoreUnknownKeys = true
-            isLenient = true
-            allowStructuredMapKeys = true
-        }.decodeFromJsonElement(VideoBlog.serializer(), it)
-        else -> throw IllegalArgumentException("未知类型, json: $it")
+        }.decodeFromJsonElement(TempBlog.serializer(), jsonObject)
     }
 }

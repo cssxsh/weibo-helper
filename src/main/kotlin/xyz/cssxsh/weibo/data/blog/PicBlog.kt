@@ -2,13 +2,14 @@ package xyz.cssxsh.weibo.data.blog
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 
 /**
- * mBlogType = 0
+ * mBlogType = 1
  */
 @Serializable
-data class TextBlog(
+data class PicBlog(
+    @SerialName("ad_state")
+    val adState: Int,
     @SerialName("alchemy_params")
     val alchemyParams: AlchemyParams,
     @SerialName("attitudes_count")
@@ -16,7 +17,7 @@ data class TextBlog(
     @SerialName("bid")
     val bid: String,
     @SerialName("bmiddle_pic")
-    val bMiddlePic: String? = null,
+    val bMiddlePic: String,
     @SerialName("can_edit")
     val canEdit: Boolean,
     @SerialName("comments_count")
@@ -33,12 +34,12 @@ data class TextBlog(
     val editCount: Int? = null,
     @SerialName("enable_comment_guide")
     val enableCommentGuide: Boolean? = null,
+    @SerialName("expire_time")
+    val expireTime: Int,
     @SerialName("extern_safe")
     val externSafe: Int,
     @SerialName("favorited")
     val favorited: Boolean,
-    @SerialName("fid")
-    val fid: Long? = null,
     @SerialName("hide_flag")
     val hideFlag: Int,
     @SerialName("id")
@@ -49,10 +50,12 @@ data class TextBlog(
     val isLongText: Boolean,
     @SerialName("is_paid")
     val isPaid: Boolean,
+    @SerialName("isTop")
+    val isTop: Int,
     @SerialName("is_imported_topic")
     val isImportedTopic: Boolean? = null,
     @SerialName("mark")
-    val mark: String? = null,
+    val mark: String,
     @SerialName("mblog_menu_new_style")
     val mBlogMenuNewStyle: Int,
     @SerialName("mblog_vip_type")
@@ -68,25 +71,17 @@ data class TextBlog(
     @SerialName("number_display_strategy")
     val numberDisplayStrategy: NumberDisplayStrategy? = null,
     @SerialName("original_pic")
-    val originalPic: String? = null,
-    @SerialName("obj_ext")
-    val objExt: String? = null,
-    @SerialName("page_info")
-    val pageInfo: JsonElement? = null,
+    val originalPic: String,
     @SerialName("pending_approval_count")
     val pendingApprovalCount: Int,
     @SerialName("pic_num")
     val picNum: Int,
     @SerialName("picStatus")
-    val picStatus: String? = null,
+    val picStatus: String,
     @SerialName("pic_types")
-    val picTypes: String? = null,
+    val picTypes: String,
     @SerialName("pics")
-    override val pics: List<Pic> = emptyList(),
-    @SerialName("pid")
-    val pid: Long? = null,
-    @SerialName("pidstr")
-    val pidStr: String? = null,
+    override val pics: List<Pic>,
     @SerialName("raw_text")
     override val rawText: String,
     @SerialName("readtimetype")
@@ -96,15 +91,9 @@ data class TextBlog(
     @SerialName("reward_exhibition_type")
     val rewardExhibitionType: Int,
     @SerialName("reward_scheme")
-    val rewardScheme: JsonElement? = null,
-    @SerialName("retweeted_status")
-    val retweetedStatus: JsonElement? = null,
-    @SerialName("repost_type")
-    val repostType: Int? = null,
+    val rewardScheme: String,
     @SerialName("rid")
     val rid: String? = null,
-    @SerialName("safe_tags")
-    val safeTags: Int? = null,
     @SerialName("show_additional_indication")
     val showAdditionalIndication: Int,
     @SerialName("show_attitude_bar")
@@ -116,19 +105,19 @@ data class TextBlog(
     @SerialName("text")
     val text: String,
     @SerialName("textLength")
-    val textLength: Int? = null,
+    val textLength: Int,
     @SerialName("thumbnail_pic")
-    val thumbnailPic: String? = null,
+    val thumbnailPic: String,
+    @SerialName("title")
+    val title: Title,
     @SerialName("topic_id")
     val topicId: String? = null,
     @SerialName("user")
     override val user: User,
+    @SerialName("version")
+    val version: Int,
     @SerialName("visible")
     val visible: Visible,
-    @SerialName("version")
-    val version: Int? = null,
     @SerialName("weibo_position")
-    val weiboPosition: Int,
-    @SerialName("attitude_dynamic_adid")
-    val attitudeDynamicAdId: String? = null
-): Blog
+    val weiboPosition: Int
+) : Blog

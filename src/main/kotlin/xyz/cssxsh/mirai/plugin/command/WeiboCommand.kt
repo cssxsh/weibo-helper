@@ -77,7 +77,10 @@ object WeiboCommand : CompositeCommand(
         delay(tasks.getValue(uid).getInterval().random())
         while (isActive && taskContacts[uid].isNullOrEmpty().not()) {
             runCatching {
-                weiboClient.cardData(uid).getBlogs().apply {
+                weiboClient.cardData(uid).getBlogs { jsonObject, throwable ->
+                    logger.warning({ "微博解码失败${jsonObject}" }, throwable)
+                    true
+                }.apply {
                     sortedBy {
                         it.id.toLong()
                     }.filter {

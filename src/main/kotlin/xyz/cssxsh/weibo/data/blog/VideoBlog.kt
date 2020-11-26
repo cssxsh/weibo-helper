@@ -26,7 +26,7 @@ data class VideoBlog(
     @SerialName("content_auth")
     val contentAuth: Int,
     @SerialName("created_at")
-    val createdAt: String,
+    override val createdAt: String,
     @SerialName("edit_at")
     val editAt: String? = null,
     @SerialName("edit_config")
@@ -55,6 +55,8 @@ data class VideoBlog(
     val isPaid: Boolean,
     @SerialName("isTop")
     val isTop: Int,
+    @SerialName("is_imported_topic")
+    val isImportedTopic: Boolean? = null,
     @SerialName("number_display_strategy")
     val numberDisplayStrategy: NumberDisplayStrategy? = null,
     @SerialName("mark")
@@ -64,7 +66,7 @@ data class VideoBlog(
     @SerialName("mblog_vip_type")
     val mBlogVipType: Int,
     @SerialName("mblogtype")
-    val mBlogType: Int,
+    override val mBlogType: Int,
     @SerialName("mid")
     val mid: String,
     @SerialName("mlevel")
@@ -81,6 +83,8 @@ data class VideoBlog(
     val pendingApprovalCount: Int,
     @SerialName("pic_num")
     val picNum: Int,
+    @SerialName("picStatus")
+    val picStatus: String? = null,
     @SerialName("pic_types")
     val picTypes: String,
     @SerialName("pics")
@@ -96,7 +100,9 @@ data class VideoBlog(
     @SerialName("reward_exhibition_type")
     val rewardExhibitionType: Int,
     @SerialName("reward_scheme")
-    val rewardScheme: JsonElement? = null,
+    val rewardScheme: String? = null,
+    @SerialName("rid")
+    val rid: String? = null,
     @SerialName("safe_tags")
     val safeTags: Int? = null,
     @SerialName("show_additional_indication")
@@ -105,6 +111,8 @@ data class VideoBlog(
     val showAttitudeBar: Int,
     @SerialName("source")
     val source: String,
+    @SerialName("sync_mblog")
+    val syncMBlog: Boolean? = null,
     @SerialName("text")
     val text: String,
     @SerialName("textLength")
@@ -115,6 +123,8 @@ data class VideoBlog(
     val timestampText: String? = null,
     @SerialName("thumbnail_pic")
     val thumbnailPic: String? = null,
+    @SerialName("topic_id")
+    val topicId: String? = null,
     @SerialName("user")
     override val user: User,
     @SerialName("version")
