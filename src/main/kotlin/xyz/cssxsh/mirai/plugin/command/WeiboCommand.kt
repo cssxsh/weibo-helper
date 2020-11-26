@@ -71,10 +71,10 @@ object WeiboCommand : CompositeCommand(
         }
     }
 
+    private fun WeiboTaskInfo.getInterval() = minIntervalMillis..maxIntervalMillis
+
     private fun addListener(uid: Long): Job = launch {
-        val intervalMillis = tasks.getValue(uid).run {
-            minIntervalMillis..maxIntervalMillis
-        }
+        delay(tasks.getValue(uid).getInterval().random())
         while (isActive && taskContacts[uid].isNullOrEmpty().not()) {
             runCatching {
                 weiboClient.cardData(uid).getBlogs().apply {
@@ -109,12 +109,12 @@ object WeiboCommand : CompositeCommand(
                     }
                 }
             }.onSuccess {
-                delay(intervalMillis.random().also {
-                    logger.info("(${uid}): ${tasks[uid]}监听任务完成一次, 即将进入延时delay(${it}ms)。")
+                delay(tasks.getValue(uid).getInterval().random().also {
+                    logger.info { "(${uid}): ${tasks[uid]}监听任务完成一次, 即将进入延时delay(${it}ms)。" }
                 })
             }.onFailure {
-                logger.warning("(${uid})监听任务执行失败", it)
-                delay(intervalMillis.last)
+                logger.warning({ "(${uid})监听任务执行失败" }, it)
+                delay(tasks.getValue(uid).maxIntervalMillis)
             }
         }
     }.also { logger.info { "添加对(${uid})的监听任务, 添加完成${it}" } }
