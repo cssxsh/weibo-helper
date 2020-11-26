@@ -17,6 +17,9 @@ import net.mamoe.mirai.message.data.Message
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.asMessageChain
 import net.mamoe.mirai.message.uploadAsImage
+import net.mamoe.mirai.utils.info
+import net.mamoe.mirai.utils.verbose
+import net.mamoe.mirai.utils.warning
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
 import xyz.cssxsh.mirai.plugin.data.WeiboTaskInfo
@@ -48,7 +51,7 @@ object WeiboCommand : CompositeCommand(
         (bot.groups.filter { it.id in groups } + bot.friends.filter { it.id in friends }).toSet()
 
     fun onInit() = WeiboHelperPlugin.subscribeAlways<BotOnlineEvent> {
-        logger.info("开始初始化${bot}联系人列表")
+        logger.info { "开始初始化${bot}联系人列表" }
         tasks.toMap().forEach { (uid, info) ->
             taskContacts[uid] = info.getContacts(bot)
             addListener(uid)
@@ -58,7 +61,7 @@ object WeiboCommand : CompositeCommand(
     private suspend fun List<Any>.sendMessageToTaskContacts(uid: Long) = taskContacts.getValue(uid).forEach { contact ->
         contact.runCatching {
             sendMessage(map {
-                when(it) {
+                when (it) {
                     is String -> PlainText(it)
                     is Message -> it
                     is ByteArray -> it.inputStream().uploadAsImage(contact)
@@ -93,13 +96,13 @@ object WeiboCommand : CompositeCommand(
                                 }.onSuccess {
                                     add(it)
                                 }.onFailure {
-                                    logger.warning("微博图片下载失败: ${pic.large.url}", it)
+                                    logger.warning({ "微博图片下载失败: ${pic.large.url}" }, it)
                                 }
                             }
                         }.sendMessageToTaskContacts(uid)
                     }
                     maxByOrNull { it.id.toLong() }?.let { blog ->
-                        logger.verbose("(${uid})[${blog.user.screenName}]>最新微博号为<${blog.id}>")
+                        logger.verbose { "(${uid})[${blog.user.screenName}]最新微博号为<${blog.id}>" }
                         tasks.compute(uid) { _, info ->
                             info?.copy(last = blog.id.toLong())
                         }
@@ -114,7 +117,7 @@ object WeiboCommand : CompositeCommand(
                 delay(intervalMillis.last)
             }
         }
-    }.also { logger.info("添加对(${uid})的监听任务, 添加完成${it}") }
+    }.also { logger.info { "添加对(${uid})的监听任务, 添加完成${it}" } }
 
     private fun MutableMap<Long, Set<Contact>>.addUid(uid: Long, subject: Contact) = compute(uid) { _, list ->
         (list ?: emptySet()) + subject.also { contact ->
