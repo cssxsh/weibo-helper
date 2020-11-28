@@ -106,6 +106,8 @@ data class PicBlog(
     val text: String,
     @SerialName("textLength")
     val textLength: Int,
+    @SerialName("timestamp_text")
+    val timestampText: String? = null,
     @SerialName("thumbnail_pic")
     val thumbnailPic: String,
     @SerialName("title")
