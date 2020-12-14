@@ -33,7 +33,9 @@ data class CardData(
             @SerialName("since_id")
             val sinceId: Long,
             @SerialName("total")
-            val total: Int,
+            val total: Int? = null,
+            @SerialName("page")
+            val page: Int? = null,
             @SerialName("v_p")
             val vP: Int
         )
