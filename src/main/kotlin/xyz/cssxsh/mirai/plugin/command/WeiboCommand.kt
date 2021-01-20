@@ -27,6 +27,10 @@ import xyz.cssxsh.mirai.plugin.data.WeiboTaskData.tasks
 import xyz.cssxsh.weibo.WeiboClient
 import xyz.cssxsh.weibo.api.cardData
 import xyz.cssxsh.weibo.api.getBlogs
+import xyz.cssxsh.weibo.data.blog.Blog
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 object WeiboCommand : CompositeCommand(
@@ -73,6 +77,9 @@ object WeiboCommand : CompositeCommand(
 
     private fun WeiboTaskInfo.getInterval() = minIntervalMillis..maxIntervalMillis
 
+    private fun Blog.createdDateTime(): OffsetDateTime =
+        OffsetDateTime.parse(createdAt, DateTimeFormatter.ofPattern("E MMM d HH:mm:ss Z yyyy", Locale.ENGLISH))
+
     private fun addListener(uid: Long): Job = launch {
         delay(tasks.getValue(uid).getInterval().random())
         while (isActive && taskContacts[uid].isNullOrEmpty().not()) {
@@ -89,7 +96,7 @@ object WeiboCommand : CompositeCommand(
                         buildList<Any> {
                             add(buildString {
                                 appendLine("微博 ${blog.user.screenName} 有新动态：")
-                                appendLine("时间: ${blog.createdAt}")
+                                appendLine("时间: ${blog.createdDateTime()}")
                                 appendLine("链接: https://m.weibo.cn/detail/${blog.id}")
                                 appendLine(blog.rawText)
                             })
