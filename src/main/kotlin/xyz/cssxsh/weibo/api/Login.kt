@@ -1,0 +1,27 @@
+package xyz.cssxsh.weibo.api
+
+import io.ktor.client.request.*
+import kotlinx.serialization.json.Json
+import xyz.cssxsh.weibo.*
+import xyz.cssxsh.weibo.data.*
+import java.nio.charset.Charset
+
+private val SSO_LOGIN_REGEX = """\?ticket=[^"]+""".toRegex()
+
+private val LOGIN_RESULT = """(?<=\()(\{.+})(?=\);)""".toRegex()
+
+suspend fun WeiboClient.login() = useHttpClient { client ->
+    client.get<ByteArray>(WeiboApi.CROSS_DOMAIN) {
+        parameter("action", "login")
+        parameter("entry", "sso")
+        parameter("r", WeiboApi.INDEX_PAGE)
+    }.toString(Charset.forName("GBK")).let { html ->
+        WeiboApi.SSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(html)) { "未找到登录参数 for ${WeiboApi.SSO_LOGIN}" }.value
+    }.let { url ->
+        client.get<String>(url)
+    }.let {
+        Json.decodeFromString(LoginResult.serializer(), requireNotNull(LOGIN_RESULT.find(it)) { "未找到登录结果" }.value)
+    }.also {
+        loginResult = it
+    }
+}

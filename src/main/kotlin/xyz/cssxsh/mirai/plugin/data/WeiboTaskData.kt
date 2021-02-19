@@ -6,6 +6,9 @@ import net.mamoe.mirai.console.data.value
 
 object WeiboTaskData : AutoSavePluginConfig("WeiboTaskData") {
 
-    @ValueName("tasks")
-    val tasks: MutableMap<Long, WeiboTaskInfo> by value(mutableMapOf())
+    @ValueName("users")
+    val users: MutableMap<Long, WeiboTaskInfo> by value(mutableMapOf())
+
+    @ValueName("groups")
+    val groups: MutableMap<Long, WeiboTaskInfo> by value(mutableMapOf())
 }

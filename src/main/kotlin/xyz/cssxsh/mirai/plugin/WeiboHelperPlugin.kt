@@ -1,15 +1,17 @@
 package xyz.cssxsh.mirai.plugin
 
-import com.google.auto.service.AutoService
+import kotlinx.coroutines.*
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
-import net.mamoe.mirai.console.plugin.jvm.JvmPlugin
-import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
-import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import xyz.cssxsh.mirai.plugin.command.WeiboCommand
-import xyz.cssxsh.mirai.plugin.data.WeiboTaskData
+import net.mamoe.mirai.console.plugin.jvm.*
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
+import net.mamoe.mirai.utils.*
+import xyz.cssxsh.mirai.plugin.command.*
+import xyz.cssxsh.mirai.plugin.data.*
+import xyz.cssxsh.weibo.*
+import xyz.cssxsh.weibo.api.*
+import kotlin.time.*
 
-@AutoService(JvmPlugin::class)
 object WeiboHelperPlugin : KotlinPlugin(
     JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "0.1.0-dev-1") {
         name("weibo-helper")
@@ -17,13 +19,43 @@ object WeiboHelperPlugin : KotlinPlugin(
     }
 ) {
 
+    @ConsoleExperimentalApi
+    override val autoSaveIntervalMillis: LongRange
+        get() = (3).minutes.toLongMilliseconds()..(10).minutes.toLongMilliseconds()
+
+    internal lateinit var weiboClient : WeiboClient
+        private set
+
     override fun onEnable() {
         WeiboTaskData.reload()
-        WeiboCommand.onInit()
-        WeiboCommand.register()
+        WeiboHelperSettings.reload()
+
+        weiboClient = WeiboClient(WeiboHelperSettings.initCookies)
+        runBlocking {
+            runCatching {
+                weiboClient.login()
+            }.onSuccess {
+                logger.info { "登陆成功, $it" }
+            }.onFailure {
+                logger.warning({ "登陆失败" }, it)
+            }
+        }
+
+        WeiboSubscriber.start()
+
+        WeiboUserCommand.listener.start()
+        WeiboGroupCommand.listener.start()
+
+        WeiboUserCommand.register()
+        WeiboGroupCommand.register()
     }
 
     override fun onDisable() {
-        WeiboCommand.unregister()
+        WeiboUserCommand.unregister()
+        WeiboGroupCommand.unregister()
+
+        WeiboSubscriber.stop()
+        WeiboUserCommand.listener.stop()
+        WeiboGroupCommand.listener.stop()
     }
 }

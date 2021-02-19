@@ -6,51 +6,54 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class User(
     @SerialName("avatar_hd")
-    val avatarHd: String,
-    @SerialName("badge")
-    val badge: Map<String, Int>,
-    @SerialName("close_blue_v")
-    val closeBlueV: Boolean,
-    @SerialName("cover_image_phone")
-    val coverImagePhone: String,
-    @SerialName("description")
-    val description: String,
-    @SerialName("follow_count")
-    val followCount: Int,
+    val avatarHighDefinition: String,
+    @SerialName("avatar_large")
+    val avatarLarge: String,
+    @SerialName("domain")
+    val domain: String = "",
     @SerialName("follow_me")
     val followMe: Boolean,
-    @SerialName("followers_count")
-    val followersCount: Int,
     @SerialName("following")
     val following: Boolean,
-    @SerialName("gender")
-    val gender: String,
     @SerialName("id")
     val id: Long,
-    @SerialName("like")
-    val like: Boolean,
-    @SerialName("like_me")
-    val likeMe: Boolean,
+    @SerialName("idstr")
+    val idString: String,
     @SerialName("mbrank")
-    val mbrank: Int,
+    val microBlogRank: Int,
     @SerialName("mbtype")
-    val mbtype: Int,
+    val microBlogType: Int,
+    @SerialName("pc_new")
+    val pcNew: Int,
     @SerialName("profile_image_url")
     val profileImageUrl: String,
     @SerialName("profile_url")
     val profileUrl: String,
     @SerialName("screen_name")
     val screenName: String,
-    @SerialName("statuses_count")
-    val statusesCount: Int,
-    @SerialName("urank")
-    val urank: Int,
     @SerialName("verified")
     val verified: Boolean,
-    @SerialName("verified_reason")
-    val verifiedReason: String,
     @SerialName("verified_type")
-    val verifiedType: Int,
+    /**
+     * -1  普通用户;
+     * 0   名人,
+     * 1   政府,
+     * 2   企业,
+     * 3   媒体,
+     * 4   校园,
+     * 5   网站,
+     * 6   应用,
+     * 7   团体（机构）,
+     * 8   待审企业,
+     * 200 初级达人,
+     * 220 中高级达人,
+     * 400 已故V用户。
+     */
+    val verifiedType: Int = -1,
     @SerialName("verified_type_ext")
-    val verifiedTypeExt: Int
+    val verifiedTypeExtend : Int? = null,
+    @SerialName("weihao")
+    val mid: String = "",
+    @SerialName("wenda")
+    val wenda: Int = 0
 )
