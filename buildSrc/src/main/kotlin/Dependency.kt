@@ -10,3 +10,6 @@ fun DependencyHandler.ktor(module: String, version: String= Versions.ktor) =
 
 fun DependencyHandler.mirai(module: String, version: String = "+") =
     "net.mamoe:mirai-$module:$version"
+
+fun DependencyHandler.jsoup(version: String = Versions.jsoup) =
+    "org.jsoup:jsoup:$version"
