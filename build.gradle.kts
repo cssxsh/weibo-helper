@@ -44,7 +44,9 @@ kotlin {
 dependencies {
     implementation(ktor("client-serialization", Versions.ktor))
     implementation(ktor("client-encoding", Versions.ktor))
-    implementation(jsoup(Versions.jsoup))
+    testImplementation(kotlin("test-junit"))
+    testImplementation(junit("api", Versions.junit))
+    testRuntimeOnly(junit("engine", Versions.junit))
 }
 
 tasks {

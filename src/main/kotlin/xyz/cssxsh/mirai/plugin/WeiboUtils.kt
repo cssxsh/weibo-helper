@@ -6,7 +6,6 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
-import org.jsoup.Jsoup
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
 import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.client
 import xyz.cssxsh.mirai.plugin.data.*
@@ -17,15 +16,15 @@ import java.io.File
 import java.time.format.DateTimeFormatter
 
 internal suspend fun SimpleMicroBlog.getContent(): String {
-    return if (isLongText) {
+    return if (continueTag != null) {
         runCatching {
             requireNotNull(client.getLongText(id).data?.content) { "mid: $id" }
         }.getOrElse {
             logger.warning({ "获取微博[${id}]长文本失败" }, it)
-            textRaw ?: Jsoup.parse(text).text()
+            textRaw ?: text
         }
     } else {
-        textRaw ?: Jsoup.parse(text).text()
+        textRaw ?: text
     }
 }
 
