@@ -14,7 +14,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import okhttp3.internal.http2.StreamResetException
 import xyz.cssxsh.weibo.api.*
-import xyz.cssxsh.weibo.data.LoginResult
 import java.io.EOFException
 import java.net.ConnectException
 import java.net.UnknownHostException

@@ -1,14 +1,31 @@
 package xyz.cssxsh.weibo.api
 
 import io.ktor.client.request.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.data.*
 import java.nio.charset.Charset
 
 private val SSO_LOGIN_REGEX = """\?ticket=[^"]+""".toRegex()
 
 private val LOGIN_RESULT = """(?<=\()(\{.+})(?=\);)""".toRegex()
+
+@Serializable
+data class LoginResult(
+    @SerialName("result")
+    val result: Boolean,
+    @SerialName("userinfo")
+    val userinfo: Userinfo
+) {
+    @Serializable
+    data class Userinfo(
+        @SerialName("displayname")
+        val display: String,
+        @SerialName("uniqueid")
+        val uid: Long
+    )
+}
 
 suspend fun WeiboClient.login() = useHttpClient { client ->
     client.get<ByteArray>(WeiboApi.CROSS_DOMAIN) {

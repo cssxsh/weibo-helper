@@ -3,8 +3,7 @@ package xyz.cssxsh.weibo
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import org.jsoup.Jsoup
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
@@ -25,34 +24,22 @@ internal class WeiboClientTest {
         )
     )
 
-    private suspend fun SimpleMicroBlog.getContent(): String {
-        return if (isLongText) {
-            runCatching {
-                requireNotNull(WeiboHelperPlugin.weiboClient.getLongText(id).data) { toString() }.longTextContent!!
-            }.getOrElse {
-                textRaw ?: Jsoup.parse(text).text()
-            }
-        } else {
-            textRaw ?: Jsoup.parse(text).text()
-        }
-    }
-
-    private suspend fun SimpleMicroBlog.buildText() = buildString {
+    private fun SimpleMicroBlog.buildText() = buildString {
         appendLine("微博 $username 有新动态：")
         appendLine("时间: $createdAt")
         appendLine("链接: $url")
-        appendLine(getContent())
-        getImageUrls().forEach {
-            appendLine(it)
+        appendLine(textRaw)
+        pictureInfos.forEach { (_, picture) ->
+            appendLine("${picture.type}-${picture.status}-${picture.original.url}")
         }
         retweeted?.let { retweeted ->
             appendLine("==============================")
             appendLine("@${retweeted.username}")
             appendLine("时间: ${retweeted.createdAt}")
             appendLine("链接: ${retweeted.url}")
-            appendLine(retweeted.getContent())
-            retweeted.getImageUrls().forEach {
-                appendLine(it)
+            appendLine(retweeted.textRaw)
+            retweeted.pictureInfos.forEach { (_, picture) ->
+                appendLine("${picture.type}-${picture.status}-${picture.original.url}")
             }
         }
     }
@@ -60,7 +47,7 @@ internal class WeiboClientTest {
     @Test
     fun loginTest(): Unit = runBlocking {
         client.login().let {
-            Assertions.assertTrue(it.result)
+            assertTrue(it.result)
             println(it)
         }
     }
@@ -69,8 +56,8 @@ internal class WeiboClientTest {
     fun getUserMicroBlogsTest(): Unit = runBlocking {
         client.login()
         list.forEach { uid ->
-            client.getUserMicroBlogs(uid).getBlogs().forEach {
-                Assertions.assertEquals(uid, it.user?.id)
+            client.getUserMicroBlogs(uid).getMicroBlogs().forEach {
+                assertEquals(uid, it.user?.id)
                 println(it.buildText())
             }
         }
@@ -78,16 +65,31 @@ internal class WeiboClientTest {
 
     @Test
     fun getMicroBlogTest(): Unit = runBlocking {
-        client.getMicroBlog(4599751155390723L).let {
-            Assertions.assertEquals(4599751155390723L, it.id)
+        client.getMicroBlog(4607349879472852L).let {
+            assertEquals(4607349879472852L, it.id)
             println(it.buildText())
         }
     }
 
     @Test
     fun getUserInfoTest(): Unit = runBlocking {
-        client.getUserInfo(6850282182).let {
-            Assertions.assertEquals(6850282182, it.data?.user?.id)
+        client.getUserInfo(uid = 6179286709).let {
+            assertEquals(6179286709, it.data?.user?.id)
+            println(it)
+        }
+    }
+    @Test
+    fun getUserDetailTest(): Unit = runBlocking {
+        client.getUserDetail(uid = 6850282182).let {
+            assertEquals(6850282182, it.data?.interaction?.uid)
+            println(it)
+        }
+    }
+
+    @Test
+    fun getUserHistoryTest(): Unit = runBlocking {
+        client.login()
+        client.getUserHistory(uid = 6850282182).data.let {
             println(it)
         }
     }
@@ -106,9 +108,26 @@ internal class WeiboClientTest {
     @Test
     fun getTimelineTest(): Unit = runBlocking {
         client.login()
-        client.getTimeline(100013603567911L).statuses.forEach {
-            client.getUserInfo(it.user?.id)
-            println(it.buildText())
+        client.getTimeline(gid = 4056713441256071L, count = 100, type = TimelineType.GROUPS).statuses.forEach { blog ->
+            blog.user?.let { client.getUserInfo(it.id) }
+            println(blog.buildText())
+        }
+    }
+
+    @Test
+    fun getHotTest(): Unit = runBlocking {
+        client.login()
+        client.getHot(gid = 102803L).statuses.forEach { blog ->
+            blog.user?.let { client.getUserInfo(it.id) }
+            println(blog.buildText())
+        }
+    }
+
+    @Test
+    fun getUserMentionsTest(): Unit = runBlocking {
+        client.login()
+        client.getUserMentions().let {
+            requireNotNull(it.data).statuses
         }
     }
 }

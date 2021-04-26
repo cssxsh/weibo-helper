@@ -5,6 +5,8 @@ import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
+import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.client
+import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
 import xyz.cssxsh.weibo.api.*
 
 object WeiboSubscriber {
@@ -23,17 +25,15 @@ object WeiboSubscriber {
 
     fun start() = GlobalEventChannel.parentScope(WeiboHelperPlugin).subscribeMessages {
         WEIBO_REGEX findingReply { result ->
-            WeiboHelperPlugin.logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
+            logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
             runCatching {
-                message.quote() + WeiboHelperPlugin.weiboClient.getMicroBlog(
-                    mid = result.value
-                ).buildMessage(contact = subject)
+                message.quote() + client.getMicroBlog(mid = result.value).buildMessage(contact = subject)
             }.onFailure {
-                WeiboHelperPlugin.logger.warning({ "构建DYNAMIC(${result.value})信息失败，尝试重新登陆" }, it)
+                logger.warning({ "构建DYNAMIC(${result.value})信息失败，尝试重新登陆" }, it)
                 runCatching {
-                    WeiboHelperPlugin.weiboClient.login()
+                    client.login()
                 }.onSuccess {
-                    WeiboHelperPlugin.logger.info { "登录成功, $it" }
+                    logger.info { "登录成功, $it" }
                 }
             }.getOrElse {
                 it.message

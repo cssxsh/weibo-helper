@@ -8,5 +8,5 @@ data class Tab(
     @SerialName("name")
     val name: String,
     @SerialName("tabName")
-    val tabName: String
+    val tab: String
 )

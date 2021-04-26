@@ -9,7 +9,7 @@ suspend fun WeiboClient.getFeedGroups(
     isNewSegment: Boolean = true,
     fetchHot: Boolean = true
 ): UserGroupData = useHttpClient { client ->
-    client.get(WeiboApi.ALL_GROUPS) {
+    client.get(WeiboApi.FEED_ALL_GROUPS) {
         header(HttpHeaders.Referrer, WeiboApi.INDEX_PAGE)
 
         parameter("is_new_segment", if (isNewSegment) 1 else 0)
@@ -18,14 +18,14 @@ suspend fun WeiboClient.getFeedGroups(
 }
 
 enum class TimelineType(val url: String) {
-    UNREAD_FRIENDS(url = WeiboApi.UNREAD_FRIENDS_TIMELINE),
-    GROUPS(url = WeiboApi.GROUPS_TIMELINE),
-    FRIENDS(url = WeiboApi.FRIENDS_TIMELINE)
+    UNREAD_FRIENDS(url = WeiboApi.FEED_UNREAD_FRIENDS_TIMELINE),
+    GROUPS(url = WeiboApi.FEED_GROUPS_TIMELINE),
+    FRIENDS(url = WeiboApi.FEED_FRIENDS_TIMELINE);
 }
 
 internal suspend fun WeiboClient.getTimeline(
-    listId: Long,
-    sinceId: Long,
+    gid: Long,
+    sinceId: Long?,
     maxId: Long?,
     count: Int,
     refresh: Int,
@@ -33,9 +33,9 @@ internal suspend fun WeiboClient.getTimeline(
     url: String
 ): TimelineData = useHttpClient { client ->
     client.get(url) {
-        header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$listId")
+        header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
-        parameter("list_id", listId)
+        parameter("list_id", gid)
         parameter("since_id", sinceId)
         parameter("max_id", maxId)
         parameter("refresh", refresh)
@@ -45,15 +45,15 @@ internal suspend fun WeiboClient.getTimeline(
 }
 
 suspend fun WeiboClient.getTimeline(
-    listId: Long,
-    sinceId: Long = 0,
+    gid: Long,
+    sinceId: Long? = null,
     maxId: Long? = null,
     count: Int = WeiboApi.STATUSES_PAGE_SIZE,
-    refresh: Int = 4,
+    refresh: Int = 0,
     fastRefresh: Int? = null,
-    type: TimelineType = TimelineType.UNREAD_FRIENDS
+    type: TimelineType
 ) = getTimeline(
-    listId = listId,
+    gid = gid,
     maxId = maxId,
     sinceId = sinceId,
     count = count,
@@ -61,3 +61,22 @@ suspend fun WeiboClient.getTimeline(
     fastRefresh = fastRefresh,
     url = type.url
 )
+
+suspend fun WeiboClient.getHot(
+    gid: Long,
+    maxId: Long? = null,
+    extend: List<String> = listOf("discover", "new_feed"),
+    count: Int = WeiboApi.STATUSES_PAGE_SIZE,
+    refresh: Int = 0,
+): TimelineData = useHttpClient { client ->
+    client.get(WeiboApi.FEED_HOT_TIMELINE) {
+        header(HttpHeaders.Referrer, "https://weibo.com/hot/list/$gid")
+
+        parameter("group_id", gid)
+        parameter("containerid", gid)
+        parameter("max_id", maxId)
+        parameter("extparam", extend.joinToString("|"))
+        parameter("count", count)
+        parameter("refresh", refresh)
+    }
+}

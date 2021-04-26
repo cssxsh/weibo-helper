@@ -5,8 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Picture(
-    @SerialName("cut_type")
-    val cutType: Int,
     @SerialName("height")
     val height: Int,
     @SerialName("type")
@@ -14,5 +12,7 @@ data class Picture(
     @SerialName("url")
     val url: String,
     @SerialName("width")
-    val width: Int
+    val width: Int,
+    @SerialName("cut_type")
+    private val cutType: Int
 )

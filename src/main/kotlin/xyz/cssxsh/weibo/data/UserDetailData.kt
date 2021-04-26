@@ -2,23 +2,15 @@ package xyz.cssxsh.weibo.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import xyz.cssxsh.weibo.data.profile.*
+import xyz.cssxsh.weibo.data.profile.UserDetail
 
 @Serializable
-data class UserInfoData(
+data class UserDetailData(
     @SerialName("data")
-    val `data`: Data? = null,
+    val `data`: UserDetail? = null,
     @SerialName("url")
     val url: String? = null,
     @SerialName("ok")
     @Serializable(NumberToBooleanSerializer::class)
     val ok: Boolean = true
-) {
-    @Serializable
-    data class Data(
-        @SerialName("tabList")
-        val tabs: List<Tab> = emptyList(),
-        @SerialName("user")
-        val user: UserInfo
-    )
-}
+)

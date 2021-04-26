@@ -14,3 +14,23 @@ suspend fun WeiboClient.getUserInfo(
         parameter("uid", uid ?: loginResult.userinfo.uid)
     }
 }
+
+suspend fun WeiboClient.getUserDetail(
+    uid: Long? = null
+): UserDetailData = useHttpClient { client ->
+    client.get(WeiboApi.PROFILE_DETAIL) {
+        header(HttpHeaders.Referrer, "https://www.weibo.com/u/${uid}")
+
+        parameter("uid", uid ?: loginResult.userinfo.uid)
+    }
+}
+
+suspend fun WeiboClient.getUserHistory(
+    uid: Long? = null
+): HistoryData = useHttpClient { client ->
+    client.get(WeiboApi.PROFILE_HISTORY) {
+        header(HttpHeaders.Referrer, "https://www.weibo.com/u/${uid}")
+
+        parameter("uid", uid ?: loginResult.userinfo.uid)
+    }
+}

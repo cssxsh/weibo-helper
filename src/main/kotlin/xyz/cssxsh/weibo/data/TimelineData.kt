@@ -6,15 +6,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TimelineData(
     @SerialName("max_id")
-    val maxId: String,
-    @SerialName("max_id_str")
-    val maxIdString: String,
+    val maxId: Long,
     @SerialName("ok")
-    val ok: Int,
+    @Serializable(NumberToBooleanSerializer::class)
+    val ok: Boolean = true,
     @SerialName("since_id")
-    val sinceId: String,
-    @SerialName("since_id_str")
-    val sinceIdString: String,
+    val sinceId: Long,
     @SerialName("statuses")
-    val statuses: List<SimpleMicroBlog>
+    val statuses: List<SimpleMicroBlog> = emptyList(),
+    @SerialName("max_id_str")
+    private val maxIdString: String? = null,
+    @SerialName("since_id_str")
+    private val sinceIdString: String? = null,
+    @SerialName("total_number")
+    private val total: Int? = null,
 )

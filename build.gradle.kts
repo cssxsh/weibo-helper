@@ -32,6 +32,8 @@ kotlin {
             languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
             languageSettings.useExperimentalAnnotation("kotlin.time.ExperimentalTime")
             languageSettings.useExperimentalAnnotation("io.ktor.util.KtorExperimentalAPI")
+            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
         }
         test {
             languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.ConsoleFrontEndImplementation")
