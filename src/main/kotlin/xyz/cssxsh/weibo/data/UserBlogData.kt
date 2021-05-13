@@ -13,19 +13,19 @@ data class UserBlogData(
     @SerialName("ok")
     @Serializable(NumberToBooleanSerializer::class)
     val ok: Boolean = true
-) {
-    @Serializable
-    data class UserBlog(
-        @SerialName("list")
-        val list: List<SimpleMicroBlog> = emptyList(),
-        @SerialName("status_visible")
-        @Serializable(NumberToBooleanSerializer::class)
-        val statusVisible: Boolean,
-        @SerialName("bottom_tips_visible")
-        val bottomTipsVisible: Boolean = false,
-        @SerialName("bottom_tips_text")
-        val bottomTipsText: String = "",
-        @SerialName("topicList")
-        private val topicList: JsonArray
-    )
-}
+)
+
+@Serializable
+data class UserBlog(
+    @SerialName("list")
+    val list: List<MicroBlog> = emptyList(),
+    @SerialName("status_visible")
+    @Serializable(NumberToBooleanSerializer::class)
+    val statusVisible: Boolean,
+    @SerialName("bottom_tips_visible")
+    private val bottomTipsVisible: Boolean = false,
+    @SerialName("bottom_tips_text")
+    private val bottomTipsText: String = "",
+    @SerialName("topicList")
+    private val topicList: JsonArray
+)

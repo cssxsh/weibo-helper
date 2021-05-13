@@ -20,8 +20,7 @@ object WeiboSubscriber {
      * 4. https://weibo.com/detail/JzFhZz3fP
      * 5. https://weibo.com/detail/4585001998353993
      */
-    private val WEIBO_REGEX =
-        """(?<=http(s)?://(m\.weibo\.cn/status/|(www\.)?weibo\.com/(\d{1,32}|detail)/))[0-9A-z]+""".toRegex()
+    private val WEIBO_REGEX = """(?<=(m\.weibo\.cn/status/|(www\.)?weibo\.com/(\d{1,32}|detail)/))[0-9A-z]+""".toRegex()
 
     fun start() = GlobalEventChannel.parentScope(WeiboHelperPlugin).subscribeMessages {
         WEIBO_REGEX findingReply { result ->
@@ -31,6 +30,7 @@ object WeiboSubscriber {
             }.onFailure {
                 logger.warning({ "构建DYNAMIC(${result.value})信息失败，尝试重新登陆" }, it)
                 runCatching {
+
                     client.login()
                 }.onSuccess {
                     logger.info { "登录成功, $it" }

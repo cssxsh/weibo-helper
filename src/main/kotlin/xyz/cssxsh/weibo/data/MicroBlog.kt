@@ -1,13 +1,18 @@
 package xyz.cssxsh.weibo.data
 
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
-import xyz.cssxsh.weibo.data.blog.*
 import java.time.OffsetDateTime
 
 @Serializable
-data class SimpleMicroBlog(
+data class MicroBlog(
     @SerialName("attitudes_count")
     val attitudesCount: Int = 0,
     @SerialName("comments_count")
@@ -42,7 +47,7 @@ data class SimpleMicroBlog(
     @SerialName("reposts_count")
     val repostsCount: Int = 0,
     @SerialName("retweeted_status")
-    val retweeted: SimpleMicroBlog? = null,
+    val retweeted: MicroBlog? = null,
     @SerialName("source")
     val source: String = "",
     @SerialName("text")
@@ -243,4 +248,140 @@ data class SimpleMicroBlog(
     private val version: Double? = null,
     @SerialName("visible")
     private val visible: Map<String, Int> = emptyMap()
+)
+
+@Serializable
+data class Picture(
+    @SerialName("height")
+    val height: Int,
+    @SerialName("type")
+    val type: String? = null,
+    @SerialName("url")
+    val url: String,
+    @SerialName("width")
+    val width: Int,
+    @SerialName("cut_type")
+    private val cutType: Int
+)
+
+@Serializable
+data class PictureInfo(
+    @SerialName("pic_id")
+    val id: String,
+    @SerialName("bmiddle")
+    val middle: Picture,
+    @SerialName("large")
+    val large: Picture,
+    @SerialName("largest")
+    val largest: Picture,
+    @SerialName("mw2000")
+    val mw2000: Picture,
+    @SerialName("original")
+    val original: Picture,
+    @SerialName("thumbnail")
+    val thumbnail: Picture,
+    @SerialName("blur")
+    val blur: Picture? = null,
+    /**
+     * TODO PictureStatus
+     */
+    @SerialName("pic_status")
+    val status: Int,
+    @SerialName("type")
+    val type: PictureType,
+    @SerialName("actionlog")
+    private val actionLog: List<JsonObject> = emptyList(),
+    @SerialName("button_name")
+    private val buttonName: String? = null,
+    @SerialName("button_scheme")
+    private val buttonScheme: String? = null,
+    @SerialName("focus_point")
+    private val focusPoint: JsonObject? = null,
+    @SerialName("fid")
+    private val fid: String? = null,
+    @SerialName("filter_id")
+    private val filterId: String? = null,
+    @SerialName("object_id")
+    private val objectId: String,
+    @SerialName("photo_tag")
+    private val photoTag: Int,
+    @SerialName("sticker_id")
+    private val stickerId: String? = null,
+    @SerialName("pic_tags")
+    private val tags: List<JsonObject> = emptyList(),
+    @SerialName("video")
+    private val video: String? = null,
+    @SerialName("video_object_id")
+    private val videoObjectId: String? = null
+)
+
+@Serializable(with = PictureType.Companion::class)
+enum class PictureType(val value: String) {
+    PICTURE(value = "pic"),
+    GIF(value = "gif"),
+    LIVE_PHOTO(value = "livephoto");
+
+    companion object : KSerializer<PictureType> {
+
+        override val descriptor: SerialDescriptor =
+            buildSerialDescriptor(PictureType::class.qualifiedName!!, SerialKind.ENUM)
+
+        override fun serialize(encoder: Encoder, value: PictureType) =
+            encoder.encodeString(value.value)
+
+        override fun deserialize(decoder: Decoder): PictureType = decoder.decodeString().let { value ->
+            requireNotNull(values().find { it.value == value }) { decoder.decodeString() }
+        }
+    }
+}
+
+@Serializable
+data class User(
+    @SerialName("avatar_hd")
+    val avatarHighDefinition: String,
+    @SerialName("avatar_large")
+    val avatarLarge: String,
+    @SerialName("domain")
+    val domain: String? = null,
+    @SerialName("following")
+    val following: Boolean,
+    @SerialName("follow_me")
+    val followMe: Boolean,
+    @SerialName("id")
+    val id: Long,
+    @SerialName("mbrank")
+    val microBlogRank: Int,
+    @SerialName("mbtype")
+    val microBlogType: Int,
+    @SerialName("weihao")
+    val microNumber: String = "",
+    @SerialName("profile_image_url")
+    val profileImageUrl: String,
+    @SerialName("profile_url")
+    val profileUrl: String,
+    @SerialName("screen_name")
+    val screen: String,
+    @SerialName("verified")
+    val verified: Boolean,
+    @SerialName("verified_type")
+    val verifiedType: VerifiedType = VerifiedType.NONE,
+    /**
+     * TODO VerifiedTypeExtend
+     */
+    @SerialName("verified_type_ext")
+    val verifiedTypeExtend: Int? = null,
+    @SerialName("wenda")
+    private val faqCount: Int = 0,
+    @SerialName("idstr")
+    private val idString: String,
+    @SerialName("is_controlled_by_server")
+    @Serializable(NumberToBooleanSerializer::class)
+    private val isControlledByServer: Boolean = false,
+    @SerialName("location_rights")
+    private val locationRights: Int? = null,
+    @SerialName("pc_new")
+    @Serializable(NumberToBooleanSerializer::class)
+    private val pcNew: Boolean,
+    @SerialName("planet_video")
+    private val planetVideo: Boolean = false
 )

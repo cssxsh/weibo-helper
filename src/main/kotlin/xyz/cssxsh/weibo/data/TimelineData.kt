@@ -10,12 +10,10 @@ data class TimelineData(
     @SerialName("ok")
     @Serializable(NumberToBooleanSerializer::class)
     val ok: Boolean = true,
-    @SerialName("message")
-    val message: String = "",
     @SerialName("since_id")
     val sinceId: Long,
     @SerialName("statuses")
-    val statuses: List<SimpleMicroBlog> = emptyList(),
+    val statuses: List<MicroBlog> = emptyList(),
     @SerialName("max_id_str")
     private val maxIdString: String? = null,
     @SerialName("since_id_str")

@@ -19,7 +19,12 @@ import java.net.ConnectException
 import java.net.UnknownHostException
 import javax.net.ssl.SSLException
 
-class WeiboClient(initCookies: List<HttpCookie>, val ignore: suspend (exception: Throwable) -> Boolean = DEFAULT_IGNORE) {
+class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
+    constructor(init: List<HttpCookie>, ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) : this(ignore) {
+        runBlocking {
+            loadCookies(init)
+        }
+    }
 
     private val cookiesStorage = AcceptAllCookiesStorage()
 
@@ -27,7 +32,7 @@ class WeiboClient(initCookies: List<HttpCookie>, val ignore: suspend (exception:
 
     @Suppress("unused")
     suspend fun loadCookies(list: List<HttpCookie>) = list.forEach {
-        cookiesStorage.addCookie(WeiboApi.SINA_LOGIN, Cookie(
+        cookiesStorage.addCookie(SINA_LOGIN, Cookie(
             name = it.name,
             value = it.value,
             encoding = CookieEncoding.RAW,
@@ -39,20 +44,14 @@ class WeiboClient(initCookies: List<HttpCookie>, val ignore: suspend (exception:
         ))
     }
 
-    init {
-        runBlocking {
-            loadCookies(initCookies)
-        }
-    }
-
     private fun httpClient() = HttpClient(OkHttp) {
         Json {
-            serializer = KOTLINX_SERIALIZER
+            serializer = KotlinxSerializer
         }
         install(HttpTimeout) {
-            socketTimeoutMillis = 10_000
-            connectTimeoutMillis = 10_000
-            requestTimeoutMillis = 10_000
+            socketTimeoutMillis = 5_000
+            connectTimeoutMillis = 5_000
+            requestTimeoutMillis = 5_000
         }
         install(HttpCookies) {
             storage = cookiesStorage
@@ -66,14 +65,14 @@ class WeiboClient(initCookies: List<HttpCookie>, val ignore: suspend (exception:
     }
 
     companion object {
-        private val KOTLINX_SERIALIZER = KotlinxSerializer(Json {
+        private val KotlinxSerializer = KotlinxSerializer(Json {
             prettyPrint = true
             ignoreUnknownKeys = true
             isLenient = true
             allowStructuredMapKeys = true
         })
 
-        private val DEFAULT_IGNORE: suspend (exception: Throwable) -> Boolean = { throwable ->
+        private val DefaultIgnore: suspend (exception: Throwable) -> Boolean = { throwable ->
             when (throwable) {
                 is SSLException,
                 is EOFException,
@@ -98,7 +97,9 @@ class WeiboClient(initCookies: List<HttpCookie>, val ignore: suspend (exception:
     ): T = httpClient().use {
         var result: T? = null
         while (result === null) {
-            result = runCatching { block(it) }.onFailure {
+            result = runCatching {
+                block(it)
+            }.onFailure {
                 if (ignore(it).not()) throw it
             }.getOrNull()
         }

@@ -5,20 +5,17 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.data.*
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
-import xyz.cssxsh.weibo.api.*
-import xyz.cssxsh.weibo.data.SimpleMicroBlog
+import xyz.cssxsh.weibo.data.*
+import xyz.cssxsh.weibo.*
 import kotlin.coroutines.CoroutineContext
 
 abstract class WeiboListener: CoroutineScope {
 
     abstract val type: String
 
-    abstract val load: suspend (id: Long) -> List<SimpleMicroBlog>
+    abstract val load: suspend (id: Long) -> List<MicroBlog>
 
-    override val coroutineContext: CoroutineContext by lazy {
-        CoroutineName("WeiboListener-$type")
-    }
+    override val coroutineContext: CoroutineContext by lazy { CoroutineName("WeiboListener-$type") }
 
     protected abstract val tasks : MutableMap<Long, WeiboTaskInfo>
 
@@ -42,13 +39,13 @@ abstract class WeiboListener: CoroutineScope {
     private suspend fun sendMessageToTaskContacts(
         id: Long,
         block: suspend (contact: Contact) -> Message
-    ) = taskContactInfos(id).forEach { info ->
+    ) = taskContactInfos(id).forEach { delegate ->
         runCatching {
-            info.getContact().let { contact ->
+            requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
                 contact.sendMessage(block(contact))
             }
         }.onFailure {
-            logger.warning({ "对[${info}]构建消息失败" }, it)
+            logger.warning({ "对[${delegate}]构建消息失败" }, it)
         }
     }
 
@@ -77,8 +74,7 @@ abstract class WeiboListener: CoroutineScope {
                 logger.warning({ "$type(${id})监听任务执行失败，尝试重新加载Cookie" }, it)
                 WeiboHelperPlugin.runCatching {
                     WeiboHelperSettings.reload()
-                    client.loadCookies(WeiboHelperSettings.initCookies)
-                    client.login()
+                    client.relogin()
                 }.onSuccess {
                     logger.info { "登陆成功, $it" }
                 }
@@ -90,7 +86,7 @@ abstract class WeiboListener: CoroutineScope {
     fun addTask(id: Long, name: String, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             (info ?: WeiboTaskInfo(name = name)).run {
-                copy(contacts = contacts + subject.toContactInfo())
+                copy(contacts = contacts + subject.delegate)
             }
         }
         taskJobs.compute(id) { _, job ->
@@ -101,7 +97,7 @@ abstract class WeiboListener: CoroutineScope {
     fun removeTask(id: Long, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             info?.run {
-                copy(contacts = contacts - subject.toContactInfo())
+                copy(contacts = contacts - subject.delegate)
             }
         }
         if (taskContactInfos(id).isEmpty()) {

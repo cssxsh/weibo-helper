@@ -28,12 +28,12 @@ data class LoginResult(
 }
 
 suspend fun WeiboClient.login() = useHttpClient { client ->
-    client.get<ByteArray>(WeiboApi.CROSS_DOMAIN) {
+    client.get<ByteArray>(CROSS_DOMAIN) {
         parameter("action", "login")
         parameter("entry", "sso")
-        parameter("r", WeiboApi.INDEX_PAGE)
+        parameter("r", INDEX_PAGE)
     }.toString(Charset.forName("GBK")).let { html ->
-        WeiboApi.SSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(html)) { "未找到登录参数 for ${WeiboApi.SSO_LOGIN}" }.value
+        SSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(html)) { "未找到登录参数 for $SSO_LOGIN" }.value
     }.let { url ->
         client.get<String>(url)
     }.let {

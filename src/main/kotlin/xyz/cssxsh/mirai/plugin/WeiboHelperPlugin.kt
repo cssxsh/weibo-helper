@@ -23,17 +23,15 @@ object WeiboHelperPlugin : KotlinPlugin(
     override val autoSaveIntervalMillis: LongRange
         get() = (3).minutes.toLongMilliseconds()..(10).minutes.toLongMilliseconds()
 
-    internal lateinit var client : WeiboClient
-        private set
+    internal val client by lazy { WeiboClient() }
 
     override fun onEnable() {
         WeiboTaskData.reload()
         WeiboHelperSettings.reload()
 
-        client = WeiboClient(WeiboHelperSettings.initCookies)
         runBlocking {
             runCatching {
-                client.login()
+                client.relogin()
             }.onSuccess {
                 logger.info { "登陆成功, $it" }
             }.onFailure {

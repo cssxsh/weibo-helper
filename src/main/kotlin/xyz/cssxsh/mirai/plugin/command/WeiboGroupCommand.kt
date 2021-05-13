@@ -4,10 +4,9 @@ import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.message.data.toPlainText
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.client
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import xyz.cssxsh.weibo.data.feed.UserGroupType
+import xyz.cssxsh.weibo.getGroup
 
 object WeiboGroupCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
@@ -17,19 +16,14 @@ object WeiboGroupCommand : CompositeCommand(
     internal val listener: WeiboListener = object : WeiboListener() {
         override val type: String = "Group"
 
-        override val load: suspend (id: Long) -> List<SimpleMicroBlog> = { id ->
-            client.getTimeline(gid = id, type = TimelineType.GROUPS).statuses
-        }
+        override val load: suspend (id: Long) -> List<MicroBlog> = { id -> client.getTimeline(gid = id).statuses }
 
-        override val tasks: MutableMap<Long, WeiboTaskInfo>
-            get() = WeiboTaskData.groups
+        override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::groups
     }
 
     @SubCommand("list", "列表")
     @Suppress("unused")
-    suspend fun CommandSenderOnMessage<*>.list() = sendMessage {
-        client.getFeedGroups().buildMessage { it.type != UserGroupType.SYSTEM }
-    }
+    suspend fun CommandSenderOnMessage<*>.list() = sendMessage { client.getFeedGroups().buildMessage() }
 
     @SubCommand("task", "订阅")
     @Suppress("unused")

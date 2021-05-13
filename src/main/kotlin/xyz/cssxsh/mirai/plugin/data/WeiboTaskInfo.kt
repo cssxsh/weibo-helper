@@ -16,5 +16,5 @@ data class WeiboTaskInfo(
     @Serializable(LongRangeSerializer::class)
     val interval: LongRange = (5).minutes.toLongMilliseconds()..(10).minutes.toLongMilliseconds(),
     @SerialName("contacts")
-    val contacts: Set<ContactInfo> = emptySet()
+    val contacts: Set<Long> = emptySet()
 )

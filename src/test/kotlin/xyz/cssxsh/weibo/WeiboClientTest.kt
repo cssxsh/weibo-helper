@@ -5,7 +5,6 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.File
@@ -24,7 +23,7 @@ internal class WeiboClientTest {
         )
     )
 
-    private fun SimpleMicroBlog.buildText() = buildString {
+    private fun MicroBlog.buildText() = buildString {
         appendLine("微博 $username 有新动态：")
         appendLine("时间: $createdAt")
         appendLine("链接: $url")
@@ -56,7 +55,7 @@ internal class WeiboClientTest {
     fun getUserMicroBlogsTest(): Unit = runBlocking {
         client.login()
         list.forEach { uid ->
-            client.getUserMicroBlogs(uid).getMicroBlogs().forEach {
+            client.getUserMicroBlogs(uid).list.forEach {
                 assertEquals(uid, it.user?.id)
                 println(it.buildText())
             }
@@ -74,14 +73,14 @@ internal class WeiboClientTest {
     @Test
     fun getUserInfoTest(): Unit = runBlocking {
         client.getUserInfo(uid = 6179286709).let {
-            assertEquals(6179286709, it.data?.user?.id)
+            assertEquals(6179286709, it.user.id)
             println(it)
         }
     }
     @Test
     fun getUserDetailTest(): Unit = runBlocking {
         client.getUserDetail(uid = 6850282182).let {
-            assertEquals(6850282182, it.data?.interaction?.uid)
+            assertEquals(6850282182, it.interaction.uid)
             println(it)
         }
     }
@@ -89,7 +88,7 @@ internal class WeiboClientTest {
     @Test
     fun getUserHistoryTest(): Unit = runBlocking {
         client.login()
-        client.getUserHistory(uid = 6850282182).data.let {
+        client.getUserHistory(uid = 6850282182).let {
             println(it)
         }
     }
@@ -126,8 +125,6 @@ internal class WeiboClientTest {
     @Test
     fun getUserMentionsTest(): Unit = runBlocking {
         client.login()
-        client.getUserMentions().let {
-            requireNotNull(it.data).statuses
-        }
+        client.getUserMentions()
     }
 }
