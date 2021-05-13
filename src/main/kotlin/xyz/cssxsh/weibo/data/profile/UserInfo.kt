@@ -79,6 +79,9 @@ data class UserInfo(
     val status: SimpleMicroBlog? = null,
     @SerialName("statuses_count")
     val statusesCount: Int,
+    @SerialName("svip")
+    @Serializable(NumberToBooleanSerializer::class)
+    val svip: Boolean,
     @SerialName("url")
     val url: String,
     @SerialName("user_ability")

@@ -32,7 +32,7 @@ internal suspend fun WeiboClient.getTimeline(
     fastRefresh: Int?,
     url: String
 ): TimelineData = useHttpClient { client ->
-    client.get(url) {
+    client.get<TimelineData>(url) {
         header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
         parameter("list_id", gid)

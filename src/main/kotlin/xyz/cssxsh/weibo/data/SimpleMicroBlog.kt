@@ -95,7 +95,7 @@ data class SimpleMicroBlog(
     @SerialName("followBtnCode")
     private val followButtonCode: JsonObject? = null,
     @SerialName("geo")
-    private val geo: JsonElement? = null, // TODO
+    private val geo: JsonElement? = null,
     @SerialName("gif_ids")
     private val gifs: String = "",
     @SerialName("hasActionTypeCard")
@@ -149,7 +149,7 @@ data class SimpleMicroBlog(
     @SerialName("more_info_type")
     private val moreInfoType: Int = 0,
     @SerialName("number_display_strategy")
-    private val numberDisplayStrategy:  JsonElement? = null,
+    private val numberDisplayStrategy: JsonElement? = null,
     @SerialName("ok")
     @Serializable(NumberToBooleanSerializer::class)
     private val ok: Boolean = true,
@@ -237,6 +237,8 @@ data class SimpleMicroBlog(
     private val topicStruct: List<JsonObject> = emptyList(),
     @SerialName("url_struct")
     private val urlStruct: List<JsonObject> = emptyList(),
+    @SerialName("tag_struct")
+    private val tagStruct: List<JsonObject> = emptyList(),
     @SerialName("version")
     private val version: Double? = null,
     @SerialName("visible")
