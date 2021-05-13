@@ -11,7 +11,7 @@ import xyz.cssxsh.weibo.data.*
 
 object WeiboUserCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
-    "wuser", "微博好友",
+    "wuser", "微博用户",
     description = "微博好友指令",
 ) {
     internal val listener: WeiboListener = object : WeiboListener() {

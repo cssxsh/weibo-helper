@@ -25,6 +25,7 @@ class WeiboClient(initCookies: List<HttpCookie>, val ignore: suspend (exception:
 
     internal lateinit var loginResult: LoginResult
 
+    @Suppress("unused")
     suspend fun loadCookies(list: List<HttpCookie>) = list.forEach {
         cookiesStorage.addCookie(WeiboApi.SINA_LOGIN, Cookie(
             name = it.name,
