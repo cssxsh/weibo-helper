@@ -10,6 +10,8 @@ data class TimelineData(
     @SerialName("ok")
     @Serializable(NumberToBooleanSerializer::class)
     val ok: Boolean = true,
+    @SerialName("message")
+    val message: String = "",
     @SerialName("since_id")
     val sinceId: Long,
     @SerialName("statuses")

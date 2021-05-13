@@ -14,7 +14,7 @@ abstract class WeiboListener: CoroutineScope {
 
     abstract val type: String
 
-    abstract val load: suspend (Long) -> List<SimpleMicroBlog>
+    abstract val load: suspend (id: Long) -> List<SimpleMicroBlog>
 
     override val coroutineContext: CoroutineContext by lazy {
         CoroutineName("WeiboListener-$type")

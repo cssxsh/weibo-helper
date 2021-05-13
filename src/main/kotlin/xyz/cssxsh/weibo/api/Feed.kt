@@ -41,6 +41,8 @@ internal suspend fun WeiboClient.getTimeline(
         parameter("refresh", refresh)
         parameter("fast_refresh", fastRefresh)
         parameter("count", count)
+    }.also {
+        check(it.ok) { it.message }
     }
 }
 

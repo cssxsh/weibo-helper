@@ -1,8 +1,7 @@
-
 plugins {
-    kotlin("jvm") version Versions.kotlin
-    kotlin("plugin.serialization") version Versions.kotlin
-    id("net.mamoe.mirai-console") version Versions.mirai
+    kotlin("jvm")
+    kotlin("plugin.serialization")
+    id("net.mamoe.mirai-console")
 }
 
 group = "xyz.cssxsh.mirai.plugin"
@@ -44,6 +43,7 @@ kotlin {
 dependencies {
     implementation(ktor("client-serialization", Versions.ktor))
     implementation(ktor("client-encoding", Versions.ktor))
+    implementation(project(":tools"))
     testImplementation(kotlin("test-junit"))
     testImplementation(junit("api", Versions.junit))
     testRuntimeOnly(junit("engine", Versions.junit))

@@ -55,8 +55,7 @@ private suspend fun getWeiboImage(
     }
 }
 
-internal fun SimpleMicroBlog.getImageUrls() =
-    pictureInfos.map { (_, picture) -> Url(picture.original.url) }
+internal fun SimpleMicroBlog.getImageUrls() = pictureInfos.map { (_, picture) -> Url(picture.original.url) }
 
 internal suspend fun SimpleMicroBlog.getImages() = getImageUrls().mapIndexed { index, url ->
     runCatching {
