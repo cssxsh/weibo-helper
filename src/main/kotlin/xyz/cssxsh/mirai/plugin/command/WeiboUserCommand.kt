@@ -20,7 +20,7 @@ object WeiboUserCommand : CompositeCommand(
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::users
     }
 
-    @SubCommand("task", "订阅")
+    @SubCommand("add", "task", "订阅")
     @Suppress("unused")
     suspend fun CommandSenderOnMessage<*>.task(uid: Long) = sendMessage {
         val user = client.getUserInfo(uid = uid).user

@@ -25,12 +25,12 @@ object WeiboGroupCommand : CompositeCommand(
     @Suppress("unused")
     suspend fun CommandSenderOnMessage<*>.list() = sendMessage { client.getFeedGroups().buildMessage() }
 
-    @SubCommand("task", "订阅")
+    @SubCommand("add", "task", "订阅")
     @Suppress("unused")
     suspend fun CommandSenderOnMessage<*>.task(gid: Long) = sendMessage {
         val group = client.getFeedGroups().getGroup(id = gid)
         listener.addTask(id = gid, name = group.title, subject = fromEvent.subject)
-        "对分组${group.title}#${gid}的监听任务, 添加完成".toPlainText()
+        "对${group.title}#${gid}的监听任务, 添加完成".toPlainText()
     }
 
     @SubCommand("stop", "停止")

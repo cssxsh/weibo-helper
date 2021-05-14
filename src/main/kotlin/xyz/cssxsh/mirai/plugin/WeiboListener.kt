@@ -1,13 +1,19 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
+import xyz.cssxsh.weibo.api.flush
+import java.time.LocalTime
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.abs
+import kotlin.time.seconds
 
 abstract class WeiboListener: CoroutineScope {
 
@@ -22,6 +28,8 @@ abstract class WeiboListener: CoroutineScope {
     private val taskJobs = mutableMapOf<Long, Job>()
 
     private fun taskContactInfos(id: Long) = tasks[id]?.contacts.orEmpty()
+
+    private fun json(id: Long) = data.resolve(type).resolve("$id.json").apply { parentFile.mkdirs() }
 
     fun start(): Unit = synchronized(taskJobs) {
         tasks.forEach { (uid, _) ->
@@ -49,36 +57,55 @@ abstract class WeiboListener: CoroutineScope {
         }
     }
 
+    private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
+        return mapNotNull { it.createdAt.toLocalTime() }.any { abs(it.toSecondOfDay() - time.toSecondOfDay()).seconds < slow }
+    }
+
     private fun addListener(id: Long): Job = launch {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
-        delay(tasks.getValue(id).interval.random())
         while (isActive && taskContactInfos(id).isNotEmpty()) {
+            val old = runCatching {
+                WeiboClient.json.decodeFromString<List<MicroBlog>>(json(id).readText())
+            }.getOrElse {
+                emptyList()
+            }
+            val near = old.near()
+            if (near) {
+                delay(slow)
+            } else {
+                delay(fast)
+            }
             runCatching {
-                load(id).sortedBy { it.id }.onEach { blog ->
+                val list = load(id).sortedBy { it.id }
+                json(id).writeText(WeiboClient.json.encodeToString(list))
+                list.forEach { blog ->
                     if (blog.createdAt > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.buildMessage(contact)
                         }
                     }
-                }.maxByOrNull { it.createdAt }?.let { blog ->
+                }
+
+                list.maxByOrNull { it.createdAt }?.let { blog ->
                     logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.createdAt}>" }
                     tasks.compute(id) { _, info ->
                         info?.copy(last = blog.createdAt)
                     }
                 }
+                list
             }.onSuccess {
-                delay(tasks.getValue(id).interval.random().also {
-                    logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时delay(${it}ms)。" }
-                })
+                logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
-                logger.warning({ "$type(${id})监听任务执行失败，尝试重新加载Cookie" }, it)
-                WeiboHelperPlugin.runCatching {
-                    WeiboHelperSettings.reload()
-                    client.relogin()
-                }.onSuccess {
-                    logger.info { "登陆成功, $it" }
+                if (client.token.isNotBlank()) {
+                    logger.warning { "$type(${id})监听任务执行失败, ${it.message}，尝试重新加载Cookie" }
+                    runCatching {
+                        client.flush()
+                    }.onSuccess {
+                        logger.info { "登陆成功, $it" }
+                    }
+                } else {
+                    logger.warning { "$type(${id})监听任务执行失败, ${it.message}，" }
                 }
-                delay(tasks.getValue(id).interval.last)
             }
         }
     }

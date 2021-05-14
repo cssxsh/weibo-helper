@@ -27,6 +27,8 @@ const val PROFILE_DETAIL = "https://weibo.com/ajax/profile/detail"
 const val PROFILE_HISTORY = "https://weibo.com/ajax/profile/mbloghistory"
 
 // LOGIN
-const val SINA_LOGIN = "https://login.sina.com.cn/sso/login.php"
 const val CROSS_DOMAIN = "https://login.sina.com.cn/crossdomain2.php"
-const val SSO_LOGIN = "https://passport.weibo.com/wbsso/login"
+const val WSSO_LOGIN = "https://passport.weibo.com/wbsso/login"
+const val SSO_LOGIN = "https://login.sina.com.cn/sso/login.php"
+const val SSO_QRCODE_IMAGE = "https://login.sina.com.cn/sso/qrcode/image?entry=weibo&size=180&callback=STK_16209317789391"
+const val SSO_QRCODE_CHECK = "https://login.sina.com.cn/sso/qrcode/check?entry=weibo&qrid=&callback=STK_1620931778939107"

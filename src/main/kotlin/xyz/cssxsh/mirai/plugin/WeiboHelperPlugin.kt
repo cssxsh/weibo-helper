@@ -23,19 +23,22 @@ object WeiboHelperPlugin : KotlinPlugin(
     override val autoSaveIntervalMillis: LongRange
         get() = (3).minutes.toLongMilliseconds()..(10).minutes.toLongMilliseconds()
 
-    internal val client by lazy { WeiboClient() }
+    internal val client by lazy { WeiboClient(WeiboStatusData.status) }
+
+    private lateinit var clear: Job
 
     override fun onEnable() {
         WeiboTaskData.reload()
         WeiboHelperSettings.reload()
+        WeiboStatusData.reload()
 
         runBlocking {
             runCatching {
-                client.relogin()
+                client.flush()
             }.onSuccess {
                 logger.info { "登陆成功, $it" }
             }.onFailure {
-                logger.warning({ "登陆失败" }, it)
+                logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
             }
         }
 
@@ -46,15 +49,23 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboUserCommand.register()
         WeiboGroupCommand.register()
+        WeiboLoginCommand.register()
+
+        clear = clear()
     }
 
     override fun onDisable() {
         WeiboUserCommand.unregister()
         WeiboGroupCommand.unregister()
+        WeiboLoginCommand.unregister()
 
         WeiboUserCommand.listener.stop()
         WeiboGroupCommand.listener.stop()
 
         WeiboSubscriber.stop()
+
+        WeiboStatusData.status = client.status()
+
+        clear.cancel()
     }
 }

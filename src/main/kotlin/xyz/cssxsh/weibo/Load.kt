@@ -4,22 +4,15 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import net.mamoe.mirai.utils.warning
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin
-import xyz.cssxsh.weibo.WeiboClient
-import xyz.cssxsh.weibo.api.getLongText
-import xyz.cssxsh.weibo.data.MicroBlog
-import xyz.cssxsh.weibo.data.NumberToBooleanSerializer
-import xyz.cssxsh.weibo.data.UserGroupData
-import java.io.File
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import xyz.cssxsh.weibo.data.*
 import java.time.format.DateTimeFormatter
 
 @Serializable
-private data class TempData<T>(
+data class TempData(
     @SerialName("data")
-    val `data`: T? = null,
+    val `data`: JsonObject? = null,
     @SerialName("url")
     val url: String? = null,
     @SerialName("http_code")
@@ -29,29 +22,17 @@ private data class TempData<T>(
     val ok: Boolean = true
 )
 
-private fun <T> TempData<T>.data() = requireNotNull(data) { toString() }
+inline fun <reified T> TempData.data(): T = WeiboClient.json.decodeFromJsonElement(requireNotNull(data) { toString() })
 
-internal suspend fun <T> WeiboClient.temp(url: String,
-    block: HttpRequestBuilder.() -> Unit
-) = get<TempData<T>>(url, block).data()
+internal suspend inline fun <reified T> WeiboClient.temp(
+    url: String,
+    crossinline block: HttpRequestBuilder.() -> Unit
+) = get<TempData>(url, block).data<T>()
 
 internal suspend inline fun <reified T> WeiboClient.get(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit
 ): T = useHttpClient { client -> client.get(url, block) }
-
-suspend fun MicroBlog.getContent(): String {
-    return if (continueTag != null) {
-        runCatching {
-            requireNotNull(WeiboHelperPlugin.client.getLongText(id).content) { "mid: $id" }
-        }.getOrElse {
-            WeiboHelperPlugin.logger.warning({ "获取微博[${id}]长文本失败" }, it)
-            textRaw ?: text
-        }
-    } else {
-        textRaw ?: text
-    }
-}
 
 internal val Url.filename get() = encodedPath.substringAfterLast("/")
 
@@ -76,5 +57,3 @@ val MicroBlog.username get() = user?.screen ?: "[未知用户]"
 val MicroBlog.date: String get() = createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
 fun UserGroupData.getGroup(id: Long) = groups.flatMap { it.list }.first { it.gid == id }
-
-fun readHttpCookie(file: File): List<HttpCookie> = Json.decodeFromString(file.readText())
