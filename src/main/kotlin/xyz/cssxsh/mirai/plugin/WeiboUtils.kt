@@ -2,27 +2,53 @@ package xyz.cssxsh.mirai.plugin
 
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.client
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.File
+import kotlin.time.*
 
 internal val logger by WeiboHelperPlugin::logger
 
 internal val client by WeiboHelperPlugin::client
 
+internal val data by WeiboHelperPlugin::dataFolder
+
+internal val cache get() = File(WeiboHelperSettings.cache)
+
+internal val fast get() = WeiboHelperSettings.fast.minutes
+
+internal val slow get() = WeiboHelperSettings.slow.minutes
+
+internal val expire get() = WeiboHelperSettings.expire.hours
+
+suspend fun MicroBlog.getContent(): String {
+    return if (continueTag != null) {
+        runCatching {
+            requireNotNull(client.getLongText(id).content) { "mid: $id" }
+        }.getOrElse {
+            logger.warning({ "获取微博[${id}]长文本失败" }, it)
+            textRaw ?: text
+        }
+    } else {
+        textRaw ?: text
+    }
+}
+
 private suspend fun getWeiboImage(
     url: Url,
     name: String,
     refresh: Boolean = false
-): File = File(WeiboHelperSettings.cache).resolve(name).apply {
+): File = cache.resolve(name).apply {
     if (exists().not() || refresh) {
         parentFile.mkdirs()
         writeBytes(client.useHttpClient { it.get(url) })
@@ -71,13 +97,20 @@ internal fun UserGroupData.buildMessage(predicate: (UserGroup) -> Boolean = Grou
     }
 }
 
-internal suspend fun WeiboClient.relogin(): LoginResult {
-    val file = File(WeiboHelperSettings.cookies).apply {
-        if (exists().not()) {
-            parentFile.mkdirs()
-            writeText("[]")
+private val ImageExtensions = listOf("jpg", "bmp", "png", "gif")
+
+internal fun CoroutineScope.clear(interval: Duration = (1).hours) = launch {
+    while (isActive) {
+        delay(interval)
+        val last = System.currentTimeMillis() - expire.toLongMilliseconds()
+        cache.walkBottomUp().filter { file ->
+            (file.extension in ImageExtensions) && file.lastModified() < last
+        }.forEach { file ->
+            runCatching {
+                check(file.delete())
+            }.onFailure {
+                logger.info { "${file.absolutePath} 删除失败" }
+            }
         }
     }
-    loadCookies(readHttpCookie(file))
-    return login()
 }

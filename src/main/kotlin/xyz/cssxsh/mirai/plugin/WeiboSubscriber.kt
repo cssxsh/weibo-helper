@@ -1,12 +1,10 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
-import net.mamoe.mirai.event.GlobalEventChannel
+import net.mamoe.mirai.event.globalEventChannel
 import net.mamoe.mirai.event.subscribeMessages
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.client
-import xyz.cssxsh.mirai.plugin.WeiboHelperPlugin.logger
 import xyz.cssxsh.weibo.api.*
 
 object WeiboSubscriber {
@@ -22,7 +20,7 @@ object WeiboSubscriber {
      */
     private val WEIBO_REGEX = """(?<=(m\.weibo\.cn/status/|(www\.)?weibo\.com/(\d{1,32}|detail)/))[0-9A-z]+""".toRegex()
 
-    fun start() = GlobalEventChannel.parentScope(WeiboHelperPlugin).subscribeMessages {
+    fun start() = WeiboHelperPlugin.globalEventChannel().subscribeMessages {
         WEIBO_REGEX findingReply { result ->
             logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
             runCatching {
@@ -30,8 +28,7 @@ object WeiboSubscriber {
             }.onFailure {
                 logger.warning({ "构建DYNAMIC(${result.value})信息失败，尝试重新登陆" }, it)
                 runCatching {
-
-                    client.login()
+                    client.flush()
                 }.onSuccess {
                     logger.info { "登录成功, $it" }
                 }
