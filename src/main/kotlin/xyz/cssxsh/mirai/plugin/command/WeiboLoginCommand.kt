@@ -19,6 +19,6 @@ object WeiboLoginCommand : SimpleCommand(
             sendMessage("请使用微博客户端扫码：")
             sendMessage(image.toExternalResource().uploadAsImage(fromEvent.subject))
         }
-        "${client.info.display}#${client.info.uid} 登陆成功".toPlainText()
+        "@${client.info.display}#${client.info.uid} 登陆成功".toPlainText()
     }
 }
