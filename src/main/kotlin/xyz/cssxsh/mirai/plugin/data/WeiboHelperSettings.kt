@@ -16,4 +16,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings") {
 
     @ValueDescription("慢速轮询间隔，单位分钟")
     val slow: Int by value(10)
+
+    @ValueDescription("关闭链接监听的群号")
+    val quiet by value(emptySet<Long>())
 }

@@ -23,13 +23,15 @@ internal val client by WeiboHelperPlugin::client
 
 internal val data by WeiboHelperPlugin::dataFolder
 
-internal val cache get() = File(WeiboHelperSettings.cache)
+internal val ImageCache get() = File(WeiboHelperSettings.cache)
 
-internal val fast get() = WeiboHelperSettings.fast.minutes
+internal val ImageExpire get() = WeiboHelperSettings.expire.hours
 
-internal val slow get() = WeiboHelperSettings.slow.minutes
+internal val IntervalFast get() = WeiboHelperSettings.fast.minutes
 
-internal val expire get() = WeiboHelperSettings.expire.hours
+internal val IntervalSlow get() = WeiboHelperSettings.slow.minutes
+
+internal val QuietGroups get() = WeiboHelperSettings.quiet
 
 suspend fun MicroBlog.getContent(): String {
     return if (continueTag != null) {
@@ -48,7 +50,7 @@ private suspend fun getWeiboImage(
     url: Url,
     name: String,
     refresh: Boolean = false
-): File = cache.resolve(name).apply {
+): File = ImageCache.resolve(name).apply {
     if (exists().not() || refresh) {
         parentFile.mkdirs()
         writeBytes(client.useHttpClient { it.get(url) })
@@ -102,8 +104,8 @@ private val ImageExtensions = listOf("jpg", "bmp", "png", "gif")
 internal fun CoroutineScope.clear(interval: Duration = (1).hours) = launch {
     while (isActive) {
         delay(interval)
-        val last = System.currentTimeMillis() - expire.toLongMilliseconds()
-        cache.walkBottomUp().filter { file ->
+        val last = System.currentTimeMillis() - ImageExpire.toLongMilliseconds()
+        ImageCache.walkBottomUp().filter { file ->
             (file.extension in ImageExtensions) && file.lastModified() < last
         }.forEach { file ->
             runCatching {
