@@ -103,9 +103,10 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
 private val ImageExtensions = listOf("jpg", "bmp", "png", "gif")
 
 internal fun CoroutineScope.clear(interval: Duration = (1).hours) = launch {
-    if (ImageExpire.isPositive().not()) return@launch
+    if (ImageExpire.isNegative().not()) return@launch
     while (isActive) {
         delay(interval)
+        logger.info { "微博图片清理开始" }
         val last = System.currentTimeMillis() - ImageExpire.toLongMilliseconds()
         ImageCache.walkBottomUp().filter { file ->
             (file.extension in ImageExtensions) && file.lastModified() < last
