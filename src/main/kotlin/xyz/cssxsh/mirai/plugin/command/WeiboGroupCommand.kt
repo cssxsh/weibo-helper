@@ -23,7 +23,7 @@ object WeiboGroupCommand : CompositeCommand(
 
     @SubCommand("list", "列表")
     @Suppress("unused")
-    suspend fun CommandSenderOnMessage<*>.list() = sendMessage { client.getFeedGroups().buildMessage() }
+    suspend fun CommandSenderOnMessage<*>.list() = sendMessage { client.getFeedGroups().toMessage() }
 
     @SubCommand("add", "task", "订阅")
     @Suppress("unused")

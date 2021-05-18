@@ -1,11 +1,11 @@
 package xyz.cssxsh.mirai.plugin
 
-import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
@@ -23,13 +23,22 @@ internal val client by WeiboHelperPlugin::client
 
 internal val data by WeiboHelperPlugin::dataFolder
 
-internal val cache get() = File(WeiboHelperSettings.cache)
+internal val ImageCache get() = File(WeiboHelperSettings.cache)
 
-internal val fast get() = WeiboHelperSettings.fast.minutes
+internal val ImageExpire get() = WeiboHelperSettings.expire.hours
 
-internal val slow get() = WeiboHelperSettings.slow.minutes
+internal val IntervalFast get() = WeiboHelperSettings.fast.minutes
 
-internal val expire get() = WeiboHelperSettings.expire.hours
+internal val IntervalSlow get() = WeiboHelperSettings.slow.minutes
+
+internal val QuietGroups by WeiboHelperSettings::quiet
+
+internal val LoginContact by lazy {
+    for (bot in Bot.instances) {
+        return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: continue
+    }
+    return@lazy null
+}
 
 suspend fun MicroBlog.getContent(): String {
     return if (continueTag != null) {
@@ -44,29 +53,23 @@ suspend fun MicroBlog.getContent(): String {
     }
 }
 
-private suspend fun getWeiboImage(
-    url: Url,
-    name: String,
-    refresh: Boolean = false
-): File = cache.resolve(name).apply {
-    if (exists().not() || refresh) {
-        parentFile.mkdirs()
-        writeBytes(client.useHttpClient { it.get(url) })
-    }
-}
-
 internal suspend fun MicroBlog.getImages() = images.mapIndexed { index, url ->
     runCatching {
-        getWeiboImage(url = url, name = "${date}/${id}-${index}-${url.filename}")
+        ImageCache.resolve("${datetime}/${id}-${index}-${url.filename}").apply {
+            if (exists().not()) {
+                parentFile.mkdirs()
+                writeBytes(client.download(url))
+            }
+        }
     }.onFailure {
         logger.warning({ "微博图片下载失败: $url" }, it)
     }
 }
 
-internal suspend fun MicroBlog.buildMessage(contact: Contact): MessageChain = buildMessageChain {
+internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}")
     appendLine("时间: $createdAt")
-    appendLine("链接: $url")
+    appendLine("链接: $link")
     appendLine(getContent())
 
     getImages().forEachIndexed { index, result ->
@@ -80,13 +83,13 @@ internal suspend fun MicroBlog.buildMessage(contact: Contact): MessageChain = bu
 
     retweeted?.let {
         appendLine("==============================")
-        append(it.buildMessage(contact))
+        append(it.toMessage(contact))
     }
 }
 
 private val GroupPredicate = { group: UserGroup -> group.type != UserGroupType.SYSTEM }
 
-internal fun UserGroupData.buildMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
+internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
     groups.forEach { group ->
         group.list.filter(predicate).takeIf { it.isNotEmpty() }?.let { list ->
             appendLine("===${group.title}===")
@@ -100,10 +103,11 @@ internal fun UserGroupData.buildMessage(predicate: (UserGroup) -> Boolean = Grou
 private val ImageExtensions = listOf("jpg", "bmp", "png", "gif")
 
 internal fun CoroutineScope.clear(interval: Duration = (1).hours) = launch {
+    if (ImageExpire.isPositive().not()) return@launch
     while (isActive) {
         delay(interval)
-        val last = System.currentTimeMillis() - expire.toLongMilliseconds()
-        cache.walkBottomUp().filter { file ->
+        val last = System.currentTimeMillis() - ImageExpire.toLongMilliseconds()
+        ImageCache.walkBottomUp().filter { file ->
             (file.extension in ImageExtensions) && file.lastModified() < last
         }.forEach { file ->
             runCatching {

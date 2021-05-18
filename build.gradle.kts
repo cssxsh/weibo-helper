@@ -5,22 +5,15 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.0.0-dev-1"
+version = "1.0.0-dev-2"
 
 repositories {
     mavenLocal()
     maven(url = "https://maven.aliyun.com/repository/releases")
-    maven(url = "https://mirrors.huaweicloud.com/repository/maven")
-    // bintray dl.bintray.com -> bintray.proxy.ustclug.org
-    maven(url = "https://bintray.proxy.ustclug.org/him188moe/mirai/")
-    maven(url = "https://bintray.proxy.ustclug.org/kotlin/kotlin-dev")
-    maven(url = "https://bintray.proxy.ustclug.org/kotlin/kotlinx/")
-    // central
-    maven(url = "https://maven.aliyun.com/repository/central")
+    maven(url = "https://maven.aliyun.com/repository/public")
     mavenCentral()
-    // jcenter
-    maven(url = "https://maven.aliyun.com/repository/jcenter")
     jcenter()
+    maven(url = "https://maven.aliyun.com/repository/gradle-plugin")
     gradlePluginPortal()
 }
 
@@ -33,6 +26,7 @@ kotlin {
             languageSettings.useExperimentalAnnotation("io.ktor.util.KtorExperimentalAPI")
             languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
             languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
+            languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.util.ConsoleExperimentalApi")
         }
         test {
             languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.ConsoleFrontEndImplementation")

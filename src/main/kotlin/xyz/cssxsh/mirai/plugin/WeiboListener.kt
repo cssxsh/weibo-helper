@@ -9,7 +9,7 @@ import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.api.flush
+import xyz.cssxsh.weibo.api.*
 import java.time.LocalTime
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
@@ -58,30 +58,25 @@ abstract class WeiboListener: CoroutineScope {
     }
 
     private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
-        return mapNotNull { it.createdAt.toLocalTime() }.any { abs(it.toSecondOfDay() - time.toSecondOfDay()).seconds < slow }
+        return mapNotNull { it.createdAt.toLocalTime() }.any { abs(it.toSecondOfDay() - time.toSecondOfDay()).seconds < IntervalSlow }
     }
 
     private fun addListener(id: Long): Job = launch {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         while (isActive && taskContactInfos(id).isNotEmpty()) {
             val old = runCatching {
-                WeiboClient.json.decodeFromString<List<MicroBlog>>(json(id).readText())
+                WeiboClient.Json.decodeFromString<List<MicroBlog>>(json(id).readText())
             }.getOrElse {
                 emptyList()
             }
-            val near = old.near()
-            if (near) {
-                delay(slow)
-            } else {
-                delay(fast)
-            }
+            delay(if (old.near()) IntervalSlow else IntervalFast)
             runCatching {
                 val list = load(id).sortedBy { it.id }
-                json(id).writeText(WeiboClient.json.encodeToString(list))
+                json(id).writeText(WeiboClient.Json.encodeToString(list))
                 list.forEach { blog ->
                     if (blog.createdAt > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
-                            blog.buildMessage(contact)
+                            blog.toMessage(contact)
                         }
                     }
                 }
@@ -92,7 +87,6 @@ abstract class WeiboListener: CoroutineScope {
                         info?.copy(last = blog.createdAt)
                     }
                 }
-                list
             }.onSuccess {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
@@ -102,6 +96,10 @@ abstract class WeiboListener: CoroutineScope {
                         client.flush()
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
+                    }.onFailure { cause ->
+                        if ("login" in cause.message.orEmpty()) {
+                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                        }
                     }
                 } else {
                     logger.warning { "$type(${id})监听任务执行失败, ${it.message}，" }
