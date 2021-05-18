@@ -31,11 +31,15 @@ internal object WeiboSubscriber: CoroutineScope by WeiboHelperPlugin.childScope(
                 runCatching {
                     message.quote() + client.getMicroBlog(mid = result.value).buildMessage(contact = subject)
                 }.onFailure {
-                    logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新登陆" }, it)
+                    logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, it)
                     runCatching {
                         client.flush()
                     }.onSuccess {
                         logger.info { "登录成功, $it" }
+                    }.onFailure { cause ->
+                        if ("login" in cause.message.orEmpty()) {
+                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                        }
                     }
                 }.getOrElse {
                     it.message

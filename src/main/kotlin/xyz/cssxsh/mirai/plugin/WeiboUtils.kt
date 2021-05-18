@@ -1,11 +1,12 @@
 package xyz.cssxsh.mirai.plugin
 
 import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
@@ -31,7 +32,14 @@ internal val IntervalFast get() = WeiboHelperSettings.fast.minutes
 
 internal val IntervalSlow get() = WeiboHelperSettings.slow.minutes
 
-internal val QuietGroups get() = WeiboHelperSettings.quiet
+internal val QuietGroups by WeiboHelperSettings::quiet
+
+internal val LoginContact by lazy {
+    Bot.instances.forEach { bot ->
+        return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: return@forEach
+    }
+    return@lazy null
+}
 
 suspend fun MicroBlog.getContent(): String {
     return if (continueTag != null) {
@@ -46,26 +54,20 @@ suspend fun MicroBlog.getContent(): String {
     }
 }
 
-private suspend fun getWeiboImage(
-    url: Url,
-    name: String,
-    refresh: Boolean = false
-): File = ImageCache.resolve(name).apply {
-    if (exists().not() || refresh) {
-        parentFile.mkdirs()
-        writeBytes(client.useHttpClient { it.get(url) })
-    }
-}
-
 internal suspend fun MicroBlog.getImages() = images.mapIndexed { index, url ->
     runCatching {
-        getWeiboImage(url = url, name = "${date}/${id}-${index}-${url.filename}")
+        ImageCache.resolve("${date}/${id}-${index}-${url.filename}").apply {
+            if (exists().not()) {
+                parentFile.mkdirs()
+                writeBytes(client.useHttpClient { it.get(url) })
+            }
+        }
     }.onFailure {
         logger.warning({ "微博图片下载失败: $url" }, it)
     }
 }
 
-internal suspend fun MicroBlog.buildMessage(contact: Contact): MessageChain = buildMessageChain {
+internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}")
     appendLine("时间: $createdAt")
     appendLine("链接: $url")
@@ -82,13 +84,13 @@ internal suspend fun MicroBlog.buildMessage(contact: Contact): MessageChain = bu
 
     retweeted?.let {
         appendLine("==============================")
-        append(it.buildMessage(contact))
+        append(it.toMessage(contact))
     }
 }
 
 private val GroupPredicate = { group: UserGroup -> group.type != UserGroupType.SYSTEM }
 
-internal fun UserGroupData.buildMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
+internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
     groups.forEach { group ->
         group.list.filter(predicate).takeIf { it.isNotEmpty() }?.let { list ->
             appendLine("===${group.title}===")

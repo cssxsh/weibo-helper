@@ -96,6 +96,10 @@ abstract class WeiboListener: CoroutineScope {
                         client.flush()
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
+                    }.onFailure { cause ->
+                        if ("login" in cause.message.orEmpty()) {
+                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                        }
                     }
                 } else {
                     logger.warning { "$type(${id})监听任务执行失败, ${it.message}，" }

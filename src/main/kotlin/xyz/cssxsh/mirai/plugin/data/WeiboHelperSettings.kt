@@ -5,6 +5,10 @@ import net.mamoe.mirai.console.data.ValueDescription
 import net.mamoe.mirai.console.data.value
 
 object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings") {
+
+    @ValueDescription("登录状态失效联系人")
+    val contact by value(12345L)
+
     @ValueDescription("图片缓存位置")
     val cache: String by value("WeiboCache")
 
