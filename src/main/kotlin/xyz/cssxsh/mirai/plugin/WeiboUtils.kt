@@ -104,6 +104,7 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
 private val ImageExtensions = listOf("jpg", "bmp", "png", "gif")
 
 internal fun CoroutineScope.clear(interval: Duration = (1).hours) = launch {
+    if (ImageExpire.isPositive().not()) return@launch
     while (isActive) {
         delay(interval)
         val last = System.currentTimeMillis() - ImageExpire.toLongMilliseconds()
