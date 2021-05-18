@@ -12,7 +12,7 @@ import xyz.cssxsh.weibo.api.*
 import kotlin.time.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "0.1.0-dev-1") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.0.0-dev-2") {
         name("weibo-helper")
         author("cssxsh")
     }
