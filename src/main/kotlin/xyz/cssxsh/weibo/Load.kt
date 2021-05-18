@@ -22,7 +22,7 @@ data class TempData(
     val ok: Boolean = true
 )
 
-inline fun <reified T> TempData.data(): T = WeiboClient.json.decodeFromJsonElement(requireNotNull(data) { toString() })
+inline fun <reified T> TempData.data(): T = WeiboClient.Json.decodeFromJsonElement(requireNotNull(data) { toString() })
 
 internal suspend inline fun <reified T> WeiboClient.temp(
     url: String,

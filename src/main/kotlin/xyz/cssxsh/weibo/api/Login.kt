@@ -24,17 +24,17 @@ private val CheckDelay = (3).seconds
 
 private inline fun <reified T> String.readCallback(): T {
     val text = substringAfter('(').substringBeforeLast(')')
-    return WeiboClient.json.decodeFromString(text)
+    return WeiboClient.Json.decodeFromString(text)
 }
 
 private fun QrcodeData.qrcode(): Qrcode {
     check(code == SUCCESS_CODE) { msg }
-    return WeiboClient.json.decodeFromJsonElement(data)
+    return WeiboClient.Json.decodeFromJsonElement(data)
 }
 
 private fun QrcodeData.token(): QrcodeToken {
     check(code == SUCCESS_CODE) { msg }
-    return WeiboClient.json.decodeFromJsonElement(data)
+    return WeiboClient.Json.decodeFromJsonElement(data)
 }
 
 private val SSO_LOGIN_REGEX = """\?ticket=[^"]+""".toRegex()

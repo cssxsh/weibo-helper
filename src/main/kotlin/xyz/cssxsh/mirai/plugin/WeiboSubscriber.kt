@@ -29,7 +29,7 @@ internal object WeiboSubscriber: CoroutineScope by WeiboHelperPlugin.childScope(
 
                 logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
                 runCatching {
-                    message.quote() + client.getMicroBlog(mid = result.value).buildMessage(contact = subject)
+                    message.quote() + client.getMicroBlog(mid = result.value).toMessage(contact = subject)
                 }.onFailure {
                     logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, it)
                     runCatching {

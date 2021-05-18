@@ -9,7 +9,7 @@ import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.api.flush
+import xyz.cssxsh.weibo.api.*
 import java.time.LocalTime
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
@@ -65,18 +65,18 @@ abstract class WeiboListener: CoroutineScope {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         while (isActive && taskContactInfos(id).isNotEmpty()) {
             val old = runCatching {
-                WeiboClient.json.decodeFromString<List<MicroBlog>>(json(id).readText())
+                WeiboClient.Json.decodeFromString<List<MicroBlog>>(json(id).readText())
             }.getOrElse {
                 emptyList()
             }
             delay(if (old.near()) IntervalSlow else IntervalFast)
             runCatching {
                 val list = load(id).sortedBy { it.id }
-                json(id).writeText(WeiboClient.json.encodeToString(list))
+                json(id).writeText(WeiboClient.Json.encodeToString(list))
                 list.forEach { blog ->
                     if (blog.createdAt > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
-                            blog.buildMessage(contact)
+                            blog.toMessage(contact)
                         }
                     }
                 }

@@ -101,7 +101,7 @@ enum class UserGroupType(val value: Int) {
             encoder.encodeInt(value.value)
 
         override fun deserialize(decoder: Decoder): UserGroupType = decoder.decodeInt().let { value ->
-            requireNotNull(values().find { it.value == value }) { "$value not in ${values().toList()}" }
+            requireNotNull(values().find { it.value == value }) { "$value not in ${values().asList()}" }
         }
     }
 }

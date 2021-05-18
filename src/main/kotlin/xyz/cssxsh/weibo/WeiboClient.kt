@@ -38,7 +38,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
 
     private fun client() = HttpClient(OkHttp) {
         Json {
-            serializer = KotlinxSerializer(json)
+            serializer = KotlinxSerializer(Json)
         }
         install(HttpTimeout) {
             socketTimeoutMillis = 5_000
@@ -57,7 +57,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
     }
 
     companion object {
-        val json = Json {
+        val Json = Json {
             prettyPrint = true
             ignoreUnknownKeys = true
             isLenient = true
@@ -84,9 +84,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
         }
     }
 
-    suspend fun <T> useHttpClient(
-        block: suspend (HttpClient) -> T
-    ): T = client().use {
+    suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = client().use {
         var result: T? = null
         while (result === null) {
             result = runCatching {
