@@ -1,6 +1,5 @@
 package xyz.cssxsh.mirai.plugin
 
-import io.ktor.client.request.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -35,8 +34,8 @@ internal val IntervalSlow get() = WeiboHelperSettings.slow.minutes
 internal val QuietGroups by WeiboHelperSettings::quiet
 
 internal val LoginContact by lazy {
-    Bot.instances.forEach { bot ->
-        return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: return@forEach
+    for (bot in Bot.instances) {
+        return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: continue
     }
     return@lazy null
 }
@@ -56,10 +55,10 @@ suspend fun MicroBlog.getContent(): String {
 
 internal suspend fun MicroBlog.getImages() = images.mapIndexed { index, url ->
     runCatching {
-        ImageCache.resolve("${date}/${id}-${index}-${url.filename}").apply {
+        ImageCache.resolve("${datetime}/${id}-${index}-${url.filename}").apply {
             if (exists().not()) {
                 parentFile.mkdirs()
-                writeBytes(client.useHttpClient { it.get(url) })
+                writeBytes(client.download(url))
             }
         }
     }.onFailure {
@@ -70,7 +69,7 @@ internal suspend fun MicroBlog.getImages() = images.mapIndexed { index, url ->
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}")
     appendLine("时间: $createdAt")
-    appendLine("链接: $url")
+    appendLine("链接: $link")
     appendLine(getContent())
 
     getImages().forEachIndexed { index, result ->

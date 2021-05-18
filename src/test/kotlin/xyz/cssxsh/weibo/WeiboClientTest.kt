@@ -2,9 +2,7 @@ package xyz.cssxsh.weibo
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
-import okhttp3.internal.wait
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import xyz.cssxsh.weibo.api.*
@@ -25,7 +23,7 @@ internal class WeiboClientTest {
     private fun MicroBlog.buildText() = buildString {
         appendLine("微博 $username 有新动态：")
         appendLine("时间: $createdAt")
-        appendLine("链接: $url")
+        appendLine("链接: $link")
         appendLine(textRaw)
         pictureInfos.forEach { (_, picture) ->
             appendLine("${picture.type}-${picture.status}-${picture.original.url}")
@@ -34,7 +32,7 @@ internal class WeiboClientTest {
             appendLine("==============================")
             appendLine("@${retweeted.username}")
             appendLine("时间: ${retweeted.createdAt}")
-            appendLine("链接: ${retweeted.url}")
+            appendLine("链接: ${retweeted.link}")
             appendLine(retweeted.textRaw)
             retweeted.pictureInfos.forEach { (_, picture) ->
                 appendLine("${picture.type}-${picture.status}-${picture.original.url}")
