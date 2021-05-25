@@ -19,8 +19,9 @@ internal object WeiboSubscriber: CoroutineScope by WeiboHelperPlugin.childScope(
      * 3. https://weibo.com/5594511989/JzFhZz3fP
      * 4. https://weibo.com/detail/JzFhZz3fP
      * 5. https://weibo.com/detail/4585001998353993
+     * 6. https://m.weibo.cn/detail/4585001998353993
      */
-    private val WEIBO_REGEX = """(?<=(m\.weibo\.cn/status/|(www\.)?weibo\.com/(\d{1,32}|detail)/))[0-9A-z]+""".toRegex()
+    private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+""".toRegex()
 
     fun start() {
         globalEventChannel().subscribeMessages {
