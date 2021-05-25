@@ -47,6 +47,7 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboUserCommand.register()
         WeiboGroupCommand.register()
+        WeiboCacheCommand.register()
         WeiboLoginCommand.register()
 
         clear = clear()
@@ -55,6 +56,7 @@ object WeiboHelperPlugin : KotlinPlugin(
     override fun onDisable() {
         WeiboUserCommand.unregister()
         WeiboGroupCommand.unregister()
+        WeiboCacheCommand.unregister()
         WeiboLoginCommand.unregister()
 
         WeiboUserCommand.listener.stop()
