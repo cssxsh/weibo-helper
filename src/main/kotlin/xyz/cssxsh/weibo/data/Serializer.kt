@@ -107,3 +107,27 @@ enum class UserGroupType(override val value: Int) : WeiboValue<Int> {
 
     companion object : KSerializer<UserGroupType> by WeiboEnumSerializer(values())
 }
+
+/**
+ * verified_type < 8 ? "微博官方认证" : "微博个人认证"
+ */
+@Serializable(with = VerifiedType.Companion::class)
+enum class VerifiedType(override val value: Int): WeiboValue<Int> {
+    NONE(value = -1),
+    PERSONAL(value = 0),
+    GOVERNMENT(value = 1),
+    ENTERPRISE(value = 2),
+    MEDIA(value = 3),
+    CAMPUS(value = 4),
+    WEBSITE(value = 5),
+    APPLICATION(value = 6),
+    ORGANIZATION(value = 7),
+    PENDING_ENTERPRISE(value = 8),
+    TEMP_9(value = 9),
+    TEMP_10(value = 10),
+    JUNIOR(value = 200),
+    SENIOR(value = 220),
+    DECEASED(value = 400);
+
+    companion object : KSerializer<VerifiedType> by WeiboEnumSerializer(values())
+}

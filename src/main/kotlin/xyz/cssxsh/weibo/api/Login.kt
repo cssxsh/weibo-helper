@@ -5,7 +5,6 @@ import io.ktor.http.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.decodeFromJsonElement
 import xyz.cssxsh.weibo.*
@@ -80,7 +79,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }.readCallback<LoginFlush>().urls.first { SSO_LOGIN_REGEX in it }
 
-    return get<String>(url).readCallback<LoginResult>().also { info = it.userinfo }
+    return get<String>(url).readCallback<LoginResult>().also { info = it.info }
 }
 
 suspend fun WeiboClient.flush(): LoginResult {
@@ -91,5 +90,5 @@ suspend fun WeiboClient.flush(): LoginResult {
     }.toString(Charset.forName("GBK"))
 
     val url = WSSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(text)) { "未找到登录参数 for $WSSO_LOGIN" }.value
-    return get<String>(url).readCallback<LoginResult>().also { info = it.userinfo }
+    return get<String>(url).readCallback<LoginResult>().also { info = it.info }
 }

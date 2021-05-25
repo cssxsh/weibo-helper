@@ -33,7 +33,7 @@ data class LoginResult(
     @SerialName("result")
     val result: Boolean,
     @SerialName("userinfo")
-    val userinfo: LoginUserInfo
+    val info: LoginUserInfo
 )
 
 @Serializable

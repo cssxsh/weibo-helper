@@ -24,18 +24,18 @@ internal class WeiboClientTest {
         appendLine("微博 $username 有新动态：")
         appendLine("时间: $createdAt")
         appendLine("链接: $link")
-        appendLine(textRaw)
-        pictureInfos.forEach { (_, picture) ->
-            appendLine("${picture.type}-${picture.status}-${picture.original.url}")
+        appendLine(raw)
+        pictures.forEach {
+            appendLine(it)
         }
         retweeted?.let { retweeted ->
             appendLine("==============================")
             appendLine("@${retweeted.username}")
             appendLine("时间: ${retweeted.createdAt}")
             appendLine("链接: ${retweeted.link}")
-            appendLine(retweeted.textRaw)
-            retweeted.pictureInfos.forEach { (_, picture) ->
-                appendLine("${picture.type}-${picture.status}-${picture.original.url}")
+            appendLine(retweeted.raw)
+            retweeted.pictures.forEach {
+                appendLine(it)
             }
         }
     }

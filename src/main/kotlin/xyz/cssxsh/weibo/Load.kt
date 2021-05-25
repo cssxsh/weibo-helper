@@ -50,11 +50,15 @@ internal const val WEIBO_EPOCH = 515483463L
 
 internal fun timestamp(id: Long): Long = (id shr 22) + WEIBO_EPOCH
 
-val MicroBlog.images get() = pictureInfos.map { (_, picture) -> Url(picture.original.url) }
+internal fun image(pid: String, extension: String? = null): Url {
+    return Url("https://wx4.sinaimg.cn/large/$pid${if (extension == null) "" else ".$extension"}")
+}
 
 val MicroBlog.link get() = "https://weibo.com/detail/${id}"
 
 val MicroBlog.username get() = user?.screen ?: "[未知用户]"
+
+val MicroBlog.uid get() = user?.id ?: 0
 
 val MicroBlog.datetime: String get() = createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE)
 

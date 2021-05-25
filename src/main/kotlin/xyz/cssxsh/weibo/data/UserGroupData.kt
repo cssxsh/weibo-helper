@@ -54,24 +54,12 @@ data class UserGroup(
     val type: UserGroupType,
     @SerialName("uid")
     val uid: Long,
-//    @SerialName("fid")
-//    private val fid: String? = null,
-//    @SerialName("containerid")
-//    private val containerId: String? = null,
-//    @SerialName("apipath")
-//    private val apiPath: String? = null,
-//    @SerialName("can_edit")
-//    @Serializable(NumberToBooleanSerializer::class)
-//    private val canEdit: Boolean = false,
-//    @SerialName("ad_scene")
-//    @Serializable(NumberToBooleanSerializer::class)
-//    private val advertisementScene: Boolean,
-//    @SerialName("settings")
-//    private val settings: JsonObject? = null,
-//    @SerialName("sysgroup")
-//    private val systemGroup: Int,
-//    @SerialName("navigation_title")
-//    private val navigationTitle: String? = null,
-//    @SerialName("open_scheme")
-//    private val openScheme: Boolean = false,
+)
+
+@Serializable
+data class UserMention(
+    @SerialName("statuses")
+    val statuses: List<MicroBlog> = emptyList(),
+    @SerialName("total_number")
+    val total: Int
 )
