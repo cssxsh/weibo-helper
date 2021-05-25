@@ -38,9 +38,11 @@ suspend inline fun <reified T> WeiboClient.get(
 
 internal val Url.filename get() = encodedPath.substringAfterLast("/")
 
-internal fun String.toLong62() = fold(0L) { acc, char -> acc * 62 + (char - '0').toLong() }
+private val chars = ('0'..'9').asIterable() + ('a'..'z').asIterable() + ('A'..'Z').asIterable()
 
-internal fun user(image: Url): Long = image.filename.substring(0..7).let {
+internal fun String.toLong62() = fold(0L) { acc, char -> acc * 62 + chars.indexOf(char).toLong() }
+
+internal fun user(filename: String): Long = filename.substring(0..7).let {
     if (it.startsWith("00")) it.toLong62() else it.toLong(16)
 }
 
