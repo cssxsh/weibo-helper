@@ -8,10 +8,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.decodeFromJsonElement
-import xyz.cssxsh.weibo.WeiboClient
+import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
-import xyz.cssxsh.weibo.download
-import xyz.cssxsh.weibo.get
 import java.lang.IllegalStateException
 import java.nio.charset.Charset
 import kotlin.time.seconds
@@ -94,8 +92,4 @@ suspend fun WeiboClient.flush(): LoginResult {
 
     val url = WSSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(text)) { "未找到登录参数 for $WSSO_LOGIN" }.value
     return get<String>(url).readCallback<LoginResult>().also { info = it.userinfo }
-}
-
-fun WeiboClient.status(): LoginStatus = runBlocking {
-    LoginStatus(token, info, cookiesStorage.get(Url(SSO_LOGIN)).map { renderSetCookieHeader(it) })
 }

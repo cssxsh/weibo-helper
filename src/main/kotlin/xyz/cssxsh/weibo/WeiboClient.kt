@@ -30,11 +30,26 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
         }
     }
 
-    internal val cookiesStorage = AcceptAllCookiesStorage()
+    fun status(): LoginStatus = runBlocking {
+        cookiesStorage.get(Url(SSO_LOGIN)) // cleanup
+        cookiesStorage.mutex.withLock {
+            LoginStatus(token, info, cookiesStorage.container.map(::renderSetCookieHeader))
+        }
+    }
 
-    internal lateinit var info: LoginUserInfo
+    private inline fun <reified T: Any, reified R> reflect() = ReadOnlyProperty<T, R> { thisRef, property ->
+        thisRef::class.java.getDeclaredField(property.name).apply { isAccessible = true }.get(thisRef) as R
+    }
 
-    internal lateinit var token: String
+    private val AcceptAllCookiesStorage.mutex: Mutex by reflect()
+
+    private val AcceptAllCookiesStorage.container: MutableList<Cookie> by reflect()
+
+    private val cookiesStorage = AcceptAllCookiesStorage()
+
+    internal var info: LoginUserInfo by Delegates.notNull()
+
+    internal var token: String by Delegates.notNull()
 
     private fun client() = HttpClient(OkHttp) {
         Json {
