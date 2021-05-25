@@ -8,26 +8,21 @@ import io.ktor.client.features.cookies.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.http.*
-import io.ktor.network.sockets.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import okhttp3.internal.http2.StreamResetException
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import java.io.EOFException
-import java.net.ConnectException
-import java.net.UnknownHostException
-import javax.net.ssl.SSLException
+import java.io.IOException
+import kotlin.properties.Delegates
+import kotlin.properties.ReadOnlyProperty
 
 class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
     constructor(status: LoginStatus, ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore): this(ignore) {
         info = status.info
         token = status.token
-        runBlocking {
-            status.cookies.forEach { header ->
-                cookiesStorage.addCookie(SSO_LOGIN, parseServerSetCookieHeader(header))
-            }
-        }
+        cookiesStorage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
     }
 
     fun status(): LoginStatus = runBlocking {
@@ -79,24 +74,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
             allowStructuredMapKeys = true
         }
 
-        private val DefaultIgnore: suspend (exception: Throwable) -> Boolean = { throwable ->
-            when (throwable) {
-                is SSLException,
-                is EOFException,
-                is ConnectException,
-                is SocketTimeoutException,
-                is HttpRequestTimeoutException,
-                is StreamResetException,
-                is UnknownHostException,
-                -> {
-                    true
-                }
-                else -> when (throwable.message) {
-                    "Required SETTINGS preface not received" -> true
-                    else -> false
-                }
-            }
-        }
+        val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException }
     }
 
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = client().use {
