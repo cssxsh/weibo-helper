@@ -15,7 +15,7 @@ object WeiboUserCommand : CompositeCommand(
     internal val listener: WeiboListener = object : WeiboListener() {
         override val type: String = "User"
 
-        override val load: suspend (id: Long) -> List<MicroBlog> = { id -> client.getUserMicroBlogs(uid = id).list }
+        override val load: suspend (id: Long) -> List<MicroBlog> = { id -> client.getUserMicroBlogs(id, 1).list }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::users
     }

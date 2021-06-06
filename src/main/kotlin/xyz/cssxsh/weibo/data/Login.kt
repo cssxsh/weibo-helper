@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
-data class QrcodeData(
+data class LoginData(
     @SerialName("data")
     val `data`: JsonElement,
     @SerialName("msg")
@@ -23,9 +23,11 @@ data class Qrcode(
 )
 
 @Serializable
-data class QrcodeToken(
+data class LoginToken(
     @SerialName("alt")
-    val alt: String
+    val alt: String,
+    @SerialName("savestate")
+    val state: Int = 30
 )
 
 @Serializable
@@ -58,8 +60,6 @@ data class LoginFlush(
 
 @Serializable
 data class LoginStatus(
-    @SerialName("alt")
-    val token: String = "",
     @SerialName("info")
     val info: LoginUserInfo = LoginUserInfo("", 0),
     @SerialName("cookies")

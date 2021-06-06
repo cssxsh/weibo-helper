@@ -21,14 +21,20 @@ import kotlin.properties.ReadOnlyProperty
 class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
     constructor(status: LoginStatus, ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore): this(ignore) {
         info = status.info
-        token = status.token
         cookiesStorage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
     }
 
     fun status(): LoginStatus = runBlocking {
         cookiesStorage.get(Url(SSO_LOGIN)) // cleanup
         cookiesStorage.mutex.withLock {
-            LoginStatus(token, info, cookiesStorage.container.map(::renderSetCookieHeader))
+            LoginStatus(info, cookiesStorage.container.map(::renderSetCookieHeader))
+        }
+    }
+
+    fun load(status: LoginStatus) = runBlocking {
+        info = status.info
+        cookiesStorage.mutex.withLock {
+            cookiesStorage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
         }
     }
 
@@ -44,7 +50,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
 
     internal var info: LoginUserInfo by Delegates.notNull()
 
-    internal var token: String by Delegates.notNull()
+    internal val xsrf: String get() = cookiesStorage.container.first { it.name == "XSRF-TOKEN" }.value
 
     private fun client() = HttpClient(OkHttp) {
         Json {
@@ -57,6 +63,9 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
         }
         install(HttpCookies) {
             storage = cookiesStorage
+        }
+        install(HttpPlainText) {
+            responseCharsetFallback = ChineseCharset
         }
         BrowserUserAgent()
         ContentEncoding {
@@ -74,7 +83,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
             allowStructuredMapKeys = true
         }
 
-        val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException }
+        val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException || it is HttpRequestTimeoutException }
     }
 
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = client().use {

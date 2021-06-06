@@ -102,7 +102,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}")
-    appendLine("时间: $createdAt")
+    appendLine("时间: $created")
     appendLine("链接: $link")
     appendLine(getContent())
 
@@ -149,6 +149,43 @@ internal fun CoroutineScope.clear(interval: Duration = ImageClearInterval) = lau
                 check(file.delete())
             }.onFailure {
                 logger.info { "${file.absolutePath} 删除失败" }
+            }
+        }
+    }
+}
+
+suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Duration) = withContext(Dispatchers.IO) {
+    ImageCache.resolve("$id").apply {
+        if (resolve("desktop.ini").exists().not()) {
+            desktop(this@getRecord)
+        }
+    }.resolve("$month.json").run {
+        if (exists() && month != YearMonth.now()) {
+            WeiboClient.Json.decodeFromString(readText())
+        } else {
+            val blogs = runCatching {
+                WeiboClient.Json.decodeFromString<List<MicroBlog>>(readText()).associateBy { it.id }.toMutableMap()
+            }.getOrElse {
+                mutableMapOf()
+            }
+            var page = 1
+            var run = true
+            while (isActive && run) {
+                delay(interval)
+                run = runCatching {
+                    client.getUserMicroBlogs(uid = id, page = page, month = month).list
+                }.onSuccess { list ->
+                    blogs.putAll(list.associateBy { it.id })
+                    logger.info { "@${screen}#${id}的${month}第${page}页加载成功" }
+                    page++
+                }.onFailure {
+                    logger.warning({ "@${screen}#${id}的${month}第${page}页加载失败" }, it)
+                }.getOrNull()?.size ?: Int.MAX_VALUE >= 16
+            }
+            blogs.values.toList().also {
+                if (it.isNotEmpty()) {
+                    writeText(WeiboClient.Json.encodeToString(it))
+                }
             }
         }
     }

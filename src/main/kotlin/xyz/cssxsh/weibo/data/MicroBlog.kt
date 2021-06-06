@@ -21,7 +21,7 @@ data class MicroBlog(
     val commentsCount: Int = 0,
     @SerialName("created_at")
     @Serializable(WeiboDateTimeSerializer::class)
-    val createdAt: OffsetDateTime,
+    val created: OffsetDateTime,
     @SerialName("continue_tag")
     internal val continueTag: JsonObject? = null,
     @SerialName("favorited")
@@ -44,34 +44,34 @@ data class MicroBlog(
     @SerialName("text_raw")
     val raw: String? = null,
     @SerialName("user")
-    val user: User? = null,
+    val user: MicroBlogUser? = null,
     @SerialName("userType")
     val userType: Int? = null,
 )
 
 @Serializable
-data class User(
+data class MicroBlogUser(
     @SerialName("avatar_hd")
-    val avatarHighDefinition: String = "",
+    override val avatarHighDefinition: String = "",
     @SerialName("avatar_large")
-    val avatarLarge: String ="",
+    override val avatarLarge: String ="",
     @SerialName("following")
-    val following: Boolean = false,
+    override val following: Boolean = false,
     @SerialName("follow_me")
     val followMe: Boolean = false,
     @SerialName("id")
-    val id: Long = 0,
+    override val id: Long = 0,
     @SerialName("profile_image_url")
     val profileImageUrl: String = "",
     @SerialName("profile_url")
     val profileUrl: String = "",
     @SerialName("screen_name")
-    val screen: String = "",
+    override val screen: String = "",
     @SerialName("verified")
     val verified: Boolean = false,
     @SerialName("verified_type")
     val verifiedType: VerifiedType = VerifiedType.NONE,
-)
+): UserBaseInfo
 
 @Serializable
 data class LongTextContent(

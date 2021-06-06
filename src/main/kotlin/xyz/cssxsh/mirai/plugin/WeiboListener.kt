@@ -58,7 +58,7 @@ abstract class WeiboListener: CoroutineScope {
     }
 
     private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
-        return mapNotNull { it.createdAt.toLocalTime() }.any { abs(it.toSecondOfDay() - time.toSecondOfDay()).seconds < IntervalSlow }
+        return map { it.created.toLocalTime() - time }.any { it.absoluteValue < IntervalSlow }
     }
 
     private fun addListener(id: Long): Job = launch {
@@ -74,23 +74,23 @@ abstract class WeiboListener: CoroutineScope {
                 val list = load(id).sortedBy { it.id }
                 json(id).writeText(WeiboClient.Json.encodeToString(list))
                 list.forEach { blog ->
-                    if (blog.createdAt > tasks.getValue(id).last) {
+                    if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
                         }
                     }
                 }
 
-                list.maxByOrNull { it.createdAt }?.let { blog ->
-                    logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.createdAt}>" }
+                list.maxByOrNull { it.created }?.let { blog ->
+                    logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }
                     tasks.compute(id) { _, info ->
-                        info?.copy(last = blog.createdAt)
+                        info?.copy(last = blog.created)
                     }
                 }
             }.onSuccess {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
-                if (client.token.isNotBlank()) {
+                if (client.info.uid != 0L) {
                     logger.warning { "$type(${id})监听任务执行失败, ${it.message}，尝试重新加载Cookie" }
                     runCatching {
                         client.flush()

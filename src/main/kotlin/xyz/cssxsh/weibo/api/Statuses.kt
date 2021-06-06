@@ -47,12 +47,12 @@ suspend fun WeiboClient.getLongText(
     parameter("id", mid)
 }
 
-suspend fun WeiboClient.getUserMentions(
-    filterByAuthor: Boolean = false,
-    filterByType: Boolean = false
+suspend fun WeiboClient.getMentions(
+    author: Boolean = false,
+    type: Boolean = false
 ): UserMention = temp(STATUSES_MENTIONS) {
     header(HttpHeaders.Referrer, "https://weibo.com/at/weibo")
 
-    parameter("filter_by_author", if (filterByAuthor) 1 else 0)
-    parameter("filter_by_type", if (filterByType) 1 else 0)
+    parameter("filter_by_author", author.toInt())
+    parameter("filter_by_type", type.toInt())
 }

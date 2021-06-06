@@ -1,6 +1,7 @@
 package xyz.cssxsh.weibo.data
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.*
@@ -9,6 +10,14 @@ import kotlinx.serialization.encoding.Encoder
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+
+typealias HistoryInfo = Map<Int, List<Int>>
+
+@Serializable
+data class SetResult(
+    @SerialName("result")
+    val result: Boolean
+)
 
 @Serializer(OffsetDateTime::class)
 object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {

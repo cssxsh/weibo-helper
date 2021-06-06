@@ -12,7 +12,7 @@ data class UserGroupData(
     @Serializable(NumberToBooleanSerializer::class)
     val fetchHot: Boolean,
     @SerialName("groups")
-    val groups: List<Group>,
+    val groups: List<UserTypeGroup>,
     @SerialName("is_new_segment")
     @Serializable(NumberToBooleanSerializer::class)
     val isNewSegment: Boolean,
@@ -24,7 +24,7 @@ data class UserGroupData(
 )
 
 @Serializable
-data class Group(
+data class UserTypeGroup(
     @SerialName("group")
     val list: List<UserGroup>,
     @SerialName("group_type")
@@ -62,4 +62,16 @@ data class UserMention(
     val statuses: List<MicroBlog> = emptyList(),
     @SerialName("total_number")
     val total: Int
+)
+
+@Serializable
+data class UserGroupMembers(
+    @SerialName("id")
+    val id: Long? = null,
+    @SerialName("total_number")
+    val total: Int,
+    @SerialName("name")
+    val name: String? = null,
+    @SerialName("users")
+    val users: List<UserInfo>
 )

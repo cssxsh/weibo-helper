@@ -10,15 +10,14 @@ data class UserDetail(
     @SerialName("birthday")
     val birthday: String,
     @SerialName("created_at")
-    val createdAt: String,
+    @Serializable(WeiboDateTimeSerializer::class)
+    val created: OffsetDateTime,
     @SerialName("description")
     val description: String,
     @SerialName("followers")
-    val followers: Followers,
+    val followers: UserFollowers,
     @SerialName("gender")
     val gender: GenderType,
-    @SerialName("interaction")
-    val interaction: Interaction,
     @SerialName("location")
     val location: String,
     @SerialName("desc_text")
@@ -28,9 +27,9 @@ data class UserDetail(
 )
 
 @Serializable
-data class SimpleUser(
+data class UserFollower(
     @SerialName("avatar_large")
-    val avatarLarge: String,
+    val avatar: String,
     @SerialName("id")
     val id: Long,
     @SerialName("screen_name")
@@ -38,48 +37,40 @@ data class SimpleUser(
 )
 
 @Serializable
-data class Followers(
+data class UserFollowers(
     @SerialName("total_number")
     val total: Int,
     @SerialName("users")
-    val users: List<SimpleUser>
-)
-
-@Serializable
-data class Interaction(
-    @SerialName("date")
-    val date: String,
-    @SerialName("interaction")
-    val interaction: Int,
-    @SerialName("pre_read_user_count")
-    val preReadUserCount: Int,
-    @SerialName("read_count")
-    val readCount: Int,
-    @SerialName("read_user_count")
-    val readUserCount: Int,
-    @SerialName("uid")
-    val uid: Long
+    val users: List<UserFollower>
 )
 
 @Serializable
 data class UserInfoData(
     @SerialName("tabList")
-    val tabs: List<Tab> = emptyList(),
+    val tabs: List<UserTab> = emptyList(),
     @SerialName("user")
     val user: UserInfo
 )
 
+interface UserBaseInfo {
+    val avatarHighDefinition: String
+    val avatarLarge: String
+    val id: Long
+    val screen: String
+    val following: Boolean
+}
+
 @Serializable
 data class UserInfo(
     @SerialName("avatar_hd")
-    val avatarHighDefinition: String,
+    override val avatarHighDefinition: String,
     @SerialName("avatar_large")
-    val avatarLarge: String,
+    override val avatarLarge: String,
     @SerialName("city")
     val city: Int,
     @SerialName("created_at")
     @Serializable(WeiboDateTimeSerializer::class)
-    val createdAt: OffsetDateTime,
+    val created: OffsetDateTime,
     @SerialName("description")
     val description: String,
     @SerialName("favourites_count")
@@ -87,7 +78,7 @@ data class UserInfo(
     @SerialName("followers_count")
     val followersCount: Int,
     @SerialName("following")
-    val following: Boolean,
+    override val following: Boolean,
     @SerialName("follow_me")
     val followMe: Boolean,
     @SerialName("friends_count")
@@ -95,7 +86,7 @@ data class UserInfo(
     @SerialName("gender")
     val gender: GenderType = GenderType.NONE,
     @SerialName("id")
-    val id: Long,
+    override val id: Long,
     @SerialName("lang")
     @Serializable(LocaleSerializer::class)
     val lang: Locale,
@@ -122,11 +113,11 @@ data class UserInfo(
     @SerialName("remark")
     val remark: String,
     @SerialName("screen_name")
-    val screen: String,
+    override val screen: String,
     @SerialName("special_follow")
     val specialFollow: Boolean,
-    @SerialName("status")
-    val status: MicroBlog? = null,
+//    @SerialName("status") 目前没什么卵用
+//    val status: MicroBlog? = null,
     @SerialName("statuses_count")
     val statusesCount: Int,
     @SerialName("url")
@@ -135,10 +126,10 @@ data class UserInfo(
     val verified: Boolean,
     @SerialName("verified_type")
     val verifiedType: VerifiedType = VerifiedType.NONE,
-)
+): UserBaseInfo
 
 @Serializable
-data class Tab(
+data class UserTab(
     @SerialName("name")
     val name: String,
     @SerialName("tabName")
