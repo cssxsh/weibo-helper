@@ -1,20 +1,23 @@
 package xyz.cssxsh.mirai.plugin
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import net.mamoe.mirai.Bot
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
+import net.sf.image4j.codec.ico.ICOEncoder
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.File
+import java.net.URL
+import java.time.YearMonth
+import javax.imageio.ImageIO
 import kotlin.time.*
 
 internal val logger by WeiboHelperPlugin::logger
@@ -53,16 +56,47 @@ suspend fun MicroBlog.getContent(): String {
     }
 }
 
-internal suspend fun MicroBlog.getImages() = images.mapIndexed { index, url ->
-    runCatching {
-        ImageCache.resolve("${datetime}/${id}-${index}-${url.filename}").apply {
-            if (exists().not()) {
-                parentFile.mkdirs()
-                writeBytes(client.download(url))
+internal fun File.desktop(user: UserBaseInfo) {
+    mkdirs()
+    resolve("desktop.ini").apply {
+        if (isHidden) delete()
+    }.writeText(buildString {
+        appendLine("[.ShellClassInfo]")
+        appendLine("LocalizedResourceName=${if (user.following) '$' else '#'}${user.id}@${user.screen}")
+        if (user.following) {
+            runCatching {
+                ICOEncoder.write(ImageIO.read(URL(user.avatarLarge)), resolve("avatar.ico"))
             }
+            appendLine("IconResource=avatar.ico")
         }
-    }.onFailure {
-        logger.warning({ "微博图片下载失败: $url" }, it)
+        appendLine("[ViewState]")
+        appendLine("Mode=")
+        appendLine("Vid=")
+        appendLine("FolderType=Pictures")
+    }, ChineseCharset)
+
+    Runtime.getRuntime().exec("attrib $absolutePath +s")
+}
+
+internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> = withContext(Dispatchers.IO) {
+    if (pictures.isEmpty()) return@withContext emptyList()
+    val cache = ImageCache.resolve("$uid").apply {
+        if (resolve("desktop.ini").exists().not()) {
+            desktop(requireNotNull(user))
+        }
+    }
+    val last = created.toEpochSecond() * 1_000
+    pictures.mapIndexed { index, pid ->
+        runCatching {
+            cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
+                if (flush || !exists()) {
+                    writeBytes(client.get(image(pid)))
+                    setLastModified(last)
+                }
+            }
+        }.onFailure {
+            logger.warning({ "微博图片下载失败: $pid" }, it)
+        }
     }
 }
 
@@ -100,16 +134,16 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
-private val ImageExtensions = listOf("jpg", "bmp", "png", "gif")
+private val ImageClearInterval = (1).hours
 
-internal fun CoroutineScope.clear(interval: Duration = (1).hours) = launch {
+internal fun CoroutineScope.clear(interval: Duration = ImageClearInterval) = launch {
     if (ImageExpire.isNegative().not()) return@launch
     while (isActive) {
         delay(interval)
         logger.info { "微博图片清理开始" }
         val last = System.currentTimeMillis() - ImageExpire.toLongMilliseconds()
         ImageCache.walkBottomUp().filter { file ->
-            (file.extension in ImageExtensions) && file.lastModified() < last
+            (file.extension in ImageExtensions.values) && file.lastModified() < last
         }.forEach { file ->
             runCatching {
                 check(file.delete())

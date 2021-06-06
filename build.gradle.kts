@@ -37,7 +37,9 @@ kotlin {
 dependencies {
     implementation(ktor("client-serialization", Versions.ktor))
     implementation(ktor("client-encoding", Versions.ktor))
+    implementation("org.jclarion:image4j:0.7")
     implementation(project(":tools"))
+    testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.9.0")
     testImplementation(kotlin("test-junit"))
     testImplementation(junit("api", Versions.junit))
     testRuntimeOnly(junit("engine", Versions.junit))
