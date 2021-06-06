@@ -15,8 +15,7 @@ object WeiboLoginCommand : SimpleCommand(
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage {
         client.qrcode { image ->
-            sendMessage("请使用微博客户端扫码：")
-            sendMessage(image.inputStream().uploadAsImage(fromEvent.subject))
+            sendMessage(image.inputStream().uploadAsImage(fromEvent.subject) + "请使用微博客户端扫码")
         }
         "@${client.info.display}#${client.info.uid} 登陆成功".toPlainText()
     }
