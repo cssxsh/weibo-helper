@@ -13,20 +13,23 @@ object WeiboGroupCommand : CompositeCommand(
     "wgroup", "微博分组",
     description = "微博分组指令",
 ) {
-    internal val listener: WeiboListener = object : WeiboListener() {
-        override val type: String = "Group"
+    internal val listener: WeiboListener = object : WeiboListener("Group") {
 
-        override val load: suspend (id: Long) -> List<MicroBlog> = { id -> client.getTimeline(gid = id).statuses }
+        private val history = mutableSetOf<Long>()
+
+        override val load: suspend (id: Long) -> List<MicroBlog> = { id ->
+            client.getGroupsTimeline(gid = id, count = 100).statuses.filter { blog ->
+                (blog.retweeted ?: blog).repostsCount > 100 && history.add(id)
+            }
+        }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::groups
     }
 
     @SubCommand("list", "列表")
-    @Suppress("unused")
     suspend fun CommandSenderOnMessage<*>.list() = sendMessage { client.getFeedGroups().toMessage() }
 
     @SubCommand("add", "task", "订阅")
-    @Suppress("unused")
     suspend fun CommandSenderOnMessage<*>.task(gid: Long) = sendMessage {
         val group = client.getFeedGroups().getGroup(id = gid)
         listener.addTask(id = gid, name = group.title, subject = fromEvent.subject)
@@ -34,7 +37,6 @@ object WeiboGroupCommand : CompositeCommand(
     }
 
     @SubCommand("stop", "停止")
-    @Suppress("unused")
     suspend fun CommandSenderOnMessage<*>.stop(gid: Long) = sendMessage {
         listener.removeTask(id = gid, subject = fromEvent.subject)
         "对Group(${gid})的监听任务, 取消完成".toPlainText()

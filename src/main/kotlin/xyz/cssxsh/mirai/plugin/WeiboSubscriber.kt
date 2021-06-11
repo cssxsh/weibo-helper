@@ -1,7 +1,6 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
-import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.Group
 import net.mamoe.mirai.event.globalEventChannel
@@ -10,7 +9,6 @@ import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.weibo.api.*
 
-@ConsoleExperimentalApi
 internal object WeiboSubscriber: CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
 
     /**
