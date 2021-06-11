@@ -22,7 +22,6 @@ kotlin {
         all {
             languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
             languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
-            languageSettings.useExperimentalAnnotation("kotlin.time.ExperimentalTime")
             languageSettings.useExperimentalAnnotation("io.ktor.util.KtorExperimentalAPI")
             languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
             languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
@@ -39,10 +38,26 @@ dependencies {
     implementation(ktor("client-encoding", Versions.ktor))
     implementation("org.jclarion:image4j:0.7")
     implementation(project(":tools"))
+
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.9.0")
     testImplementation(kotlin("test-junit"))
     testImplementation(junit("api", Versions.junit))
     testRuntimeOnly(junit("engine", Versions.junit))
+}
+
+mirai {
+    configureShadow {
+        exclude {
+            it.path.startsWith("kotlin")
+        }
+        exclude {
+            it.path.startsWith("org")
+        }
+        exclude {
+            it.path.startsWith("io/ktor") &&
+                (it.path.startsWith("io/ktor/client/features/compression") || it.path.startsWith("io/ktor/client/features/json")).not()
+        }
+    }
 }
 
 tasks {

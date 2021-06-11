@@ -7,7 +7,6 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 import java.lang.IllegalStateException
-import kotlin.time.seconds
 
 private const val SUCCESS_CODE = 20000000
 
@@ -17,7 +16,7 @@ private const val USED = 50114002
 
 private const val QRCODE_SIZE = 180
 
-private val CheckDelay = (3).seconds
+private const val CheckDelay = 3 * 1000L
 
 internal fun LoginData.qrcode(): Qrcode {
     check(code == SUCCESS_CODE) { msg }

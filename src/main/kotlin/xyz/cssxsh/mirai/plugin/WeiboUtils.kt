@@ -16,9 +16,9 @@ import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.File
 import java.net.URL
+import java.time.Duration
 import java.time.YearMonth
 import javax.imageio.ImageIO
-import kotlin.time.*
 
 internal val logger by WeiboHelperPlugin::logger
 
@@ -28,11 +28,11 @@ internal val data by WeiboHelperPlugin::dataFolder
 
 internal val ImageCache get() = File(WeiboHelperSettings.cache)
 
-internal val ImageExpire get() = WeiboHelperSettings.expire.hours
+internal val ImageExpire get() = Duration.ofHours(WeiboHelperSettings.expire.toLong())
 
-internal val IntervalFast get() = WeiboHelperSettings.fast.minutes
+internal val IntervalFast get() = Duration.ofMinutes(WeiboHelperSettings.fast.toLong())
 
-internal val IntervalSlow get() = WeiboHelperSettings.slow.minutes
+internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.toLong())
 
 internal val QuietGroups by WeiboHelperSettings::quiet
 
@@ -134,14 +134,12 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
-private val ImageClearInterval = (1).hours
-
-internal fun CoroutineScope.clear(interval: Duration = ImageClearInterval) = launch {
-    if (ImageExpire.isNegative().not()) return@launch
+internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch {
+    if (ImageExpire.isNegative.not()) return@launch
     while (isActive) {
         delay(interval)
         logger.info { "微博图片清理开始" }
-        val last = System.currentTimeMillis() - ImageExpire.toLongMilliseconds()
+        val last = System.currentTimeMillis() - ImageExpire.toMillis()
         ImageCache.walkBottomUp().filter { file ->
             (file.extension in ImageExtensions.values) && file.lastModified() < last
         }.forEach { file ->
@@ -154,7 +152,7 @@ internal fun CoroutineScope.clear(interval: Duration = ImageClearInterval) = lau
     }
 }
 
-suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Duration) = withContext(Dispatchers.IO) {
+suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withContext(Dispatchers.IO) {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(this@getRecord)
