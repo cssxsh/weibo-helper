@@ -7,70 +7,96 @@ import xyz.cssxsh.weibo.data.*
 
 suspend fun WeiboClient.getFeedGroups(
     isNewSegment: Boolean = true,
-    fetchHot: Boolean = true
+    fetchHot: Boolean = true,
 ): UserGroupData = get(FEED_ALL_GROUPS) {
     header(HttpHeaders.Referrer, INDEX_PAGE)
 
-    parameter("is_new_segment", if (isNewSegment) 1 else 0)
-    parameter("fetch_hot", if (fetchHot) 1 else 0)
+    parameter("is_new_segment", isNewSegment.toInt())
+    parameter("fetch_hot", fetchHot.toInt())
 }
 
-enum class TimelineType(val url: String) {
-    UNREAD_FRIENDS(url = FEED_UNREAD_FRIENDS_TIMELINE),
-    GROUPS(url = FEED_GROUPS_TIMELINE),
-    FRIENDS(url = FEED_FRIENDS_TIMELINE);
-}
-
-internal suspend fun WeiboClient.getTimeline(
+suspend fun WeiboClient.getGroupsTimeline(
     gid: Long,
-    sinceId: Long?,
-    maxId: Long?,
-    count: Int,
-    refresh: Int,
-    fastRefresh: Int?,
-    url: String
-): TimelineData = get(url) {
+    count: Int = PAGE_SIZE,
+    refresh: Boolean = true,
+    since: Long? = null,
+    max: Long? = null,
+    fast: Boolean? = null
+): TimelineData = get(FEED_GROUPS_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
     parameter("list_id", gid)
-    parameter("since_id", sinceId)
-    parameter("max_id", maxId)
-    parameter("refresh", refresh)
-    parameter("fast_refresh", fastRefresh)
+    parameter("since_id", since)
+    parameter("max_id", max)
+    parameter("refresh", refresh.toInt())
+    parameter("fast_refresh", fast)
     parameter("count", count)
 }
 
-suspend fun WeiboClient.getTimeline(
+suspend fun WeiboClient.getUnreadTimeline(
     gid: Long,
-    sinceId: Long? = null,
-    maxId: Long? = null,
-    count: Int = STATUSES_PAGE_SIZE,
-    refresh: Int = 0,
-    fastRefresh: Int? = null,
-    type: TimelineType = TimelineType.GROUPS
-) = getTimeline(
-    gid = gid,
-    maxId = maxId,
-    sinceId = sinceId,
-    count = count,
-    refresh = refresh,
-    fastRefresh = fastRefresh,
-    url = type.url
-)
+    count: Int = PAGE_SIZE,
+    refresh: Boolean = true,
+    since: Long? = null,
+    max: Long? = null,
+    fast: Boolean? = null
+): TimelineData = get(FEED_UNREAD_FRIENDS_TIMELINE) {
+    header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
-suspend fun WeiboClient.getHot(
+    parameter("list_id", gid)
+    parameter("since_id", since)
+    parameter("max_id", max)
+    parameter("refresh", refresh.toInt())
+    parameter("fast_refresh", fast?.toInt())
+    parameter("count", count)
+}
+
+suspend fun WeiboClient.getFriendsTimeline(
     gid: Long,
-    maxId: Long? = null,
+    count: Int = PAGE_SIZE,
+    refresh: Boolean = true,
+    since: Long? = null,
+    max: Long? = null,
+    fast: Boolean? = null
+): TimelineData = get(FEED_FRIENDS_TIMELINE) {
+    header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
+
+    parameter("list_id", gid)
+    parameter("since_id", since)
+    parameter("max_id", max)
+    parameter("refresh", refresh.toInt())
+    parameter("fast_refresh", fast?.toInt())
+    parameter("count", count)
+}
+
+suspend fun WeiboClient.getHotTimeline(
+    gid: Long,
+    max: Long? = null,
     extend: List<String> = listOf("discover", "new_feed"),
-    count: Int = STATUSES_PAGE_SIZE,
-    refresh: Int = 0,
+    count: Int = PAGE_SIZE,
+    refresh: Boolean = false,
 ): TimelineData = get(FEED_HOT_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/hot/list/$gid")
 
     parameter("group_id", gid)
     parameter("containerid", gid)
-    parameter("max_id", maxId)
+    parameter("max_id", max)
     parameter("extparam", extend.joinToString("|"))
     parameter("count", count)
-    parameter("refresh", refresh)
+    parameter("refresh", refresh.toInt())
+}
+
+suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when(group.type) {
+    UserGroupType.USER, UserGroupType.QUIETLY -> {
+        getGroupsTimeline(group.gid)
+    }
+    UserGroupType.ALL -> {
+        getUnreadTimeline(group.gid)
+    }
+    UserGroupType.FILTER, UserGroupType.MUTUAL, UserGroupType.GROUP -> {
+        getFriendsTimeline(group.gid)
+    }
+    UserGroupType.SYSTEM -> {
+        getHotTimeline(group.gid)
+    }
 }

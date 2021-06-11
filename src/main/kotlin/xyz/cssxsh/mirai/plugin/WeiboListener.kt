@@ -3,6 +3,7 @@ package xyz.cssxsh.mirai.plugin
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
@@ -10,20 +11,14 @@ import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
+import java.time.Duration
 import java.time.LocalTime
-import kotlin.coroutines.CoroutineContext
-import kotlin.math.abs
-import kotlin.time.seconds
 
-abstract class WeiboListener: CoroutineScope {
-
-    abstract val type: String
+abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
 
     abstract val load: suspend (id: Long) -> List<MicroBlog>
 
-    override val coroutineContext: CoroutineContext by lazy { CoroutineName("WeiboListener-$type") }
-
-    protected abstract val tasks : MutableMap<Long, WeiboTaskInfo>
+    protected abstract val tasks: MutableMap<Long, WeiboTaskInfo>
 
     private val taskJobs = mutableMapOf<Long, Job>()
 
@@ -38,9 +33,7 @@ abstract class WeiboListener: CoroutineScope {
     }
 
     fun stop(): Unit = synchronized(taskJobs) {
-        taskJobs.forEach { (_, job) ->
-            job.cancel()
-        }
+        coroutineContext.cancelChildren()
         taskJobs.clear()
     }
 
@@ -57,8 +50,10 @@ abstract class WeiboListener: CoroutineScope {
         }
     }
 
+    private operator fun LocalTime.minus(other: LocalTime): Duration = Duration.ofSeconds((toSecondOfDay() - other.toSecondOfDay()).toLong())
+
     private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
-        return mapNotNull { it.createdAt.toLocalTime() }.any { abs(it.toSecondOfDay() - time.toSecondOfDay()).seconds < IntervalSlow }
+        return map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
     private fun addListener(id: Long): Job = launch {
@@ -69,31 +64,31 @@ abstract class WeiboListener: CoroutineScope {
             }.getOrElse {
                 emptyList()
             }
-            delay(if (old.near()) IntervalSlow else IntervalFast)
+            delay((if (old.near()) IntervalSlow else IntervalFast).toMillis())
             runCatching {
                 val list = load(id).sortedBy { it.id }
                 json(id).writeText(WeiboClient.Json.encodeToString(list))
                 list.forEach { blog ->
-                    if (blog.createdAt > tasks.getValue(id).last) {
+                    if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
                         }
                     }
                 }
 
-                list.maxByOrNull { it.createdAt }?.let { blog ->
-                    logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.createdAt}>" }
+                list.maxByOrNull { it.created }?.let { blog ->
+                    logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }
                     tasks.compute(id) { _, info ->
-                        info?.copy(last = blog.createdAt)
+                        info?.copy(last = blog.created)
                     }
                 }
             }.onSuccess {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
-                if (client.token.isNotBlank()) {
+                if (client.info.uid != 0L) {
                     logger.warning { "$type(${id})监听任务执行失败, ${it.message}，尝试重新加载Cookie" }
                     runCatching {
-                        client.flush()
+                        client.restore()
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
                     }.onFailure { cause ->

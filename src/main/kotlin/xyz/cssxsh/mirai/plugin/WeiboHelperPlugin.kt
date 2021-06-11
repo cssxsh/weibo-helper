@@ -32,11 +32,15 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         runBlocking {
             runCatching {
-                client.flush()
+                client.restore()
             }.onSuccess {
                 logger.info { "登陆成功, $it" }
             }.onFailure {
                 logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
+            }.recoverCatching {
+                client.incarnate()
+            }.onFailure {
+                logger.warning { "模拟游客失败, ${it.message}" }
             }
         }
 
@@ -47,6 +51,7 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboUserCommand.register()
         WeiboGroupCommand.register()
+        WeiboCacheCommand.register()
         WeiboLoginCommand.register()
 
         clear = clear()
@@ -55,6 +60,7 @@ object WeiboHelperPlugin : KotlinPlugin(
     override fun onDisable() {
         WeiboUserCommand.unregister()
         WeiboGroupCommand.unregister()
+        WeiboCacheCommand.unregister()
         WeiboLoginCommand.unregister()
 
         WeiboUserCommand.listener.stop()
