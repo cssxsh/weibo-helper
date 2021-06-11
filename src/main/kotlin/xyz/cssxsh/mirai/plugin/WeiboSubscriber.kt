@@ -32,7 +32,7 @@ internal object WeiboSubscriber: CoroutineScope by WeiboHelperPlugin.childScope(
                 }.onFailure {
                     logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, it)
                     runCatching {
-                        client.flush()
+                        client.restore()
                     }.onSuccess {
                         logger.info { "登录成功, $it" }
                     }.onFailure { cause ->

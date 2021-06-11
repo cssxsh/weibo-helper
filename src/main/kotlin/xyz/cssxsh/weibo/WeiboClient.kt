@@ -19,26 +19,26 @@ import kotlin.properties.Delegates
 import kotlin.properties.ReadOnlyProperty
 
 class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
-    constructor(status: LoginStatus, ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore): this(ignore) {
+    constructor(status: LoginStatus, ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) : this(ignore) {
         info = status.info
-        cookiesStorage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
+        storage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
     }
 
     fun status(): LoginStatus = runBlocking {
-        cookiesStorage.get(Url(SSO_LOGIN)) // cleanup
-        cookiesStorage.mutex.withLock {
-            LoginStatus(info, cookiesStorage.container.map(::renderSetCookieHeader))
+        storage.get(Url(SSO_LOGIN)) // cleanup
+        storage.mutex.withLock {
+            LoginStatus(info, storage.container.filter { it.expires != null }.map(::renderSetCookieHeader))
         }
     }
 
     fun load(status: LoginStatus) = runBlocking {
         info = status.info
-        cookiesStorage.mutex.withLock {
-            cookiesStorage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
+        storage.mutex.withLock {
+            storage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
         }
     }
 
-    private inline fun <reified T: Any, reified R> reflect() = ReadOnlyProperty<T, R> { thisRef, property ->
+    private inline fun <reified T : Any, reified R> reflect() = ReadOnlyProperty<T, R> { thisRef, property ->
         thisRef::class.java.getDeclaredField(property.name).apply { isAccessible = true }.get(thisRef) as R
     }
 
@@ -46,11 +46,13 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
 
     private val AcceptAllCookiesStorage.container: MutableList<Cookie> by reflect()
 
-    private val cookiesStorage = AcceptAllCookiesStorage()
+    private val storage = AcceptAllCookiesStorage()
 
     internal var info: LoginUserInfo by Delegates.notNull()
 
-    internal val xsrf: String get() = cookiesStorage.container.first { it.name == "XSRF-TOKEN" }.value
+    internal val xsrf: String get() = storage.container.first { it.name == "XSRF-TOKEN" }.value
+
+    internal val srf: String get() = storage.container.first { it.name == "SRF" }.value
 
     private fun client() = HttpClient(OkHttp) {
         Json {
@@ -62,7 +64,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
             requestTimeoutMillis = 5_000
         }
         install(HttpCookies) {
-            storage = cookiesStorage
+            storage = this@WeiboClient.storage
         }
         install(HttpPlainText) {
             responseCharsetFallback = ChineseCharset

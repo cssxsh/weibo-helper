@@ -18,26 +18,31 @@ private const val QRCODE_SIZE = 180
 
 private const val CheckDelay = 3 * 1000L
 
-internal fun LoginData.qrcode(): Qrcode {
-    check(code == SUCCESS_CODE) { msg }
-    return WeiboClient.Json.decodeFromJsonElement(data)
-}
-
-internal fun LoginData.token(): LoginToken {
-    check(code == SUCCESS_CODE) { msg }
-    return WeiboClient.Json.decodeFromJsonElement(data)
+private suspend inline fun <reified T> WeiboClient.data(
+    url: String,
+    crossinline block: HttpRequestBuilder.() -> Unit = {}
+): T {
+    return callback<LoginData>(url, block).run {
+        check(code == SUCCESS_CODE) { toString() }
+        WeiboClient.Json.decodeFromJsonElement(data)
+    }
 }
 
 private val SSO_LOGIN_REGEX = """\?ticket=[^"]+""".toRegex()
 
+private fun location(html: String): Url {
+    return Url(html.substringAfter("location.replace(").substringBeforeLast(");").replace("""["']""".toRegex(), ""))
+}
+
 suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginResult = withContext(Dispatchers.IO) {
+    // Set Cookie
     get<ByteArray>(PASSPORT_VISITOR)
 
-    val code = callback<LoginData>(SSO_QRCODE_IMAGE) {
+    val code = data<LoginQrcode>(SSO_QRCODE_IMAGE) {
         parameter("entry", "weibo")
         parameter("size", QRCODE_SIZE)
         parameter("callback", "STK_${System.currentTimeMillis()}")
-    }.qrcode()
+    }
 
     send(get(Url(code.image).copy(protocol = URLProtocol.HTTPS)))
 
@@ -52,7 +57,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
         // println(json)
         when (json.code) {
             SUCCESS_CODE -> {
-                token = json.token()
+                token = WeiboClient.Json.decodeFromJsonElement(json.data)
                 break
             }
             NO_USE, USED -> {
@@ -78,16 +83,30 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
     return@withContext callback<LoginResult>(url).also { info = it.info }
 }
 
-suspend fun WeiboClient.flush(): LoginResult {
-    get<String>(PASSPORT_VISITOR)
-    val token = callback<LoginData>(PASSPORT_VISITOR) {
+suspend fun WeiboClient.restore(): LoginResult {
+    // Set Cookie
+    runCatching {
+        get<String>(INDEX_PAGE)
+    }.mapCatching {
+        println(location(it))
+        get<String>(location(it))
+    }.mapCatching {
+        println(location(it))
+        get<String>(location(it))
+    }
+
+    check(srf.isNotBlank())
+    println(srf)
+
+    val token = data<LoginToken>(PASSPORT_VISITOR) {
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
 
         parameter("a", "restore")
         parameter("cb", "restore_back")
         parameter("from", "weibo")
-    }.token()
-    // println(token)
+        parameter("_rand", System.currentTimeMillis())
+    }
+
     get<String>(SSO_LOGIN) {
         parameter("entry", "sso")
         parameter("returntype", "META")
@@ -103,4 +122,32 @@ suspend fun WeiboClient.flush(): LoginResult {
     }
     val url = WEIBO_SSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(text)) { "未找到登录参数 for $WEIBO_SSO_LOGIN" }.value
     return callback<LoginResult>(url).also { info = it.info }
+}
+
+suspend fun WeiboClient.incarnate() {
+    val visitor = data<LoginVisitor>(PASSPORT_GEN_VISITOR) {
+        parameter("cb", "restore_back")
+        parameter("from", "weibo")
+        parameter("_rand", System.currentTimeMillis())
+    }
+
+    val recover = if (visitor.new) 3 else 2
+    val cookie = data<LoginCookie>(PASSPORT_VISITOR) {
+        header(HttpHeaders.Referrer, PASSPORT_VISITOR)
+
+        parameter("a", "incarnate")
+        parameter("t", visitor.tid)
+        parameter("w", recover)
+        parameter("c", visitor.confidence)
+        parameter("gc", "")
+        parameter("cb", "cross_domain")
+        parameter("from", "weibo")
+        parameter("_rand", System.currentTimeMillis())
+    }
+
+    val cookies = listOf(
+        "SUB=${cookie.sub}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW",
+        "SUBP=${cookie.subp}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW",
+    )
+    load(LoginStatus().copy(cookies = cookies))
 }

@@ -88,7 +88,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                 if (client.info.uid != 0L) {
                     logger.warning { "$type(${id})监听任务执行失败, ${it.message}，尝试重新加载Cookie" }
                     runCatching {
-                        client.flush()
+                        client.restore()
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
                     }.onFailure { cause ->

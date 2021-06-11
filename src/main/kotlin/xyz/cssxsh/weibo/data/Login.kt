@@ -15,7 +15,7 @@ data class LoginData(
 )
 
 @Serializable
-data class Qrcode(
+data class LoginQrcode(
     @SerialName("image")
     val image: String,
     @SerialName("qrid")
@@ -28,6 +28,24 @@ data class LoginToken(
     val alt: String,
     @SerialName("savestate")
     val state: Int = 30
+)
+
+@Serializable
+data class LoginVisitor(
+    @SerialName("tid")
+    val tid: String,
+    @SerialName("new_tid")
+    val new: Boolean = false,
+    @SerialName("confidence")
+    val confidence: Int = 100
+)
+
+@Serializable
+data class LoginCookie(
+    @SerialName("sub")
+    val sub: String,
+    @SerialName("subp")
+    val subp: String,
 )
 
 @Serializable

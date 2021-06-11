@@ -14,9 +14,14 @@ object WeiboLoginCommand : SimpleCommand(
 ) {
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage {
-        client.qrcode { image ->
-            sendMessage(image.inputStream().uploadAsImage(fromEvent.subject) + "请使用微博客户端扫码")
-        }
-        "@${client.info.display}#${client.info.uid} 登陆成功".toPlainText()
+        runCatching {
+            client.qrcode { image ->
+                sendMessage(image.inputStream().uploadAsImage(fromEvent.subject) + "请使用微博客户端扫码")
+            }
+        }.onFailure {
+            logger.warning(it)
+        }.mapCatching {
+            "@${it.info.display}#${it.info.uid} 登陆成功".toPlainText()
+        }.getOrThrow()
     }
 }
