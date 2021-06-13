@@ -88,15 +88,15 @@ suspend fun WeiboClient.restore(): LoginResult {
     runCatching {
         get<String>(INDEX_PAGE)
     }.mapCatching {
-        println(location(it))
+        // println(location(it))
         get<String>(location(it))
     }.mapCatching {
-        println(location(it))
+        // println(location(it))
         get<String>(location(it))
     }
 
     check(srf.isNotBlank())
-    println(srf)
+    // println(srf)
 
     val token = data<LoginToken>(PASSPORT_VISITOR) {
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
@@ -124,7 +124,7 @@ suspend fun WeiboClient.restore(): LoginResult {
     return callback<LoginResult>(url).also { info = it.info }
 }
 
-suspend fun WeiboClient.incarnate() {
+suspend fun WeiboClient.incarnate(): Int {
     val visitor = data<LoginVisitor>(PASSPORT_GEN_VISITOR) {
         parameter("cb", "restore_back")
         parameter("from", "weibo")
@@ -150,4 +150,5 @@ suspend fun WeiboClient.incarnate() {
         "SUBP=${cookie.subp}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW",
     )
     load(LoginStatus().copy(cookies = cookies))
+    return visitor.confidence
 }

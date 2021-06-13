@@ -75,7 +75,9 @@ internal fun File.desktop(user: UserBaseInfo) {
         appendLine("FolderType=Pictures")
     }, ChineseCharset)
 
-    Runtime.getRuntime().exec("attrib $absolutePath +s")
+    if (System.getProperty("os.name").lowercase().startsWith("windows")) {
+        Runtime.getRuntime().exec("attrib $absolutePath +s")
+    }
 }
 
 internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> = withContext(Dispatchers.IO) {

@@ -9,7 +9,6 @@ import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
-import kotlin.time.*
 
 object WeiboHelperPlugin : KotlinPlugin(
     JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.0.0-dev-2") {
@@ -17,9 +16,6 @@ object WeiboHelperPlugin : KotlinPlugin(
         author("cssxsh")
     }
 ) {
-
-    override val autoSaveIntervalMillis: LongRange
-        get() = (3).minutes.toLongMilliseconds()..(10).minutes.toLongMilliseconds()
 
     internal val client by lazy { WeiboClient(WeiboStatusData.status) }
 
@@ -37,10 +33,13 @@ object WeiboHelperPlugin : KotlinPlugin(
                 logger.info { "登陆成功, $it" }
             }.onFailure {
                 logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
-            }.recoverCatching {
-                client.incarnate()
-            }.onFailure {
-                logger.warning { "模拟游客失败, ${it.message}" }
+                runCatching {
+                    client.incarnate()
+                }.onSuccess {
+                    logger.info { "模拟游客成功，置信度${it}" }
+                }.onFailure {
+                    logger.warning { "模拟游客失败, ${it.message}" }
+                }
             }
         }
 
@@ -53,6 +52,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboGroupCommand.register()
         WeiboCacheCommand.register()
         WeiboLoginCommand.register()
+        WeiboDetailCommand.register()
 
         clear = clear()
     }
@@ -62,6 +62,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboGroupCommand.unregister()
         WeiboCacheCommand.unregister()
         WeiboLoginCommand.unregister()
+        WeiboDetailCommand.unregister()
 
         WeiboUserCommand.listener.stop()
         WeiboGroupCommand.listener.stop()
