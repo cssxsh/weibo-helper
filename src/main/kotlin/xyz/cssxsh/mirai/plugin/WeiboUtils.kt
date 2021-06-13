@@ -112,7 +112,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         result.mapCatching {
             append(it.uploadAsImage(contact))
         }.onFailure {
-            logger.warning({ "获取微博[${id}]图片[${index}]失败" }, it)
+            logger.warning({ "获取微博[${id}]图片[${index}]失败, ${it.message}" }, it)
             appendLine("获取微博[${id}]图片[${index}]失败")
         }
     }
