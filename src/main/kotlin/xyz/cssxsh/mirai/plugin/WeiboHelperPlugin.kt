@@ -33,10 +33,13 @@ object WeiboHelperPlugin : KotlinPlugin(
                 logger.info { "登陆成功, $it" }
             }.onFailure {
                 logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
-            }.recoverCatching {
-                client.incarnate()
-            }.onFailure {
-                logger.warning { "模拟游客失败, ${it.message}" }
+                runCatching {
+                    client.incarnate()
+                }.onSuccess {
+                    logger.info { "模拟游客成功，置信度${it}" }
+                }.onFailure {
+                    logger.warning { "模拟游客失败, ${it.message}" }
+                }
             }
         }
 
