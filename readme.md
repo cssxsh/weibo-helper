@@ -2,6 +2,7 @@
 > 基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的 [微博](https://weibo.com/) 转发插件
 
 [![Release](https://img.shields.io/github/v/release/cssxsh/weibo-helper)](https://github.com/cssxsh/weibo-helper/releases)
+[![Release](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
 
 插件基于PC网页版微博API，使用插件需要[登录](#登录指令)一个微博账号
 
