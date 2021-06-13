@@ -5,11 +5,12 @@
 [![Release](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
 
 插件基于PC网页版微博API，使用插件需要[登录](#登录指令)一个微博账号
+插件初始化时，如果恢复登录状态失败，则会尝试模拟游客
 
 ## 指令
 注意: 使用前请确保可以 [在聊天环境执行指令](https://github.com/project-mirai/chat-command)  
 带括号的`/`前缀是可选的  
-`<...>`中的是指令名，由空格隔开表示或，选择其中任一名称都可执行例如`/抽卡 十连`  
+`<...>`中的是指令名，由空格隔开表示或，选择其中任一名称都可执行例如`/微博用户 订阅`  
 `[...]`表示参数，当`[...]`后面带`?`时表示参数可选  
 `{...}`表示连续的多个参数
 
