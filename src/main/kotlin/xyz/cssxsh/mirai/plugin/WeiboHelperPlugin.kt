@@ -17,29 +17,23 @@ object WeiboHelperPlugin : KotlinPlugin(
     }
 ) {
 
-    internal val client by lazy { WeiboClient(WeiboStatusData.status) }
+    internal val client by lazy { WeiboClient(status = WeiboStatusData.status, ignore = ClientIgnore) }
 
     private lateinit var clear: Job
 
-    override fun onEnable() {
-        WeiboTaskData.reload()
-        WeiboHelperSettings.reload()
-        WeiboStatusData.reload()
-
-        runBlocking {
+    private fun start() = launch {
+        runCatching {
+            client.restore()
+        }.onSuccess {
+            logger.info { "登陆成功, $it" }
+        }.onFailure {
+            logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
             runCatching {
-                client.restore()
+                client.incarnate()
             }.onSuccess {
-                logger.info { "登陆成功, $it" }
+                logger.info { "模拟游客成功，置信度${it}" }
             }.onFailure {
-                logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
-                runCatching {
-                    client.incarnate()
-                }.onSuccess {
-                    logger.info { "模拟游客成功，置信度${it}" }
-                }.onFailure {
-                    logger.warning { "模拟游客失败, ${it.message}" }
-                }
+                logger.warning { "模拟游客失败, ${it.message}" }
             }
         }
 
@@ -47,12 +41,20 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboUserCommand.listener.start()
         WeiboGroupCommand.listener.start()
+    }
+
+    override fun onEnable() {
+        WeiboTaskData.reload()
+        WeiboHelperSettings.reload()
+        WeiboStatusData.reload()
 
         WeiboUserCommand.register()
         WeiboGroupCommand.register()
         WeiboCacheCommand.register()
         WeiboLoginCommand.register()
         WeiboDetailCommand.register()
+
+        start()
 
         clear = clear()
     }

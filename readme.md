@@ -2,7 +2,8 @@
 > 基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的 [微博](https://weibo.com/) 转发插件
 
 [![Release](https://img.shields.io/github/v/release/cssxsh/weibo-helper)](https://github.com/cssxsh/weibo-helper/releases)
-[![Release](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
+[![Downloads](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
+[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-yellow)](https://mirai.mamoe.net/topic/212)
 
 插件基于PC网页版微博API，使用插件需要[登录](#登录指令)一个微博账号
 插件初始化时，如果恢复登录状态失败，则会尝试模拟游客
@@ -61,6 +62,7 @@
 1. `slow` 慢速轮询间隔，单位分钟
 1. `quiet` 安静群聊，添加群号，设置不开启[解析微博链接](#解析微博链接)
 1. `contact` 登录状态失效联系人，当微博的登录状态失效时会向这个QQ号发送消息
+1. `repost` 微博分组订阅器，最少转发数过滤器，默认16 (1.0.0-dev-5)
 
 ## 安装
 

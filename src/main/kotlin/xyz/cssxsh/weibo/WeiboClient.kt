@@ -85,7 +85,11 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
             allowStructuredMapKeys = true
         }
 
-        val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException || it is HttpRequestTimeoutException }
+        private val IgnoreRegex = """Expected \d+, actual \d+""".toRegex()
+
+        val DefaultIgnore: suspend (Throwable) -> Boolean = {
+            it is IOException || it is HttpRequestTimeoutException || it.message.orEmpty().matches(IgnoreRegex)
+        }
     }
 
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = client().use {

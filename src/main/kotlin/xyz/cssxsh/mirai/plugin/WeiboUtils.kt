@@ -43,7 +43,7 @@ internal val LoginContact by lazy {
     return@lazy null
 }
 
-suspend fun MicroBlog.getContent(): String {
+internal suspend fun MicroBlog.getContent(): String {
     return if (isLongText) {
         runCatching {
             requireNotNull(client.getLongText(id).content) { "mid: $id" }
@@ -58,14 +58,14 @@ suspend fun MicroBlog.getContent(): String {
 
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
-    resolve("desktop.ini").apply {
-        if (isHidden) delete()
-    }.writeText(buildString {
+    resolve("desktop.ini").apply { if (isHidden) delete() }.writeText(buildString {
         appendLine("[.ShellClassInfo]")
         appendLine("LocalizedResourceName=${if (user.following) '$' else '#'}${user.id}@${user.screen}")
         if (user.following) {
             runCatching {
                 ICOEncoder.write(ImageIO.read(URL(user.avatarLarge)), resolve("avatar.ico"))
+            }.onFailure {
+                logger.warning("头像下载失败", it)
             }
             appendLine("IconResource=avatar.ico")
         }
@@ -92,7 +92,11 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
         runCatching {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
-                    writeBytes(client.get(image(pid)))
+                    writeBytes(client.get<ByteArray>(image(pid)).also {
+                        logger.info {
+                            "[${name}]下载完成, 大小${it.size / 1024}KB"
+                        }
+                    })
                     setLastModified(last)
                 }
             }
@@ -112,7 +116,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         result.mapCatching {
             append(it.uploadAsImage(contact))
         }.onFailure {
-            logger.warning({ "获取微博[${id}]图片[${index}]失败" }, it)
+            logger.warning({ "获取微博[${id}]图片[${index}]失败, ${it.message}" }, it)
             appendLine("获取微博[${id}]图片[${index}]失败")
         }
     }
@@ -154,7 +158,7 @@ internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch 
     }
 }
 
-suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withContext(Dispatchers.IO) {
+internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withContext(Dispatchers.IO) {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(this@getRecord)
@@ -188,5 +192,11 @@ suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withConte
                 }
             }
         }
+    }
+}
+
+internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
+    WeiboClient.DefaultIgnore(throwable).also {
+        if (it) logger.warning { "WeiboClient Ignore $throwable" }
     }
 }

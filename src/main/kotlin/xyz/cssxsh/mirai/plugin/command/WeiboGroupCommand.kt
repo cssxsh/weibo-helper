@@ -17,9 +17,12 @@ object WeiboGroupCommand : CompositeCommand(
 
         private val history = mutableSetOf<Long>()
 
+        private val min by WeiboHelperSettings::repost
+
         override val load: suspend (id: Long) -> List<MicroBlog> = { id ->
-            client.getGroupsTimeline(gid = id, count = 100).statuses.filter { blog ->
-                (blog.retweeted ?: blog).repostsCount > 100 && history.add(id)
+            client.getGroupsTimeline(gid = id, count = 100).statuses.filter {
+                val blog = it.retweeted ?: it
+                blog.repostsCount > min && history.add(blog.id)
             }
         }
 
