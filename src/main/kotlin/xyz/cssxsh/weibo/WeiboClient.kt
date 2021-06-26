@@ -8,13 +8,14 @@ import io.ktor.client.features.cookies.*
 import io.ktor.client.features.json.*
 import io.ktor.client.features.json.serializer.*
 import io.ktor.http.*
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
 import kotlin.properties.ReadOnlyProperty
 
@@ -92,15 +93,16 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
         }
     }
 
-    suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = client().use {
-        var result: T? = null
-        while (result === null) {
-            result = runCatching {
-                block(it)
+    suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = supervisorScope {
+        while (isActive) {
+            runCatching {
+                client().use { block(it) }
+            }.onSuccess {
+                return@supervisorScope it
             }.onFailure {
                 if (ignore(it).not()) throw it
-            }.getOrNull()
+            }
         }
-        result
+        throw CancellationException()
     }
 }
