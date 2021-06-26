@@ -194,3 +194,9 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
         }
     }
 }
+
+internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
+    WeiboClient.DefaultIgnore(throwable).also {
+        if (it) logger.warning { "WeiboClient Ignore $throwable" }
+    }
+}
