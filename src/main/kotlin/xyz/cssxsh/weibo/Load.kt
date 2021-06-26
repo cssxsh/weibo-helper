@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
+import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.nio.charset.Charset
 import java.time.format.DateTimeFormatter
@@ -24,7 +25,13 @@ data class TempData(
     val ok: Boolean = true
 )
 
-inline fun <reified T> TempData.data(): T = WeiboClient.Json.decodeFromJsonElement(requireNotNull(data) { toString() })
+inline fun <reified T> TempData.data(): T = WeiboClient.Json.decodeFromJsonElement(requireNotNull(data) {
+    if (url.orEmpty().startsWith(LOGIN_PAGE)) {
+        "登陆状态无效，请登录"
+    } else {
+        toString()
+    }
+})
 
 internal suspend inline fun <reified T> WeiboClient.temp(
     url: String,

@@ -12,6 +12,7 @@ enum class FeatureType(private val value: Int) {
 }
 
 const val INDEX_PAGE = "https://weibo.com"
+const val LOGIN_PAGE = "https://weibo.com/login.php"
 
 const val PAGE_SIZE = 20
 
@@ -70,4 +71,4 @@ const val SSO_LOGIN = "https://login.sina.com.cn/sso/login.php"
 const val SSO_QRCODE_IMAGE = "https://login.sina.com.cn/sso/qrcode/image"
 const val SSO_QRCODE_CHECK = "https://login.sina.com.cn/sso/qrcode/check"
 const val PASSPORT_VISITOR = "https://passport.weibo.com/visitor/visitor"
-const val PASSPORT_GEN_VISITOR = "https://passport.weibo.com/visitor/genvisitor?cb=restore_back"
+const val PASSPORT_GEN_VISITOR = "https://passport.weibo.com/visitor/genvisitor"
