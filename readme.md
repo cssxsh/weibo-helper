@@ -2,7 +2,8 @@
 > 基于 [Mirai Console](https://github.com/mamoe/mirai-console) 的 [微博](https://weibo.com/) 转发插件
 
 [![Release](https://img.shields.io/github/v/release/cssxsh/weibo-helper)](https://github.com/cssxsh/weibo-helper/releases)
-[![Release](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
+[![Downloads](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
+[![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-yellow)](https://mirai.mamoe.net/topic/212)
 
 插件基于PC网页版微博API，使用插件需要[登录](#登录指令)一个微博账号
 插件初始化时，如果恢复登录状态失败，则会尝试模拟游客
