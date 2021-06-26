@@ -7,17 +7,16 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
-import org.junit.Before
 import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
 import java.io.File
 
 internal class ProfileKtTest : WeiboClientTest() {
 
-    @Before
+    @BeforeEach
     fun flush(): Unit = runBlocking { client.restore() }
 
     @Test
@@ -115,7 +114,7 @@ internal class ProfileKtTest : WeiboClientTest() {
                 }
             }.onSuccess {
                 println(it.id)
-                delay(3 * 1000)
+                delay(3 * 1000L)
             }.mapCatching { info ->
                 client.setGroup(user = info.id, group = 4056713441256071)
                 val cache = ImageCache.resolve("${info.id}").apply { mkdirs() }
