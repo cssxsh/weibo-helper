@@ -10,9 +10,9 @@ import java.lang.IllegalStateException
 
 private const val SUCCESS_CODE = 20000000
 
-private const val NO_USE = 50114001
+private const val NO_USE_CODE = 50114001
 
-private const val USED = 50114002
+private const val USED_CODE = 50114002
 
 private const val QRCODE_SIZE = 180
 
@@ -28,13 +28,13 @@ private suspend inline fun <reified T> WeiboClient.data(
     }
 }
 
-private val SSO_LOGIN_REGEX = """\?ticket=[^"]+""".toRegex()
-
-private fun location(html: String): Url {
-    return Url(html.substringAfter("location.replace(").substringBeforeLast(");").replace("""["']""".toRegex(), ""))
+private fun location(html: String): String? {
+    return html.substringAfter("location.replace(").substringBeforeLast(");")
+        .removeSurrounding("'").removeSurrounding("\"")
+        .takeIf { it.startsWith("http") }
 }
 
-suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginResult = withContext(Dispatchers.IO) {
+suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginResult {
     // Set Cookie
     get<ByteArray>(PASSPORT_VISITOR)
 
@@ -44,32 +44,34 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    send(get(Url(code.image).copy(protocol = URLProtocol.HTTPS)))
+    send(get(code.image))
 
     lateinit var token: LoginToken
 
-    while (isActive) {
-        val json = callback<LoginData>(SSO_QRCODE_CHECK) {
-            parameter("entry", "weibo")
-            parameter("qrid", code.id)
-            parameter("callback", "STK_${System.currentTimeMillis()}")
-        }
-        // println(json)
-        when (json.code) {
-            SUCCESS_CODE -> {
-                token = WeiboClient.Json.decodeFromJsonElement(json.data)
-                break
+    supervisorScope {
+        while (isActive) {
+            val json = callback<LoginData>(SSO_QRCODE_CHECK) {
+                parameter("entry", "weibo")
+                parameter("qrid", code.id)
+                parameter("callback", "STK_${System.currentTimeMillis()}")
             }
-            NO_USE, USED -> {
-                delay(CheckDelay)
-            }
-            else -> {
-                throw IllegalStateException(json.msg)
+            // println(json)
+            when (json.code) {
+                SUCCESS_CODE -> {
+                    token = WeiboClient.Json.decodeFromJsonElement(json.data)
+                    break
+                }
+                NO_USE_CODE, USED_CODE -> {
+                    delay(CheckDelay)
+                }
+                else -> {
+                    throw IllegalStateException(json.msg)
+                }
             }
         }
     }
 
-    val url = callback<LoginFlush>(SSO_LOGIN) {
+    val flush = callback<LoginFlush>(SSO_LOGIN) {
         parameter("entry", "weibo")
         parameter("returntype", "TEXT")
         parameter("crossdomain", 1)
@@ -78,25 +80,21 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
         parameter("alt", token.alt)
         parameter("savestate", token.state)
         parameter("callback", "STK_${System.currentTimeMillis()}")
-    }.urls.first { SSO_LOGIN_REGEX in it }
+    }
 
-    return@withContext callback<LoginResult>(url).also { info = it.info }
+    val url = flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) }
+
+    return callback<LoginResult>(url).also { info = it.info }
 }
 
 suspend fun WeiboClient.restore(): LoginResult {
     // Set Cookie
-    runCatching {
-        get<String>(INDEX_PAGE)
-    }.mapCatching {
-        // println(location(it))
-        get<String>(location(it))
-    }.mapCatching {
-        // println(location(it))
-        get<String>(location(it))
+    var location: String? = INDEX_PAGE
+    while (location != null) {
+        location = location(get(location))
     }
 
-    check(srf.isNotBlank())
-    // println(srf)
+    check(srf.isNotBlank()) { "SRF Cookie 为空" }
 
     val token = data<LoginToken>(PASSPORT_VISITOR) {
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
@@ -107,7 +105,7 @@ suspend fun WeiboClient.restore(): LoginResult {
         parameter("_rand", System.currentTimeMillis())
     }
 
-    get<String>(SSO_LOGIN) {
+    val html = get<String>(SSO_LOGIN) {
         parameter("entry", "sso")
         parameter("returntype", "META")
         parameter("gateway", 1)
@@ -115,12 +113,16 @@ suspend fun WeiboClient.restore(): LoginResult {
         parameter("savestate", token.state)
     }
 
-    val text = get<String>(CROSS_DOMAIN) {
+    check(location(html)!!.startsWith(CROSS_DOMAIN)) { "跳转异常" }
+
+    val flush = callback<LoginCrossFlush>(CROSS_DOMAIN) {
         parameter("action", "login")
         parameter("entry", "sso")
         parameter("r", INDEX_PAGE)
     }
-    val url = WEIBO_SSO_LOGIN + requireNotNull(SSO_LOGIN_REGEX.find(text)) { "未找到登录参数 for $WEIBO_SSO_LOGIN" }.value
+
+    val url = flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) }
+
     return callback<LoginResult>(url).also { info = it.info }
 }
 
@@ -132,7 +134,7 @@ suspend fun WeiboClient.incarnate(): Int {
     }
 
     val recover = if (visitor.new) 3 else 2
-    val cookie = data<LoginCookie>(PASSPORT_VISITOR) {
+    val cookies = data<Map<String, String>>(PASSPORT_VISITOR) {
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
 
         parameter("a", "incarnate")
@@ -145,10 +147,9 @@ suspend fun WeiboClient.incarnate(): Int {
         parameter("_rand", System.currentTimeMillis())
     }
 
-    val cookies = listOf(
-        "SUB=${cookie.sub}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW",
-        "SUBP=${cookie.subp}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW",
-    )
-    load(LoginStatus().copy(cookies = cookies))
+    load(LoginStatus().copy(cookies = cookies.map { (name, value) ->
+        "${name.uppercase()}=${value}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW"
+    }))
+
     return visitor.confidence
 }

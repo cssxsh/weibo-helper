@@ -25,30 +25,37 @@ data class TempData(
     val ok: Boolean = true
 )
 
-inline fun <reified T> TempData.data(): T = WeiboClient.Json.decodeFromJsonElement(requireNotNull(data) {
-    if (url.orEmpty().startsWith(LOGIN_PAGE)) {
-        "登陆状态无效，请登录"
-    } else {
-        toString()
-    }
-})
-
 internal suspend inline fun <reified T> WeiboClient.temp(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit
-) = get<TempData>(url, block).data<T>()
+): T {
+    val temp: TempData = get(url, block)
+    val data = requireNotNull(temp.data) {
+        if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) { "登陆状态无效，请登录" } else { toString() }
+    }
+    return runCatching {
+        WeiboClient.Json.decodeFromJsonElement<T>(data)
+    }.getOrElse {
+        throw IllegalArgumentException(data.toString(), it)
+    }
+}
 
 internal suspend inline fun <reified T> WeiboClient.callback(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit = {}
-) = WeiboClient.Json.decodeFromString<T>(get<String>(url, block).substringAfter('(').substringBeforeLast(')'))
+): T {
+    val json = get<String>(url, block).substringAfter('(').substringBefore(')')
+    return runCatching {
+        WeiboClient.Json.decodeFromString<T>(json)
+    }.getOrElse {
+        throw IllegalArgumentException(json, it)
+    }
+}
 
 suspend inline fun <reified T> WeiboClient.get(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit = {}
 ): T = useHttpClient { client -> client.get(url, block) }
-
-suspend inline fun <reified T> WeiboClient.get(url: Url): T = useHttpClient { client -> client.get(url) }
 
 internal val ChineseCharset = Charset.forName("GBK")
 
@@ -74,7 +81,7 @@ internal val ImageExtensions = mapOf(
 
 internal fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 
-internal fun image(pid: String) = Url("https://${ImageServer.random()}.sinaimg.cn/large/${pid}")
+internal fun image(pid: String) = "https://${ImageServer.random()}.sinaimg.cn/large/${pid}"
 
 val MicroBlog.link get() = "https://weibo.com/detail/${id}"
 
