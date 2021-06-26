@@ -21,6 +21,9 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings") {
     @ValueDescription("慢速轮询间隔，单位分钟")
     val slow: Int by value(10)
 
+    @ValueDescription("微博分组订阅器，转发数过滤器，默认16")
+    val repost: Long by value(16L)
+
     @ValueDescription("关闭链接监听的群号")
     val quiet by value(emptySet<Long>())
 }
