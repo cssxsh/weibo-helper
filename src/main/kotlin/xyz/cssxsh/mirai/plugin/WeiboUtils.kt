@@ -107,7 +107,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
 }
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
-    appendLine("@${username}")
+    appendLine("@${username}#${uid}")
     appendLine("时间: $created")
     appendLine("链接: $link")
     appendLine(getContent())
