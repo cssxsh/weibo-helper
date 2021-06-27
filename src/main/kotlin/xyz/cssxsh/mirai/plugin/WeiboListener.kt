@@ -121,6 +121,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
             }
         }
         if (taskContactInfos(id).isEmpty()) {
+            tasks.remove(id)
             taskJobs.remove(id)?.cancel()
         }
     }
