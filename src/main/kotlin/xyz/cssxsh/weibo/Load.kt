@@ -1,6 +1,9 @@
 package xyz.cssxsh.weibo
 
+import io.ktor.client.call.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -54,8 +57,19 @@ internal suspend inline fun <reified T> WeiboClient.callback(
 
 suspend inline fun <reified T> WeiboClient.get(
     url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit = {}
+    crossinline block: HttpRequestBuilder.() -> Unit
 ): T = useHttpClient { client -> client.get(url, block) }
+
+suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient { client ->
+    client.get<HttpResponse>(url) {
+        header(HttpHeaders.Referrer, INDEX_PAGE)
+    }.also { response ->
+        val length = response.contentLength() ?: return@also
+        if (length < 1024) {
+            throw ClientRequestException(response, response.readText())
+        }
+    }.receive()
+}
 
 internal val ChineseCharset = Charset.forName("GBK")
 
@@ -81,7 +95,9 @@ internal val ImageExtensions = mapOf(
 
 internal fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 
-internal fun image(pid: String) = "https://${ImageServer.random()}.sinaimg.cn/large/${pid}"
+internal fun image(pid: String) = "https://${ImageServer.random()}.sinaimg.cn/large/${pid}.${extension(pid)}"
+
+internal fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
 
 val MicroBlog.link get() = "https://weibo.com/detail/${id}"
 

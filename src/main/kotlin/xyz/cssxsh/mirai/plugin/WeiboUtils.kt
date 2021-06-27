@@ -80,28 +80,32 @@ internal fun File.desktop(user: UserBaseInfo) {
     }
 }
 
-internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> = withContext(Dispatchers.IO) {
-    if (pictures.isEmpty()) return@withContext emptyList()
+internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
+    if (pictures.isEmpty()) return emptyList()
     val cache = ImageCache.resolve("$uid").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(requireNotNull(user))
         }
     }
     val last = created.toEpochSecond() * 1_000
-    pictures.mapIndexed { index, pid ->
+    return pictures.mapIndexed { index, pid ->
         runCatching {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
-                    writeBytes(client.get<ByteArray>(image(pid)).also {
-                        logger.info {
-                            "[${name}]下载完成, 大小${it.size / 1024}KB"
-                        }
-                    })
+                    writeBytes(runCatching {
+                        client.download(image(pid))
+                    }.recoverCatching {
+                        client.download(download(pid))
+                    }.recoverCatching {
+                        client.download(image(pid).replace("large", "mw2000"))
+                    }.onSuccess {
+                        logger.info { "[${name}]下载完成, 大小${it.size / 1024}KB" }
+                    }.getOrThrow())
                     setLastModified(last)
                 }
             }
         }.onFailure {
-            logger.warning({ "微博图片下载失败: $pid" }, it)
+            logger.warning { "微博图片下载失败: $pid, $it" }
         }
     }
 }
@@ -116,7 +120,6 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         result.mapCatching {
             append(it.uploadAsImage(contact))
         }.onFailure {
-            logger.warning({ "获取微博[${id}]图片[${index}]失败, ${it.message}" }, it)
             appendLine("获取微博[${id}]图片[${index}]失败")
         }
     }
@@ -140,7 +143,7 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
-internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch {
+internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(SupervisorJob()) {
     if (ImageExpire.isNegative.not()) return@launch
     while (isActive) {
         delay(interval)
@@ -158,7 +161,7 @@ internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch 
     }
 }
 
-internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withContext(Dispatchers.IO) {
+internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(this@getRecord)

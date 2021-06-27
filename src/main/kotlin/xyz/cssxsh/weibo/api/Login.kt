@@ -36,7 +36,7 @@ private fun location(html: String): String? {
 
 suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginResult {
     // Set Cookie
-    get<ByteArray>(PASSPORT_VISITOR)
+    download(PASSPORT_VISITOR)
 
     val code = data<LoginQrcode>(SSO_QRCODE_IMAGE) {
         parameter("entry", "weibo")
@@ -44,7 +44,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    send(get(code.image))
+    send(download(code.image))
 
     lateinit var token: LoginToken
 
@@ -91,7 +91,7 @@ suspend fun WeiboClient.restore(): LoginResult {
     // Set Cookie
     var location: String? = INDEX_PAGE
     while (location != null) {
-        location = location(get(location))
+        location = location(get(location) {})
     }
 
     check(srf.isNotBlank()) { "SRF Cookie 为空" }
