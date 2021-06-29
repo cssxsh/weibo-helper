@@ -55,9 +55,9 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
 
     private fun client() = HttpClient(OkHttp) {
         install(HttpTimeout) {
-            socketTimeoutMillis = 5_000
-            connectTimeoutMillis = 5_000
-            requestTimeoutMillis = 5_000
+            socketTimeoutMillis = 30_000
+            connectTimeoutMillis = 30_000
+            requestTimeoutMillis = 30_000
         }
         install(HttpCookies) {
             storage = this@WeiboClient.storage
