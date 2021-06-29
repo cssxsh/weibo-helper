@@ -8,6 +8,7 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import xyz.cssxsh.weibo.api.*
@@ -32,9 +33,13 @@ internal suspend inline fun <reified T> WeiboClient.temp(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit
 ): T {
-    val temp: TempData = get(url, block)
+    val temp: TempData = WeiboClient.Json.decodeFromString(text(url, block))
     val data = requireNotNull(temp.data) {
-        if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) { "登陆状态无效，请登录" } else { toString() }
+        if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
+            "登陆状态无效，请登录"
+        } else {
+            toString()
+        }
     }
     return runCatching {
         WeiboClient.Json.decodeFromJsonElement<T>(data)
@@ -47,7 +52,7 @@ internal suspend inline fun <reified T> WeiboClient.callback(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit = {}
 ): T {
-    val json = get<String>(url, block).substringAfter('(').substringBefore(')')
+    val json = text(url, block).substringAfter('(').substringBefore(')')
     return runCatching {
         WeiboClient.Json.decodeFromString<T>(json)
     }.getOrElse {
@@ -55,10 +60,23 @@ internal suspend inline fun <reified T> WeiboClient.callback(
     }
 }
 
-suspend inline fun <reified T> WeiboClient.get(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit
-): T = useHttpClient { client -> client.get(url, block) }
+suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestBuilder.() -> Unit): String {
+    return useHttpClient { client -> client.get(url, block) }
+}
+
+suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
+    val text = text(url, block)
+    val temp = WeiboClient.Json.decodeFromString<TempData>(text)
+    require(temp.ok) {
+        if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
+            "登陆状态无效，请登录"
+        } else {
+            toString()
+        }
+    }
+    return Json.decodeFromString(text)
+}
+
 
 suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient { client ->
     client.get<HttpResponse>(url) {

@@ -91,7 +91,7 @@ suspend fun WeiboClient.restore(): LoginResult {
     // Set Cookie
     var location: String? = INDEX_PAGE
     while (location != null) {
-        location = location(get(location) {})
+        location = location(text(location) {})
     }
 
     check(srf.isNotBlank()) { "SRF Cookie 为空" }
@@ -105,7 +105,7 @@ suspend fun WeiboClient.restore(): LoginResult {
         parameter("_rand", System.currentTimeMillis())
     }
 
-    val html = get<String>(SSO_LOGIN) {
+    val html = text(SSO_LOGIN) {
         parameter("entry", "sso")
         parameter("returntype", "META")
         parameter("gateway", 1)

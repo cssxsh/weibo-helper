@@ -34,7 +34,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(ktor("client-serialization", Versions.ktor))
+    // implementation(ktor("client-serialization", Versions.ktor))
     implementation(ktor("client-encoding", Versions.ktor))
     implementation("org.jclarion:image4j:0.7")
     implementation(project(":tools"))
@@ -54,8 +54,7 @@ mirai {
             it.path.startsWith("org")
         }
         exclude {
-            it.path.startsWith("io/ktor") &&
-                (it.path.startsWith("io/ktor/client/features/compression") || it.path.startsWith("io/ktor/client/features/json")).not()
+            it.path.startsWith("io/ktor") && it.path.startsWith("io/ktor/client/features/compression").not()
         }
     }
 }

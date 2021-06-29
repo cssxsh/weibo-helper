@@ -46,7 +46,7 @@ internal val LoginContact by lazy {
 internal suspend fun MicroBlog.getContent(): String {
     return if (isLongText) {
         runCatching {
-            requireNotNull(client.getLongText(id).content) { "mid: $id" }
+            requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
         }.getOrElse {
             logger.warning({ "获取微博[${id}]长文本失败" }, it)
             raw ?: text

@@ -5,8 +5,6 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.features.*
 import io.ktor.client.features.compression.*
 import io.ktor.client.features.cookies.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.json.serializer.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
@@ -56,9 +54,6 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
     internal val srf: String get() = storage.container.first { it.name == "SRF" }.value
 
     private fun client() = HttpClient(OkHttp) {
-        Json {
-            serializer = KotlinxSerializer(Json)
-        }
         install(HttpTimeout) {
             socketTimeoutMillis = 5_000
             connectTimeoutMillis = 5_000
