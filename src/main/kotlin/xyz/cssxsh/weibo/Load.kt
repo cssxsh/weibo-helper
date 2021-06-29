@@ -8,7 +8,6 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import xyz.cssxsh.weibo.api.*
@@ -74,7 +73,7 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
             toString()
         }
     }
-    return Json.decodeFromString(text)
+    return WeiboClient.Json.decodeFromString(text)
 }
 
 
