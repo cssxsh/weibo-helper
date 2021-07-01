@@ -1,7 +1,8 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
-    id("net.mamoe.mirai-console")
+    kotlin("jvm") version Versions.kotlin
+    kotlin("plugin.serialization") version Versions.kotlin
+
+    id("net.mamoe.mirai-console") version  Versions.mirai
 }
 
 group = "xyz.cssxsh.mirai.plugin"
@@ -37,7 +38,6 @@ dependencies {
     // implementation(ktor("client-serialization", Versions.ktor))
     implementation(ktor("client-encoding", Versions.ktor))
     implementation("org.jclarion:image4j:0.7")
-    implementation(project(":tools"))
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.9.0")
     testImplementation(kotlin("test-junit"))
