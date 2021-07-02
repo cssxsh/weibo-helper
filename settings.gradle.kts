@@ -19,5 +19,3 @@ pluginManagement {
 }
 rootProject.name = "weibo-helper"
 
-include("tools")
-

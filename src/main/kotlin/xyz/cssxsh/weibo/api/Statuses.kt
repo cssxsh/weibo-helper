@@ -26,7 +26,7 @@ suspend fun WeiboClient.getMicroBlog(
 
 suspend fun WeiboClient.getMicroBlog(
     mid: String
-): MicroBlog = get(STATUSES_SHOW) {
+): MicroBlog = json(STATUSES_SHOW) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")
 
     parameter("id", mid)

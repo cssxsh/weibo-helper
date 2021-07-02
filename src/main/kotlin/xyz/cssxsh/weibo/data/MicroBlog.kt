@@ -82,12 +82,12 @@ data class LongTextContent(
 @Serializable
 data class TimelineData(
     @SerialName("max_id")
-    val maxId: Long,
+    val maxId: Long = 0,
     @SerialName("ok")
     @Serializable(NumberToBooleanSerializer::class)
     val ok: Boolean = true,
     @SerialName("since_id")
-    val sinceId: Long,
+    val sinceId: Long = 0,
     @SerialName("statuses")
     val statuses: List<MicroBlog> = emptyList(),
 )

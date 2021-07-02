@@ -4,9 +4,11 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.mamoe.mirai.Bot
+import net.mamoe.mirai.console.command.CommandSenderOnMessage
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import net.sf.image4j.codec.ico.ICOEncoder
@@ -46,7 +48,7 @@ internal val LoginContact by lazy {
 internal suspend fun MicroBlog.getContent(): String {
     return if (isLongText) {
         runCatching {
-            requireNotNull(client.getLongText(id).content) { "mid: $id" }
+            requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
         }.getOrElse {
             logger.warning({ "获取微博[${id}]长文本失败" }, it)
             raw ?: text
@@ -80,34 +82,38 @@ internal fun File.desktop(user: UserBaseInfo) {
     }
 }
 
-internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> = withContext(Dispatchers.IO) {
-    if (pictures.isEmpty()) return@withContext emptyList()
+internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
+    if (pictures.isEmpty()) return emptyList()
     val cache = ImageCache.resolve("$uid").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(requireNotNull(user))
         }
     }
     val last = created.toEpochSecond() * 1_000
-    pictures.mapIndexed { index, pid ->
+    return pictures.mapIndexed { index, pid ->
         runCatching {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
-                    writeBytes(client.get<ByteArray>(image(pid)).also {
-                        logger.info {
-                            "[${name}]下载完成, 大小${it.size / 1024}KB"
-                        }
-                    })
+                    writeBytes(runCatching {
+                        client.download(image(pid))
+                    }.recoverCatching {
+                        client.download(download(pid))
+                    }.recoverCatching {
+                        client.download(image(pid).replace("large", "mw2000"))
+                    }.onSuccess {
+                        logger.info { "[${name}]下载完成, 大小${it.size / 1024}KB" }
+                    }.getOrThrow())
                     setLastModified(last)
                 }
             }
         }.onFailure {
-            logger.warning({ "微博图片下载失败: $pid" }, it)
+            logger.warning { "微博图片下载失败: $pid, $it" }
         }
     }
 }
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
-    appendLine("@${username}")
+    appendLine("@${username}#${uid}")
     appendLine("时间: $created")
     appendLine("链接: $link")
     appendLine(getContent())
@@ -116,7 +122,6 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         result.mapCatching {
             append(it.uploadAsImage(contact))
         }.onFailure {
-            logger.warning({ "获取微博[${id}]图片[${index}]失败, ${it.message}" }, it)
             appendLine("获取微博[${id}]图片[${index}]失败")
         }
     }
@@ -140,7 +145,7 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
-internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch {
+internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(SupervisorJob()) {
     if (ImageExpire.isNegative.not()) return@launch
     while (isActive) {
         delay(interval)
@@ -158,7 +163,7 @@ internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch 
     }
 }
 
-internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withContext(Dispatchers.IO) {
+internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(this@getRecord)
@@ -199,4 +204,56 @@ internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
     WeiboClient.DefaultIgnore(throwable).also {
         if (it) logger.warning { "WeiboClient Ignore $throwable" }
     }
+}
+
+internal val SendLimit = """本群每分钟只能发\d+条消息""".toRegex()
+
+internal const val SendDelay = 60 * 1000L
+
+internal suspend fun <T : CommandSenderOnMessage<*>> T.sendMessage(block: suspend T.(Contact) -> Message): Boolean {
+    return runCatching {
+        block(fromEvent.subject)
+    }.onSuccess { message ->
+        quoteReply(message)
+    }.onFailure {
+        logger.warning {
+            "发送消息失败, $it"
+        }
+        when {
+            SendLimit.containsMatchIn(it.message.orEmpty()) -> {
+                delay(SendDelay)
+                quoteReply(SendLimit.find(it.message!!)!!.value)
+            }
+            else -> {
+                quoteReply("发送消息失败， ${it.message}")
+            }
+        }
+    }.isSuccess
+}
+
+suspend fun CommandSenderOnMessage<*>.quoteReply(message: Message) = sendMessage(fromEvent.message.quote() + message)
+
+suspend fun CommandSenderOnMessage<*>.quoteReply(message: String) = quoteReply(message.toPlainText())
+
+/**
+ * 通过正负号区分群和用户
+ */
+val Contact.delegate get() = if (this is Group) id * -1 else id
+
+/**
+ * 查找Contact
+ */
+fun findContact(delegate: Long): Contact? {
+    Bot.instances.forEach { bot ->
+        if (delegate < 0) {
+            bot.getGroup(delegate * -1)?.let { return@findContact it }
+        } else {
+            bot.getFriend(delegate)?.let { return@findContact it }
+            bot.getStranger(delegate)?.let { return@findContact it }
+            bot.groups.forEach { group ->
+                group.getMember(delegate)?.let { return@findContact it }
+            }
+        }
+    }
+    return null
 }
