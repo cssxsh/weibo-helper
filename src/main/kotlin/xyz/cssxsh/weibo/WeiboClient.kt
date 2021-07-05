@@ -17,11 +17,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
 import kotlin.properties.ReadOnlyProperty
 
-class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
-    constructor(status: LoginStatus, ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) : this(ignore) {
-        info = status.info
-        storage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
-    }
+open class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
 
     fun status(): LoginStatus = runBlocking {
         storage.get(Url(SSO_LOGIN)) // cleanup
@@ -47,7 +43,7 @@ class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = Defaul
 
     private val storage = AcceptAllCookiesStorage()
 
-    internal var info: LoginUserInfo by Delegates.notNull()
+    internal open var info: LoginUserInfo by Delegates.notNull()
 
     internal val xsrf: String get() = storage.container.first { it.name == "XSRF-TOKEN" }.value
 

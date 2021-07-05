@@ -9,6 +9,7 @@ import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
+import xyz.cssxsh.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
     JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.0.0-dev-2") {
@@ -17,7 +18,20 @@ object WeiboHelperPlugin : KotlinPlugin(
     }
 ) {
 
-    internal val client by lazy { WeiboClient(status = WeiboStatusData.status, ignore = ClientIgnore) }
+    internal val client: WeiboClient by lazy {
+        object : WeiboClient(ignore = ClientIgnore) {
+            override var info: LoginUserInfo
+                get() = super.info
+                set(value) {
+                    super.info = value
+                    launch { WeiboStatusData.status = status() }
+                }
+
+            init {
+                load(WeiboStatusData.status)
+            }
+        }
+    }
 
     private lateinit var clear: Job
 
