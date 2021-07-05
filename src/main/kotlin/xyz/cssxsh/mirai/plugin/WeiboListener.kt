@@ -86,7 +86,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
                 if (client.info.uid != 0L) {
-                    logger.warning { "$type(${id})监听任务执行失败, ${it.message}，尝试重新加载Cookie" }
+                    logger.warning { "$type(${id})监听任务执行失败, ${it}，尝试重新加载Cookie" }
                     runCatching {
                         client.restore()
                     }.onSuccess {
@@ -97,7 +97,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                         }
                     }
                 } else {
-                    logger.warning { "$type(${id})监听任务执行失败, ${it.message}，" }
+                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                    logger.warning { "$type(${id})监听任务执行失败, ${it}，" }
                 }
             }
         }
