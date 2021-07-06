@@ -68,7 +68,6 @@ suspend fun WeiboClient.getGroupList(
     uid: Long,
 ): JsonArray = temp(PROFILE_GROUP_LIST) {
     header(HttpHeaders.Referrer, "https://weibo.com/u/${uid}/")
-    header("x-xsrf-token", xsrf)
 
     parameter("uid", uid)
 }
@@ -81,7 +80,6 @@ suspend fun WeiboClient.setGroup(
     method = HttpMethod.Post
 
     header(HttpHeaders.Referrer, "https://weibo.com/u/${info.uid}/")
-    header("x-xsrf-token", xsrf)
 
     body = buildJsonObject {
         put("list_ids", dest.joinToString(","))
@@ -102,7 +100,6 @@ suspend fun WeiboClient.follow(
     method = HttpMethod.Post
 
     header(HttpHeaders.Referrer, "https://weibo.com/u/${info.uid}/")
-    header("x-xsrf-token", xsrf)
 
     body = buildJsonObject {
         put("friend_uid", uid)

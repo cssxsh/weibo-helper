@@ -94,7 +94,7 @@ suspend fun WeiboClient.restore(): LoginResult {
         location = location(text(location) {})
     }
 
-    check(srf.isNotBlank()) { "SRF Cookie 为空" }
+    checkNotNull(srf) { "SRF Cookie 为空" }
 
     val token = data<LoginToken>(PASSPORT_VISITOR) {
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
