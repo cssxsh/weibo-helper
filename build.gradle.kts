@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.0.0-dev-7"
+version = "1.0.1"
 
 repositories {
     mavenLocal()
@@ -36,7 +36,9 @@ kotlin {
 
 dependencies {
     // implementation(ktor("client-serialization", Versions.ktor))
-    implementation(ktor("client-encoding", Versions.ktor))
+    implementation(ktor("client-encoding", Versions.ktor)) {
+        exclude(group = "io.ktor", module = "ktor-client-core")
+    }
     implementation("org.jclarion:image4j:0.7")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.9.0")
@@ -52,9 +54,6 @@ mirai {
         }
         exclude {
             it.path.startsWith("org")
-        }
-        exclude {
-            it.path.startsWith("io/ktor") && it.path.startsWith("io/ktor/client/features/compression").not()
         }
     }
 }

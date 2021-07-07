@@ -18,6 +18,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
 
     abstract val load: suspend (id: Long) -> List<MicroBlog>
 
+    protected val filter: WeiboFilter get() = WeiboHelperSettings
+
     protected abstract val tasks: MutableMap<Long, WeiboTaskInfo>
 
     private val taskJobs = mutableMapOf<Long, Job>()
@@ -50,13 +52,14 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         }
     }
 
-    private operator fun LocalTime.minus(other: LocalTime): Duration = Duration.ofSeconds((toSecondOfDay() - other.toSecondOfDay()).toLong())
+    private operator fun LocalTime.minus(other: LocalTime): Duration =
+        Duration.ofSeconds((toSecondOfDay() - other.toSecondOfDay()).toLong())
 
     private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
         return map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    private fun addListener(id: Long): Job = launch {
+    private fun addListener(id: Long): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         while (isActive && taskContactInfos(id).isNotEmpty()) {
             val old = runCatching {
@@ -86,7 +89,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
                 if (client.info.uid != 0L) {
-                    logger.warning { "$type(${id})监听任务执行失败, ${it.message}，尝试重新加载Cookie" }
+                    logger.warning { "$type(${id})监听任务执行失败, ${it}，尝试重新加载Cookie" }
                     runCatching {
                         client.restore()
                     }.onSuccess {
@@ -97,7 +100,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                         }
                     }
                 } else {
-                    logger.warning { "$type(${id})监听任务执行失败, ${it.message}，" }
+                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                    logger.warning { "$type(${id})监听任务执行失败, ${it}，" }
                 }
             }
         }
@@ -123,6 +127,18 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         if (taskContactInfos(id).isEmpty()) {
             tasks.remove(id)
             taskJobs.remove(id)?.cancel()
+        }
+    }
+
+    fun detail(subject: Contact): String {
+        return buildString {
+            appendLine("# 订阅列表")
+            appendLine("|     NAME     |     ID     |     LAST     |")
+            appendLine("|--------------|------------|--------------|")
+            tasks.forEach { (id, info) ->
+                if (subject.delegate !in info.contacts) return@forEach
+                appendLine("| ${info.name} | $id | ${info.last} |")
+            }
         }
     }
 }

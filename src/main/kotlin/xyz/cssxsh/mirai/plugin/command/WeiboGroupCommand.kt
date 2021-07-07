@@ -7,6 +7,7 @@ import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.getGroup
+import xyz.cssxsh.weibo.uid
 
 object WeiboGroupCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
@@ -17,12 +18,13 @@ object WeiboGroupCommand : CompositeCommand(
 
         private val history = mutableSetOf<Long>()
 
-        private val min by WeiboHelperSettings::repost
-
         override val load: suspend (id: Long) -> List<MicroBlog> = { id ->
-            client.getGroupsTimeline(gid = id, count = 100).statuses.filter {
-                val blog = it.retweeted ?: it
-                blog.repostsCount > min && history.add(blog.id)
+            client.getGroupsTimeline(gid = id, count = 100).statuses.filter { blog ->
+                val source = blog.retweeted ?: blog
+                if (source.uid in filter.users) return@filter false
+                if (source.repostsCount > filter.repost) return@filter false
+                if (filter.regexes.any { it in source.raw.orEmpty() }) return@filter false
+                history.add(source.id)
             }
         }
 
@@ -43,5 +45,10 @@ object WeiboGroupCommand : CompositeCommand(
     suspend fun CommandSenderOnMessage<*>.stop(gid: Long) = sendMessage {
         listener.removeTask(id = gid, subject = fromEvent.subject)
         "对Group(${gid})的监听任务, 取消完成".toPlainText()
+    }
+
+    @SubCommand("detail", "详情")
+    suspend fun CommandSenderOnMessage<*>.detail() = sendMessage {
+        listener.detail(subject = fromEvent.subject).toPlainText()
     }
 }

@@ -6,6 +6,7 @@ import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
+import xyz.cssxsh.weibo.uid
 
 object WeiboUserCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
@@ -14,7 +15,14 @@ object WeiboUserCommand : CompositeCommand(
 ) {
     internal val listener: WeiboListener = object : WeiboListener("User") {
 
-        override val load: suspend (id: Long) -> List<MicroBlog> = { id -> client.getUserMicroBlogs(id, 1).list }
+        override val load: suspend (id: Long) -> List<MicroBlog> = { id ->
+            client.getUserMicroBlogs(id, 1).list.filter { blog ->
+                val source = blog.retweeted ?: blog
+                if (source.uid in filter.users) return@filter false
+                if (filter.regexes.any { it in source.raw.orEmpty() }) return@filter false
+                true
+            }
+        }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::users
     }
@@ -30,5 +38,10 @@ object WeiboUserCommand : CompositeCommand(
     suspend fun CommandSenderOnMessage<*>.stop(uid: Long) = sendMessage {
         listener.removeTask(id = uid, subject = fromEvent.subject)
         "对User(${uid})的监听任务, 取消完成".toPlainText()
+    }
+
+    @SubCommand("detail", "详情")
+    suspend fun CommandSenderOnMessage<*>.detail() = sendMessage {
+        listener.detail(subject = fromEvent.subject).toPlainText()
     }
 }
