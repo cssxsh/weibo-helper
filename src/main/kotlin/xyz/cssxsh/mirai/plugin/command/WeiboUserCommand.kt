@@ -6,6 +6,7 @@ import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
+import xyz.cssxsh.weibo.uid
 
 object WeiboUserCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
@@ -14,7 +15,14 @@ object WeiboUserCommand : CompositeCommand(
 ) {
     internal val listener: WeiboListener = object : WeiboListener("User") {
 
-        override val load: suspend (id: Long) -> List<MicroBlog> = { id -> client.getUserMicroBlogs(id, 1).list }
+        override val load: suspend (id: Long) -> List<MicroBlog> = { id ->
+            client.getUserMicroBlogs(id, 1).list.filter { blog ->
+                val source = blog.retweeted ?: blog
+                if (source.uid in filter.users) return@filter false
+                if (filter.regexes.any { it in source.raw.orEmpty() }) return@filter false
+                true
+            }
+        }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::users
     }

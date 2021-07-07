@@ -18,6 +18,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
 
     abstract val load: suspend (id: Long) -> List<MicroBlog>
 
+    protected val filter: WeiboFilter get() = WeiboHelperSettings
+
     protected abstract val tasks: MutableMap<Long, WeiboTaskInfo>
 
     private val taskJobs = mutableMapOf<Long, Job>()
