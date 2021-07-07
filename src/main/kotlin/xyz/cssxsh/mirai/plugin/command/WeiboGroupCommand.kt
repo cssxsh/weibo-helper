@@ -44,4 +44,9 @@ object WeiboGroupCommand : CompositeCommand(
         listener.removeTask(id = gid, subject = fromEvent.subject)
         "对Group(${gid})的监听任务, 取消完成".toPlainText()
     }
+
+    @SubCommand("detail", "详情")
+    suspend fun CommandSenderOnMessage<*>.detail() = sendMessage {
+        listener.detail(subject = fromEvent.subject).toPlainText()
+    }
 }

@@ -50,7 +50,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         }
     }
 
-    private operator fun LocalTime.minus(other: LocalTime): Duration = Duration.ofSeconds((toSecondOfDay() - other.toSecondOfDay()).toLong())
+    private operator fun LocalTime.minus(other: LocalTime): Duration =
+        Duration.ofSeconds((toSecondOfDay() - other.toSecondOfDay()).toLong())
 
     private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
         return map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
@@ -124,6 +125,18 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         if (taskContactInfos(id).isEmpty()) {
             tasks.remove(id)
             taskJobs.remove(id)?.cancel()
+        }
+    }
+
+    fun detail(subject: Contact): String {
+        return buildString {
+            appendLine("# 订阅列表")
+            appendLine("|     NAME     |     ID     |     LAST     |")
+            appendLine("|--------------|------------|--------------|")
+            tasks.forEach { (id, info) ->
+                if (subject.delegate !in info.contacts) return@forEach
+                appendLine("| ${info.name} | $id | ${info.last} |")
+            }
         }
     }
 }

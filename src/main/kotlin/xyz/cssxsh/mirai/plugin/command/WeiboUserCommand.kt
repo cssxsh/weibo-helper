@@ -31,4 +31,9 @@ object WeiboUserCommand : CompositeCommand(
         listener.removeTask(id = uid, subject = fromEvent.subject)
         "对User(${uid})的监听任务, 取消完成".toPlainText()
     }
+
+    @SubCommand("detail", "详情")
+    suspend fun CommandSenderOnMessage<*>.detail() = sendMessage {
+        listener.detail(subject = fromEvent.subject).toPlainText()
+    }
 }
