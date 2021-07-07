@@ -56,7 +56,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         return map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    private fun addListener(id: Long): Job = launch {
+    private fun addListener(id: Long): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         while (isActive && taskContactInfos(id).isNotEmpty()) {
             val old = runCatching {
