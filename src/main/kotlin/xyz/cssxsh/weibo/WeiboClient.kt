@@ -9,16 +9,22 @@ import io.ktor.client.features.compression.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.properties.Delegates
 
-open class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = DefaultIgnore) {
+open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {
+    override val coroutineContext: CoroutineContext
+        get() = client.coroutineContext
+
+    override fun close() = client.close()
 
     fun status(): LoginStatus = runBlocking {
         storage.get(Url(SSO_LOGIN)) // cleanup
@@ -42,11 +48,13 @@ open class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = D
 
     internal val srf get() = storage.container["SRF"]
 
-    private fun client() = HttpClient(OkHttp) {
+    protected open val timeout: Long = 30_000 // attr(open) ok ?
+
+    private val client = HttpClient(OkHttp) {
         install(HttpTimeout) {
-            socketTimeoutMillis = 30_000
-            connectTimeoutMillis = 30_000
-            requestTimeoutMillis = 30_000
+            socketTimeoutMillis = timeout
+            connectTimeoutMillis = timeout
+            requestTimeoutMillis = timeout
         }
         install(HttpCookies) {
             storage = this@WeiboClient.storage
@@ -83,7 +91,7 @@ open class WeiboClient(val ignore: suspend (exception: Throwable) -> Boolean = D
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = supervisorScope {
         while (isActive) {
             runCatching {
-                client().use { block(it) }
+                block(client)
             }.onSuccess {
                 return@supervisorScope it
             }.onFailure {
