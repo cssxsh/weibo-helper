@@ -22,7 +22,7 @@ object WeiboGroupCommand : CompositeCommand(
             client.getGroupsTimeline(gid = id, count = 100).statuses.filter { blog ->
                 val source = blog.retweeted ?: blog
                 if (source.uid in filter.users) return@filter false
-                if (source.repostsCount > filter.repost) return@filter false
+                if (source.repostsCount < filter.repost) return@filter false
                 if (filter.regexes.any { it in source.raw.orEmpty() }) return@filter false
                 history.add(source.id)
             }
