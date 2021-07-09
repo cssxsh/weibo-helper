@@ -70,7 +70,6 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
             delay((if (old.near()) IntervalSlow else IntervalFast).toMillis())
             runCatching {
                 val list = load(id).sortedBy { it.id }
-                json(id).writeText(WeiboClient.Json.encodeToString(list))
                 list.forEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
@@ -78,6 +77,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                         }
                     }
                 }
+                json(id).writeText(WeiboClient.Json.encodeToString(list))
 
                 list.maxByOrNull { it.created }?.let { blog ->
                     logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }

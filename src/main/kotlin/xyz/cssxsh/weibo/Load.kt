@@ -32,12 +32,13 @@ internal suspend inline fun <reified T> WeiboClient.temp(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit
 ): T {
-    val temp: TempData = WeiboClient.Json.decodeFromString(text(url, block))
+    val text = text(url, block)
+    val temp = WeiboClient.Json.decodeFromString<TempData>(text)
     val data = requireNotNull(temp.data) {
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {
-            toString()
+            text
         }
     }
     return runCatching {
@@ -70,12 +71,15 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {
-            toString()
+            text
         }
     }
-    return WeiboClient.Json.decodeFromString(text)
+    return runCatching {
+        WeiboClient.Json.decodeFromString<T>(text)
+    }.getOrElse {
+        throw IllegalArgumentException(text, it)
+    }
 }
-
 
 suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient { client ->
     client.get<HttpResponse>(url) {

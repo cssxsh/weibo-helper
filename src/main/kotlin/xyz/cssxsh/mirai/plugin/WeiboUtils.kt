@@ -45,8 +45,10 @@ internal val LoginContact by lazy {
     return@lazy null
 }
 
-internal suspend fun MicroBlog.getContent(): String {
-    return if (isLongText) {
+internal val Emoticons by WeiboEmoticonData::emoticons
+
+internal suspend fun MicroBlog.getContent() = supervisorScope {
+    if (isLongText) {
         runCatching {
             requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
         }.getOrElse {
@@ -80,6 +82,16 @@ internal fun File.desktop(user: UserBaseInfo) {
     if (System.getProperty("os.name").lowercase().startsWith("windows")) {
         Runtime.getRuntime().exec("attrib $absolutePath +s")
     }
+}
+
+internal suspend fun Emoticon.file(): File {
+    return ImageCache.resolve("emoticon").resolve(category.ifBlank { "默认" })
+        .resolve("$phrase.${url.substringAfterLast('.')}").apply {
+            if (exists().not()) {
+                parentFile.mkdirs()
+                writeBytes(client.download(url))
+            }
+        }
 }
 
 internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
@@ -116,19 +128,34 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     appendLine("@${username}#${uid}")
     appendLine("时间: $created")
     appendLine("链接: $link")
-    appendLine(getContent())
+
+    if (Emoticons.isEmpty()) {
+        add(getContent())
+    } else {
+        getContent().split('[', ']').map { fragment ->
+            Emoticons["[${fragment}]"]?.let {
+                runCatching {
+                    add(it.file().uploadAsImage(contact))
+                }.onFailure {
+                    logger.warning("获取微博表情[${fragment}]图片失败, $it")
+                    append("[${fragment}]")
+                }
+            } ?: append(fragment)
+        }
+    }
 
     getImages().forEachIndexed { index, result ->
         result.mapCatching {
-            append(it.uploadAsImage(contact))
+            add(it.uploadAsImage(contact))
         }.onFailure {
-            appendLine("获取微博[${id}]图片[${index}]失败")
+            logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $it")
+            appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $it")
         }
     }
 
     retweeted?.let {
         appendLine("==============================")
-        append(it.toMessage(contact))
+        add(it.toMessage(contact))
     }
 }
 
@@ -152,6 +179,7 @@ internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(
         logger.info { "微博图片清理开始" }
         val last = System.currentTimeMillis() - ImageExpire.toMillis()
         ImageCache.walkBottomUp().filter { file ->
+            if (file.nameWithoutExtension in Emoticons) return@filter false
             (file.extension in ImageExtensions.values) && file.lastModified() < last
         }.forEach { file ->
             runCatching {

@@ -17,6 +17,7 @@ const val LOGIN_PAGE = "https://weibo.com/login.php"
 const val PAGE_SIZE = 20
 
 // STATUSES
+const val STATUSES_CONFIG = "https://weibo.com/ajax/statuses/config"
 const val STATUSES_MY_MICRO_BLOG = "https://weibo.com/ajax/statuses/mymblog"
 const val STATUSES_SHOW = "https://weibo.com/ajax/statuses/show"
 const val STATUSES_LONGTEXT = "https://weibo.com/ajax/statuses/longtext"
