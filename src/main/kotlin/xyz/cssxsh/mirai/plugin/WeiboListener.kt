@@ -70,7 +70,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
             return@filter false
         }
         for (regex in filter.regexes) {
-            if (regex in source.text) {
+            if (regex in source.raw.orEmpty()) {
                 logger.info { "正则屏蔽，跳过 ${source.id} $regex" }
                 return@filter false
             }

@@ -39,12 +39,22 @@ data class MicroBlog(
     val reposts: Int = 0,
     @SerialName("retweeted_status")
     val retweeted: MicroBlog? = null,
-    @SerialName("text")
-    val text: String = "",
     @SerialName("text_raw")
     val raw: String? = null,
     @SerialName("user")
-    val user: MicroBlogUser? = null
+    val user: MicroBlogUser? = null,
+    @SerialName("url_struct")
+    val urls: List<UrlStruct> = emptyList()
+)
+
+@Serializable
+data class UrlStruct(
+    @SerialName("long_url")
+    val long: String,
+    @SerialName("short_url")
+    val short: String,
+    @SerialName("url_title")
+    val title: String
 )
 
 @Serializable
@@ -127,7 +137,7 @@ data class Emoticon(
     @SerialName("phrase")
     val phrase: String,
     @SerialName("picid")
-    val picid: String,
+    val id: String,
     @SerialName("type")
     val type: String,
     @SerialName("url")
