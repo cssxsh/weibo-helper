@@ -85,7 +85,7 @@ internal fun File.desktop(user: UserBaseInfo) {
 }
 
 internal suspend fun Emoticon.file(): File {
-    return ImageCache.resolve("emoticon").resolve(category.ifBlank { "其他" })
+    return ImageCache.resolve("emoticon").resolve(category.ifBlank { "默认" })
         .resolve("$phrase.${url.substringAfterLast('.')}").apply {
             if (exists().not()) {
                 parentFile.mkdirs()
