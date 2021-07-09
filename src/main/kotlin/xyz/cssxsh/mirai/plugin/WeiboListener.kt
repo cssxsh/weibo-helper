@@ -58,22 +58,22 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
     private val predicate: (blog: MicroBlog, old: Map<Long, MicroBlog>) -> Boolean = filter@{ blog, old ->
         val source = blog.retweeted ?: blog
         if (source.uid in filter.users) {
-            logger.info { "用户屏蔽，跳过${source.id} ${source.id}" }
+            logger.info { "用户屏蔽，跳过 ${source.id} ${source.username}" }
             return@filter false
         }
         if (source.reposts < filter.repost) {
-            logger.info { "转发数屏蔽，跳过${source.id} ${source.reposts}" }
+            logger.info { "转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
             return@filter false
         }
         for (regex in filter.regexes) {
             if (regex in source.text) {
-                logger.info { "正则屏蔽，跳过${source.id} ${source.reposts}" }
+                logger.info { "正则屏蔽，跳过 ${source.id} $regex" }
                 return@filter false
             }
         }
         for (item in old) {
             if (source.id == item.value.id || source.id == item.value.retweeted?.id) {
-                logger.info { "历史屏蔽，跳过${source.id} ${source.reposts}" }
+                logger.info { "历史屏蔽，跳过 ${source.id} ${source.created}}" }
                 return@filter false
             }
         }
