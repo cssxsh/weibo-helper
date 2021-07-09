@@ -1,6 +1,10 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.toList
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
@@ -62,7 +66,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
             return@filter false
         }
         if (source.reposts < filter.repost) {
-            logger.info { "转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
+            logger.verbose { "转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
             return@filter false
         }
         for (regex in filter.regexes) {
@@ -73,7 +77,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         }
         for (item in old) {
             if (source.id == item.value.id || source.id == item.value.retweeted?.id) {
-                logger.info { "历史屏蔽，跳过 ${source.id} ${source.created}}" }
+                logger.verbose { "历史屏蔽，跳过 ${source.id} ${source.created}}" }
                 return@filter false
             }
         }
@@ -86,15 +90,14 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (json.near()) IntervalSlow else IntervalFast).toMillis())
             runCatching {
-                val list = load(id).filter { predicate(it, json) }
-
-                list.forEach { blog ->
+                val list = load(id).asFlow().filter { predicate(it, json) }.onEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
                         }
                     }
-                }
+                }.toList()
+
                 json = list.associateBy { it.id } + json
 
                 list.maxByOrNull { it.created }?.let { blog ->
