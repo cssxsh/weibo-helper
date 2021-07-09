@@ -6,6 +6,10 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 import java.time.YearMonth
 
+suspend fun WeiboClient.getEmoticon(): EmotionData = temp(STATUSES_CONFIG) {
+    header(HttpHeaders.Referrer, "https://www.weibo.com/home")
+}
+
 suspend fun WeiboClient.getUserMicroBlogs(
     uid: Long,
     page: Int,
@@ -20,36 +24,27 @@ suspend fun WeiboClient.getUserMicroBlogs(
     parameter("stat_date", month?.run { "%04d%02d".format(year, monthValue) })
 }
 
-suspend fun WeiboClient.getMicroBlog(
-    mid: Long
-) = getMicroBlog(mid.toString())
+suspend fun WeiboClient.getMicroBlog(mid: Long) = getMicroBlog(mid.toString())
 
-suspend fun WeiboClient.getMicroBlog(
-    mid: String
-): MicroBlog = json(STATUSES_SHOW) {
+suspend fun WeiboClient.getMicroBlog(mid: String): MicroBlog = json(STATUSES_SHOW) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")
 
     parameter("id", mid)
 }
 
-suspend fun WeiboClient.getLongText(
-    mid: Long
-) = getLongText(mid.toString())
+suspend fun WeiboClient.getLongText(mid: Long) = getLongText(mid.toString())
 
-suspend fun WeiboClient.getLongText(
-    mid: String
-): LongTextContent = temp(STATUSES_LONGTEXT) {
+suspend fun WeiboClient.getLongText(mid: String): LongTextContent = temp(STATUSES_LONGTEXT) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")
 
     parameter("id", mid)
 }
 
-suspend fun WeiboClient.getMentions(
-    author: Boolean = false,
-    type: Boolean = false
-): UserMention = temp(STATUSES_MENTIONS) {
-    header(HttpHeaders.Referrer, "https://weibo.com/at/weibo")
+suspend fun WeiboClient.getMentions(author: Boolean = false, type: Boolean = false): UserMention {
+    return temp(STATUSES_MENTIONS) {
+        header(HttpHeaders.Referrer, "https://weibo.com/at/weibo")
 
-    parameter("filter_by_author", author.toInt())
-    parameter("filter_by_type", type.toInt())
+        parameter("filter_by_author", author.toInt())
+        parameter("filter_by_type", type.toInt())
+    }
 }

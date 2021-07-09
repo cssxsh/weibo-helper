@@ -52,10 +52,19 @@ object WeiboHelperPlugin : KotlinPlugin(
             }
         }
 
-        WeiboSubscriber.start()
-
-        WeiboUserCommand.listener.start()
-        WeiboGroupCommand.listener.start()
+        runCatching {
+            client.getEmoticon().emoticon.let { map ->
+                (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
+                    it.phrase
+                }.let {
+                    Emoticons.putAll(it)
+                }
+            }
+        }.onSuccess {
+            logger.info { "加载表情成功" }
+        }.onFailure {
+            logger.warning { "加载表情失败, $it" }
+        }
     }
 
     private fun <T : PluginConfig> T.save() = loader.configStorage.store(this@WeiboHelperPlugin, this)
@@ -65,6 +74,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboHelperSettings.reload()
         WeiboHelperSettings.save()
         WeiboStatusData.reload()
+        WeiboEmoticonData.reload()
 
         WeiboUserCommand.register()
         WeiboGroupCommand.register()
@@ -72,7 +82,14 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboLoginCommand.register()
         WeiboDetailCommand.register()
 
-        start()
+        runBlocking {
+            start()
+        }
+
+        WeiboSubscriber.start()
+
+        WeiboUserCommand.listener.start()
+        WeiboGroupCommand.listener.start()
 
         clear = clear()
     }

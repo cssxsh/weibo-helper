@@ -95,3 +95,43 @@ data class UserBlog(
     @SerialName("list")
     val list: List<MicroBlog> = emptyList()
 )
+
+@Serializable
+data class EmotionData(
+    @SerialName("emoticon")
+    val emoticon: EmoticonMap,
+//    @SerialName("emoticon_format")
+//    val emoticonFormat: List<EmoticonFormat>
+)
+
+@Serializable
+data class EmoticonMap(
+    @SerialName("brand")
+    val brand: Map<String, Map<String, List<Emoticon>>>,
+    @SerialName("more")
+    val more: Map<String, List<Emoticon>>,
+    @SerialName("usual")
+    val usual: Map<String, List<Emoticon>>
+)
+
+@Serializable
+data class Emoticon(
+    @SerialName("category")
+    val category: String,
+    @SerialName("common")
+    val common: Boolean,
+    @SerialName("hot")
+    val hot: Boolean,
+    @SerialName("icon")
+    val icon: String,
+    @SerialName("phrase")
+    val phrase: String,
+    @SerialName("picid")
+    val picid: String,
+    @SerialName("type")
+    val type: String,
+    @SerialName("url")
+    val url: String,
+    @SerialName("value")
+    val value: String
+)
