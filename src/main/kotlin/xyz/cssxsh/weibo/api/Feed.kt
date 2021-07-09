@@ -5,14 +5,13 @@ import io.ktor.http.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 
-suspend fun WeiboClient.getFeedGroups(
-    isNewSegment: Boolean = true,
-    fetchHot: Boolean = true,
-): UserGroupData = json(FEED_ALL_GROUPS) {
-    header(HttpHeaders.Referrer, INDEX_PAGE)
+suspend fun WeiboClient.getFeedGroups(isNewSegment: Boolean = true, fetchHot: Boolean = true): UserGroupData {
+    return json(FEED_ALL_GROUPS) {
+        header(HttpHeaders.Referrer, INDEX_PAGE)
 
-    parameter("is_new_segment", isNewSegment.toInt())
-    parameter("fetch_hot", fetchHot.toInt())
+        parameter("is_new_segment", isNewSegment.toInt())
+        parameter("fetch_hot", fetchHot.toInt())
+    }
 }
 
 suspend fun WeiboClient.getGroupsTimeline(
@@ -86,7 +85,7 @@ suspend fun WeiboClient.getHotTimeline(
     parameter("refresh", refresh.toInt())
 }
 
-suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when(group.type) {
+suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when (group.type) {
     UserGroupType.USER, UserGroupType.QUIETLY -> {
         getGroupsTimeline(group.gid)
     }

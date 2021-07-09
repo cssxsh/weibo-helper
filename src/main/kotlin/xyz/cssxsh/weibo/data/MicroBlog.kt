@@ -13,12 +13,12 @@ data class MicroBlog(
      * 点赞数
      */
     @SerialName("attitudes_count")
-    val attitudesCount: Int = 0,
+    val attitudes: Int = 0,
     /**
      * 评论数
      */
     @SerialName("comments_count")
-    val commentsCount: Int = 0,
+    val comments: Int = 0,
     @SerialName("created_at")
     @Serializable(WeiboDateTimeSerializer::class)
     val created: OffsetDateTime,
@@ -36,7 +36,7 @@ data class MicroBlog(
      * 转发数
      */
     @SerialName("reposts_count")
-    val repostsCount: Int = 0,
+    val reposts: Int = 0,
     @SerialName("retweeted_status")
     val retweeted: MicroBlog? = null,
     @SerialName("text")
@@ -44,9 +44,7 @@ data class MicroBlog(
     @SerialName("text_raw")
     val raw: String? = null,
     @SerialName("user")
-    val user: MicroBlogUser? = null,
-    @SerialName("userType")
-    val userType: Int? = null,
+    val user: MicroBlogUser? = null
 )
 
 @Serializable
