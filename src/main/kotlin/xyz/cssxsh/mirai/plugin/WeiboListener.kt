@@ -1,8 +1,6 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
@@ -18,19 +16,17 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
 
     abstract val load: suspend (id: Long) -> List<MicroBlog>
 
-    protected val filter: WeiboFilter get() = WeiboHelperSettings
+    private val filter: WeiboFilter get() = WeiboHelperSettings
 
     protected abstract val tasks: MutableMap<Long, WeiboTaskInfo>
 
     private val taskJobs = mutableMapOf<Long, Job>()
 
-    private fun taskContactInfos(id: Long) = tasks[id]?.contacts.orEmpty()
-
-    private fun json(id: Long) = data.resolve(type).resolve("$id.json").apply { parentFile.mkdirs() }
+    private fun infos(id: Long) = tasks[id]?.contacts.orEmpty()
 
     fun start(): Unit = synchronized(taskJobs) {
         tasks.forEach { (uid, _) ->
-            taskJobs[uid] = addListener(uid)
+            taskJobs[uid] = listener(uid)
         }
     }
 
@@ -42,7 +38,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
     private suspend fun sendMessageToTaskContacts(
         id: Long,
         block: suspend (contact: Contact) -> Message
-    ) = taskContactInfos(id).forEach { delegate ->
+    ) = infos(id).forEach { delegate ->
         runCatching {
             requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
                 contact.sendMessage(block(contact))
@@ -55,21 +51,43 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
     private operator fun LocalTime.minus(other: LocalTime): Duration =
         Duration.ofSeconds((toSecondOfDay() - other.toSecondOfDay()).toLong())
 
-    private fun List<MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
-        return map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
+    private fun Map<Long, MicroBlog>.near(time: LocalTime = LocalTime.now()): Boolean {
+        return values.map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    private fun addListener(id: Long): Job = launch(SupervisorJob()) {
-        logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
-        while (isActive && taskContactInfos(id).isNotEmpty()) {
-            val old = runCatching {
-                WeiboClient.Json.decodeFromString<List<MicroBlog>>(json(id).readText())
-            }.getOrElse {
-                emptyList()
+    private val predicate: (blog: MicroBlog, old: Map<Long, MicroBlog>) -> Boolean = filter@{ blog, old ->
+        val source = blog.retweeted ?: blog
+        if (source.uid in filter.users) {
+            logger.info { "用户屏蔽，跳过${source.id} ${source.id}" }
+            return@filter false
+        }
+        if (source.reposts < filter.repost) {
+            logger.info { "转发数屏蔽，跳过${source.id} ${source.reposts}" }
+            return@filter false
+        }
+        for (regex in filter.regexes) {
+            if (regex in source.text) {
+                logger.info { "正则屏蔽，跳过${source.id} ${source.reposts}" }
+                return@filter false
             }
-            delay((if (old.near()) IntervalSlow else IntervalFast).toMillis())
+        }
+        for (item in old) {
+            if (source.id == item.value.id || source.id == item.value.retweeted?.id) {
+                logger.info { "历史屏蔽，跳过${source.id} ${source.reposts}" }
+                return@filter false
+            }
+        }
+        true
+    }
+
+    private fun listener(id: Long): Job = launch(SupervisorJob()) {
+        logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
+        var json by WeiboJsonDelegate(id, type)
+        while (isActive && infos(id).isNotEmpty()) {
+            delay((if (json.near()) IntervalSlow else IntervalFast).toMillis())
             runCatching {
-                val list = load(id).sortedBy { it.id }
+                val list = load(id).filter { predicate(it, json) }
+
                 list.forEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
@@ -77,7 +95,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                         }
                     }
                 }
-                json(id).writeText(WeiboClient.Json.encodeToString(list))
+                json = list.associateBy { it.id } + json
 
                 list.maxByOrNull { it.created }?.let { blog ->
                     logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }
@@ -107,24 +125,24 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         }
     }
 
-    fun addTask(id: Long, name: String, subject: Contact): Unit = synchronized(tasks) {
+    fun add(id: Long, name: String, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             (info ?: WeiboTaskInfo(name = name)).run {
                 copy(contacts = contacts + subject.delegate)
             }
         }
         taskJobs.compute(id) { _, job ->
-            job?.takeIf { it.isActive } ?: addListener(id)
+            job?.takeIf { it.isActive } ?: listener(id)
         }
     }
 
-    fun removeTask(id: Long, subject: Contact): Unit = synchronized(tasks) {
+    fun remove(id: Long, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             info?.run {
                 copy(contacts = contacts - subject.delegate)
             }
         }
-        if (taskContactInfos(id).isEmpty()) {
+        if (infos(id).isEmpty()) {
             tasks.remove(id)
             taskJobs.remove(id)?.cancel()
         }
