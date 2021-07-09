@@ -84,7 +84,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
 
     val url = flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) }
 
-    return callback<LoginResult>(url).also { info = it.info }
+    return callback<LoginResult>(url) {}.also { info = it.info }
 }
 
 suspend fun WeiboClient.restore(): LoginResult {
@@ -123,7 +123,7 @@ suspend fun WeiboClient.restore(): LoginResult {
 
     val url = flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) }
 
-    return callback<LoginResult>(url).also { info = it.info }
+    return callback<LoginResult>(url) {}.also { info = it.info }
 }
 
 suspend fun WeiboClient.incarnate(): Int {

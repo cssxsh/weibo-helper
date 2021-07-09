@@ -28,30 +28,22 @@ data class TempData(
     val ok: Boolean = true
 )
 
-internal suspend inline fun <reified T> WeiboClient.temp(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit
-): T {
+const val ErrorMessageLength = 32
+
+suspend inline fun <reified T> WeiboClient.temp(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
     val text = text(url, block)
     val temp = WeiboClient.Json.decodeFromString<TempData>(text)
     val data = requireNotNull(temp.data) {
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {
-            text
+            text.substring(0, minOf(ErrorMessageLength, text.length))
         }
     }
-    return runCatching {
-        WeiboClient.Json.decodeFromJsonElement<T>(data)
-    }.getOrElse {
-        throw IllegalArgumentException(data.toString(), it)
-    }
+    return WeiboClient.Json.decodeFromJsonElement(data)
 }
 
-internal suspend inline fun <reified T> WeiboClient.callback(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit = {}
-): T {
+suspend inline fun <reified T> WeiboClient.callback(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
     val json = text(url, block).substringAfter('(').substringBefore(')')
     return runCatching {
         WeiboClient.Json.decodeFromString<T>(json)
@@ -71,14 +63,10 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {
-            text
+            text.substring(0, minOf(ErrorMessageLength, text.length))
         }
     }
-    return runCatching {
-        WeiboClient.Json.decodeFromString<T>(text)
-    }.getOrElse {
-        throw IllegalArgumentException(text, it)
-    }
+    return WeiboClient.Json.decodeFromString(text)
 }
 
 suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient { client ->

@@ -47,19 +47,6 @@ internal val LoginContact by lazy {
 
 internal val Emoticons by WeiboEmoticonData::emoticons
 
-internal suspend fun MicroBlog.getContent() = supervisorScope {
-    if (isLongText) {
-        runCatching {
-            requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
-        }.getOrElse {
-            logger.warning({ "获取微博[${id}]长文本失败" }, it)
-            raw ?: text
-        }
-    } else {
-        raw ?: text
-    }
-}
-
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
     resolve("desktop.ini").apply { if (isHidden) delete() }.writeText(buildString {
@@ -94,6 +81,19 @@ internal suspend fun Emoticon.file(): File {
         }
 }
 
+internal suspend fun MicroBlog.getContent() = supervisorScope {
+    if (isLongText) {
+        runCatching {
+            requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
+        }.getOrElse {
+            logger.warning({ "获取微博[${id}]长文本失败" }, it)
+            raw
+        }
+    } else {
+        raw
+    }
+}
+
 internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
     if (pictures.isEmpty()) return emptyList()
     val cache = ImageCache.resolve("$uid").apply {
@@ -124,24 +124,45 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
     }
 }
 
+private suspend fun MessageChainBuilder.parse(content: String, contact: Contact) {
+    var pos = 0
+    while (pos < content.length) {
+        val start = content.indexOf('[', pos).takeIf { it != -1 } ?: break
+        val emoticon = Emoticons.values.find { content.startsWith(it.phrase, start) }
+
+        if (emoticon == null) {
+            add(content.substring(pos, start + 1))
+            pos = start + 1
+            continue
+        }
+
+        runCatching {
+            emoticon.file().uploadAsImage(contact)
+        }.onSuccess {
+            add(content.substring(pos, start))
+            add(it)
+        }.onFailure {
+            logger.warning("获取微博表情[${emoticon.phrase}]图片失败, $it")
+            add(content.substring(pos, start + emoticon.phrase.length))
+        }
+        pos = start + emoticon.phrase.length
+    }
+    add(content.substring(pos))
+}
+
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}#${uid}")
     appendLine("时间: $created")
     appendLine("链接: $link")
 
+    val content = urls.fold(getContent().orEmpty()) { acc, struct ->
+        acc.replace(struct.short, "[${struct.title}](${struct.long})")
+    }
+
     if (Emoticons.isEmpty()) {
-        add(getContent())
+        add(content)
     } else {
-        getContent().split('[', ']').map { fragment ->
-            Emoticons["[${fragment}]"]?.let {
-                runCatching {
-                    add(it.file().uploadAsImage(contact))
-                }.onFailure {
-                    logger.warning("获取微博表情[${fragment}]图片失败, $it")
-                    append("[${fragment}]")
-                }
-            } ?: append(fragment)
-        }
+        parse(content, contact)
     }
 
     getImages().forEachIndexed { index, result ->

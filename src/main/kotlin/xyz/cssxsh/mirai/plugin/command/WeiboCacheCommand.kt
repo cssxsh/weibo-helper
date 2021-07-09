@@ -6,6 +6,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.message.data.toPlainText
+import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
 import java.time.YearMonth
@@ -80,5 +81,18 @@ object WeiboCacheCommand : CompositeCommand(
             sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statusesCount}")
         }
         "对Group($gid)的缓存文件夹图标已设置".toPlainText()
+    }
+
+    @SubCommand
+    suspend fun CommandSenderOnMessage<*>.emoticon() = sendMessage {
+        Emoticons.values.onEach { emoticon ->
+            runCatching {
+                emoticon.file()
+            }.onFailure {
+                logger.warning { "表情${emoticon.phrase} 下载失败 ${emoticon.url} $it" }
+            }
+        }.joinToString { info ->
+            "${info.category.ifBlank { "默认" }}/${info.phrase}"
+        }.toPlainText()
     }
 }
