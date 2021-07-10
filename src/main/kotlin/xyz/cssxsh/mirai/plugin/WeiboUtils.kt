@@ -147,7 +147,7 @@ private suspend fun MessageChainBuilder.parse(content: String, contact: Contact)
         }
         pos = start + emoticon.phrase.length
     }
-    add(content.substring(pos))
+    appendLine(content.substring(pos))
 }
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
@@ -160,7 +160,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     }
 
     if (Emoticons.isEmpty()) {
-        add(content)
+        appendLine(content)
     } else {
         parse(content, contact)
     }
