@@ -81,16 +81,17 @@ internal suspend fun Emoticon.file(): File {
         }
 }
 
-internal suspend fun MicroBlog.getContent() = supervisorScope {
+internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = supervisorScope {
+    var content = raw
     if (isLongText) {
         runCatching {
-            requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
-        }.getOrElse {
+            content = requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
+        }.onFailure {
             logger.warning({ "获取微博[${id}]长文本失败" }, it)
-            raw
         }
-    } else {
-        raw
+    }
+    links.fold(content.orEmpty()) { acc, struct ->
+        acc.replace(struct.short, "[${struct.title}](${struct.long})")
     }
 }
 
@@ -155,9 +156,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     appendLine("时间: $created")
     appendLine("链接: $link")
 
-    val content = urls.fold(getContent().orEmpty()) { acc, struct ->
-        acc.replace(struct.short, "[${struct.title}](${struct.long})")
-    }
+    val content = getContent()
 
     if (Emoticons.isEmpty()) {
         appendLine(content)
@@ -176,7 +175,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
 
     retweeted?.let {
         appendLine("==============================")
-        add(it.toMessage(contact))
+        add(it.copy(urls = urls).toMessage(contact))
     }
 }
 
