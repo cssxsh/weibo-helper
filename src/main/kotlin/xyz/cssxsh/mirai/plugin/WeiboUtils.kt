@@ -85,9 +85,11 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
     var content = raw
     if (isLongText) {
         runCatching {
-            content = requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
+            content = requireNotNull(client.getLongText(id).content) { "长文本为空 id: $id" }
+        }.recoverCatching {
+            content = requireNotNull(client.getLongText(mid).content) { "长文本为空 mid: $mid" }
         }.onFailure {
-            logger.warning({ "获取微博[${id}]长文本失败" }, it)
+            logger.warning { "获取微博[${id}]长文本失败 $it" }
         }
     }
     links.fold(content.orEmpty()) { acc, struct ->
