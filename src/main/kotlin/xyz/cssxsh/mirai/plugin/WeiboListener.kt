@@ -112,6 +112,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
                     }.onFailure { cause ->
+                        logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
                         if ("login" in cause.message.orEmpty()) {
                             LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
                         }
