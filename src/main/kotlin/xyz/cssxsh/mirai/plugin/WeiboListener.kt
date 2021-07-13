@@ -20,7 +20,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
 
     abstract val load: suspend (id: Long) -> List<MicroBlog>
 
-    private val filter: WeiboFilter get() = WeiboHelperSettings
+    protected val filter: WeiboFilter get() = WeiboHelperSettings
 
     protected abstract val tasks: MutableMap<Long, WeiboTaskInfo>
 
@@ -59,14 +59,10 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         return values.map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    private val predicate: (blog: MicroBlog, old: Map<Long, MicroBlog>) -> Boolean = filter@{ blog, old ->
+    protected open val predicate: (blog: MicroBlog, old: Map<Long, MicroBlog>) -> Boolean = filter@{ blog, old ->
         val source = blog.retweeted ?: blog
         if (source.uid in filter.users) {
             logger.info { "用户屏蔽，跳过 ${source.id} ${source.username}" }
-            return@filter false
-        }
-        if (source.reposts < filter.repost) {
-            logger.verbose { "转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
             return@filter false
         }
         for (regex in filter.regexes) {
@@ -77,7 +73,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         }
         for (item in old) {
             if (source.id == item.value.id || source.id == item.value.retweeted?.id) {
-                logger.verbose { "历史屏蔽，跳过 ${source.id} ${source.created}}" }
+                logger.info { "历史屏蔽，跳过 ${source.id} ${source.created}}" }
                 return@filter false
             }
         }
@@ -116,6 +112,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
                     }.onFailure { cause ->
+                        logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
                         if ("login" in cause.message.orEmpty()) {
                             LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
                         }

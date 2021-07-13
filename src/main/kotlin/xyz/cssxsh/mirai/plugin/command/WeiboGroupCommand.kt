@@ -2,6 +2,7 @@ package xyz.cssxsh.mirai.plugin.command
 
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.message.data.toPlainText
+import net.mamoe.mirai.utils.info
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
@@ -17,6 +18,15 @@ object WeiboGroupCommand : CompositeCommand(
 
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getGroupsTimeline(gid = id, count = 100).statuses
+        }
+
+        override val predicate: (blog: MicroBlog, old: Map<Long, MicroBlog>) -> Boolean = filter@{ blog, old ->
+            val source = blog.retweeted ?: blog
+            if (source.reposts < filter.repost) {
+                logger.info { "转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
+                return@filter false
+            }
+            super.predicate(blog, old)
         }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::groups

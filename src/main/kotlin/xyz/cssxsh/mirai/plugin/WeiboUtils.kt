@@ -47,6 +47,8 @@ internal val LoginContact by lazy {
 
 internal val Emoticons by WeiboEmoticonData::emoticons
 
+internal val EmoticonCache get() = ImageCache.resolve("emoticon")
+
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
     resolve("desktop.ini").apply { if (isHidden) delete() }.writeText(buildString {
@@ -72,25 +74,27 @@ internal fun File.desktop(user: UserBaseInfo) {
 }
 
 internal suspend fun Emoticon.file(): File {
-    return ImageCache.resolve("emoticon").resolve(category.ifBlank { "默认" })
-        .resolve("$phrase.${url.substringAfterLast('.')}").apply {
-            if (exists().not()) {
-                parentFile.mkdirs()
-                writeBytes(client.download(url))
-            }
+    return EmoticonCache.resolve(category.ifBlank { "默认" }).resolve("$phrase.${url.substringAfterLast('.')}").apply {
+        if (exists().not()) {
+            parentFile.mkdirs()
+            writeBytes(client.download(url))
         }
+    }
 }
 
-internal suspend fun MicroBlog.getContent() = supervisorScope {
+internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = supervisorScope {
+    var content = raw
     if (isLongText) {
         runCatching {
-            requireNotNull(client.getLongText(id).content) { "长文本为空 mid: $id" }
-        }.getOrElse {
-            logger.warning({ "获取微博[${id}]长文本失败" }, it)
-            raw
+            content = requireNotNull(client.getLongText(id).content) { "长文本为空 id: $id" }
+        }.recoverCatching {
+            content = requireNotNull(client.getLongText(mid).content) { "长文本为空 mid: $mid" }
+        }.onFailure {
+            logger.warning { "获取微博[${id}]长文本失败 $it" }
         }
-    } else {
-        raw
+    }
+    links.fold(content.orEmpty()) { acc, struct ->
+        acc.replace(struct.short, "[${struct.title}](${struct.long})")
     }
 }
 
@@ -147,7 +151,7 @@ private suspend fun MessageChainBuilder.parse(content: String, contact: Contact)
         }
         pos = start + emoticon.phrase.length
     }
-    add(content.substring(pos))
+    appendLine(content.substring(pos))
 }
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
@@ -155,12 +159,10 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     appendLine("时间: $created")
     appendLine("链接: $link")
 
-    val content = urls.fold(getContent().orEmpty()) { acc, struct ->
-        acc.replace(struct.short, "[${struct.title}](${struct.long})")
-    }
+    val content = getContent()
 
     if (Emoticons.isEmpty()) {
-        add(content)
+        appendLine(content)
     } else {
         parse(content, contact)
     }
@@ -176,7 +178,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
 
     retweeted?.let {
         appendLine("==============================")
-        add(it.toMessage(contact))
+        add(it.copy(urls = urls).toMessage(contact))
     }
 }
 
