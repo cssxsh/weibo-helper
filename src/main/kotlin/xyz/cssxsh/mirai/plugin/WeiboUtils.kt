@@ -47,6 +47,8 @@ internal val LoginContact by lazy {
 
 internal val Emoticons by WeiboEmoticonData::emoticons
 
+internal val EmoticonCache get() = ImageCache.resolve("emoticon")
+
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
     resolve("desktop.ini").apply { if (isHidden) delete() }.writeText(buildString {
@@ -72,13 +74,12 @@ internal fun File.desktop(user: UserBaseInfo) {
 }
 
 internal suspend fun Emoticon.file(): File {
-    return ImageCache.resolve("emoticon").resolve(category.ifBlank { "默认" })
-        .resolve("$phrase.${url.substringAfterLast('.')}").apply {
-            if (exists().not()) {
-                parentFile.mkdirs()
-                writeBytes(client.download(url))
-            }
+    return EmoticonCache.resolve(category.ifBlank { "默认" }).resolve("$phrase.${url.substringAfterLast('.')}").apply {
+        if (exists().not()) {
+            parentFile.mkdirs()
+            writeBytes(client.download(url))
         }
+    }
 }
 
 internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = supervisorScope {
