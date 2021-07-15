@@ -17,6 +17,9 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     @ValueDescription("图片缓存过期时间，单位小时，默认3天，为0时不会过期")
     val expire: Int by value(72)
 
+    @ValueDescription("是否清理收藏的用户")
+    val following: Boolean by value(true)
+
     @ValueDescription("快速轮询间隔，单位分钟")
     val fast: Int by value(1)
 

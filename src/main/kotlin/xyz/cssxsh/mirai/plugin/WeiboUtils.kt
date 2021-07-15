@@ -32,6 +32,8 @@ internal val ImageCache get() = File(WeiboHelperSettings.cache)
 
 internal val ImageExpire get() = Duration.ofHours(WeiboHelperSettings.expire.toLong())
 
+internal val ImageClearFollowing get() = WeiboHelperSettings.following
+
 internal val IntervalFast get() = Duration.ofMinutes(WeiboHelperSettings.fast.toLong())
 
 internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.toLong())
@@ -100,9 +102,12 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
 
 internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
     if (pictures.isEmpty()) return emptyList()
-    val cache = ImageCache.resolve("$uid").apply {
-        if (resolve("desktop.ini").exists().not()) {
-            desktop(requireNotNull(user))
+    val user = requireNotNull(user) { "没有用户信息" }
+    val cache = ImageCache.resolve("${user.id}").apply {
+        if (resolve("desktop.ini").exists().not())  {
+            desktop(user)
+        } else if (user.following && resolve("avatar.ico").exists().not()) {
+            desktop(user)
         }
     }
     val last = created.toEpochSecond() * 1_000
@@ -195,22 +200,33 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
-internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(SupervisorJob()) {
-    if (ImageExpire.isNegative.not()) return@launch
-    while (isActive) {
-        delay(interval)
-        logger.info { "微博图片清理开始" }
-        val last = System.currentTimeMillis() - ImageExpire.toMillis()
-        ImageCache.walkBottomUp().filter { file ->
-            if (file.nameWithoutExtension in Emoticons) return@filter false
+internal fun File.clean(following: Boolean, num: Int = 0) {
+    logger.info { "微博图片清理开始" }
+    val last = System.currentTimeMillis() - ImageExpire.toMillis()
+    listFiles { file -> file != Emoticons }.orEmpty().forEach { dir ->
+        val avatar = dir.resolve("avatar.ico").exists()
+        if (following.not() && avatar) return@forEach
+        val images = dir.listFiles {  file ->
             (file.extension in ImageExtensions.values) && file.lastModified() < last
-        }.forEach { file ->
+        }.orEmpty()
+        // XXX
+        if (num > 0 && images.size > num) return@forEach
+        images.forEach { file ->
             runCatching {
                 check(file.delete())
             }.onFailure {
                 logger.info { "${file.absolutePath} 删除失败" }
             }
         }
+        if (avatar.not()) dir.apply { listFiles()?.forEach { it.delete() } }.delete()
+    }
+}
+
+internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(SupervisorJob()) {
+    if (ImageExpire.isNegative.not()) return@launch
+    while (isActive) {
+        delay(interval)
+        ImageCache.clean(following = ImageClearFollowing)
     }
 }
 
