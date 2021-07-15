@@ -59,21 +59,22 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         return values.map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    protected open val predicate: (blog: MicroBlog, old: Map<Long, MicroBlog>) -> Boolean = filter@{ blog, old ->
+    protected open val predicate: (blog: MicroBlog, id: Long) -> Boolean = filter@{ blog, id ->
         val source = blog.retweeted ?: blog
+        val json by WeiboJsonDelegate(id, type)
         if (source.uid in filter.users) {
-            logger.info { "用户屏蔽，跳过 ${source.id} ${source.username}" }
+            logger.info { "${type}(${id}) 用户屏蔽，跳过 ${source.id} ${source.username}" }
             return@filter false
         }
         for (regex in filter.regexes) {
             if (regex in source.raw.orEmpty()) {
-                logger.info { "正则屏蔽，跳过 ${source.id} $regex" }
+                logger.info { "${type}(${id}) 正则屏蔽，跳过 ${source.id} $regex" }
                 return@filter false
             }
         }
-        for (item in old) {
+        for (item in json) {
             if (source.id == item.value.id || source.id == item.value.retweeted?.id) {
-                logger.info { "历史屏蔽，跳过 ${source.id} ${source.created}}" }
+                logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }
                 return@filter false
             }
         }
@@ -86,7 +87,7 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (json.near()) IntervalSlow else IntervalFast).toMillis())
             runCatching {
-                val list = load(id).asFlow().filter { predicate(it, json) }.onEach { blog ->
+                val list = load(id).asFlow().filter { predicate(it, id) }.onEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
@@ -112,8 +113,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                     }.onSuccess {
                         logger.info { "登陆成功, $it" }
                     }.onFailure { cause ->
-                        logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
                         if ("login" in cause.message.orEmpty()) {
+                            logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
                             LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
                         }
                     }
