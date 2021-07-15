@@ -65,7 +65,8 @@
 位于`Mirai-Console`运行目录下的`config/weibo-helper`文件夹下的`WeiboHelperSettings`文件
 
 1. `cache` 图片缓存位置
-1. `expire` 图片缓存过期时间，单位小时，默认3天，为0时不会过期")
+1. `expire` 图片缓存过期时间，单位小时，默认3天，为0时不会过期
+1. `following` 是否清理收藏的用户的缓存，默认 true
 1. `fast` 快速轮询间隔，单位分钟
 1. `slow` 慢速轮询间隔，单位分钟
 1. `quiet` 安静群聊，添加群号，设置不开启[解析微博链接](#解析微博链接)
