@@ -9,7 +9,6 @@ object WeiboDetailCommand : SimpleCommand(
     "wdetail", "blog", "微博详情",
     description = "微博详情指令",
 ) {
-
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle(mid: String) = sendMessage { client.getMicroBlog(mid).toMessage(it) }
 }

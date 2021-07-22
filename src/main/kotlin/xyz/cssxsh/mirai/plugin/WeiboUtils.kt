@@ -122,7 +122,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
                     }.recoverCatching {
                         client.download(image(pid).replace("large", "mw2000"))
                     }.onSuccess {
-                        logger.info { "[${name}]下载完成, 大小${it.size / 1024}KB" }
+                        logger.verbose { "[${name}]下载完成, 大小${it.size / 1024}KB" }
                     }.getOrThrow())
                     setLastModified(last)
                 }

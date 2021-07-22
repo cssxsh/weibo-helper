@@ -16,7 +16,6 @@ object WeiboCacheCommand : CompositeCommand(
     "wcache", "微博缓存",
     description = "微博缓存指令",
 ) {
-
     @SubCommand
     suspend fun CommandSenderOnMessage<*>.user(uid: Long, second: Int = 10, reposts: Int = 100) = sendMessage {
         val interval = second * 1000L
