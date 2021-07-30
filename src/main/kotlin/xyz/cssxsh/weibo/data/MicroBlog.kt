@@ -50,7 +50,7 @@ data class MicroBlog(
 @Serializable
 data class UrlStruct(
     @SerialName("long_url")
-    val long: String,
+    val long: String = "",
     @SerialName("short_url")
     val short: String,
     @SerialName("url_title")

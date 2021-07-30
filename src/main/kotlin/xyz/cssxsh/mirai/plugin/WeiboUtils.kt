@@ -96,6 +96,7 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
         }
     }
     links.fold(content.orEmpty()) { acc, struct ->
+        if (struct.long.isBlank()) return@fold acc
         acc.replace(struct.short, "[${struct.title}](${struct.long})")
     }
 }
@@ -151,7 +152,7 @@ private suspend fun MessageChainBuilder.parse(content: String, contact: Contact)
             add(content.substring(pos, start))
             add(it)
         }.onFailure {
-            logger.warning("获取微博表情[${emoticon.phrase}]图片失败, $it")
+            logger.warning("获取微博表情${emoticon.phrase}图片失败, $it")
             add(content.substring(pos, start + emoticon.phrase.length))
         }
         pos = start + emoticon.phrase.length
