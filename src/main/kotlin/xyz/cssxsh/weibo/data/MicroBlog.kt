@@ -140,3 +140,26 @@ data class Emoticon(
     @SerialName("value")
     val value: String
 )
+
+@Serializable
+data class SearchResult(
+    @SerialName("cardlist_title")
+    val title: String,
+    @SerialName("cards")
+    val cards: List<SearchResultCard>
+)
+
+@Serializable
+data class SearchResultCard(
+    @SerialName("card_group")
+    val group: List<SearchResultCard> = emptyList(),
+    @SerialName("card_type")
+    val type: Int,
+    @SerialName("is_hotweibo")
+    @Serializable(NumberToBooleanSerializer::class)
+    val isHot: Boolean = false,
+    @SerialName("mblog")
+    val blog: MicroBlog? = null,
+    @SerialName("user")
+    val user: MicroBlogUser? = null
+)

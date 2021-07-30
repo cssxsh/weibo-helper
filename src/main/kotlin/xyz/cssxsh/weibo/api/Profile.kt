@@ -26,16 +26,6 @@ suspend fun WeiboClient.getUserHistory(uid: Long = info.uid): HistoryInfo = temp
     parameter("uid", uid)
 }
 
-suspend fun WeiboClient.getUserHot(uid: Long = info.uid, page: Int, feature: FeatureType = FeatureType.HOT): UserBlog {
-    return temp(PROFILE_MY_HOT) {
-        header(HttpHeaders.Referrer, "https://www.weibo.com/u/${uid}")
-
-        parameter("uid", uid)
-        parameter("page", page)
-        parameter("feature", feature)
-    }
-}
-
 suspend fun WeiboClient.getUserFollowers(uid: Long = info.uid, page: Int): UserGroupMembers {
     return temp(PROFILE_GROUP_MEMBERS) {
         header(HttpHeaders.Referrer, "https://weibo.com/u/page/follow/${uid}/followGroup")
