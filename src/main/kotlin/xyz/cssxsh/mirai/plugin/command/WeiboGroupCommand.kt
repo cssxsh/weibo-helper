@@ -7,7 +7,7 @@ import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import xyz.cssxsh.weibo.getGroup
+import xyz.cssxsh.weibo.*
 
 object WeiboGroupCommand : CompositeCommand(
     owner = WeiboHelperPlugin,

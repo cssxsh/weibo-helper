@@ -91,9 +91,6 @@ data class LongTextContent(
 data class TimelineData(
     @SerialName("max_id")
     val maxId: Long = 0,
-    @SerialName("ok")
-    @Serializable(NumberToBooleanSerializer::class)
-    val ok: Boolean = true,
     @SerialName("since_id")
     val sinceId: Long = 0,
     @SerialName("statuses")
@@ -109,9 +106,7 @@ data class UserBlog(
 @Serializable
 data class EmotionData(
     @SerialName("emoticon")
-    val emoticon: EmoticonMap,
-//    @SerialName("emoticon_format")
-//    val emoticonFormat: List<EmoticonFormat>
+    val emoticon: EmoticonMap
 )
 
 @Serializable
