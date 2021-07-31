@@ -96,6 +96,7 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
         }
     }
     links.fold(content.orEmpty()) { acc, struct ->
+        if (struct.long.isBlank()) return@fold acc
         acc.replace(struct.short, "[${struct.title}](${struct.long})")
     }
 }
@@ -122,7 +123,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
                     }.recoverCatching {
                         client.download(image(pid).replace("large", "mw2000"))
                     }.onSuccess {
-                        logger.info { "[${name}]下载完成, 大小${it.size / 1024}KB" }
+                        logger.verbose { "[${name}]下载完成, 大小${it.size / 1024}KB" }
                     }.getOrThrow())
                     setLastModified(last)
                 }
@@ -151,7 +152,7 @@ private suspend fun MessageChainBuilder.parse(content: String, contact: Contact)
             add(content.substring(pos, start))
             add(it)
         }.onFailure {
-            logger.warning("获取微博表情[${emoticon.phrase}]图片失败, $it")
+            logger.warning("获取微博表情${emoticon.phrase}图片失败, $it")
             add(content.substring(pos, start + emoticon.phrase.length))
         }
         pos = start + emoticon.phrase.length

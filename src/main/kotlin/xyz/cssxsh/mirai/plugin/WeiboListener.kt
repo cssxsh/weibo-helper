@@ -59,9 +59,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         return values.map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    protected open val predicate: (blog: MicroBlog, id: Long) -> Boolean = filter@{ blog, id ->
+    protected open val predicate: (MicroBlog, Long, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
         val source = blog.retweeted ?: blog
-        val json by WeiboJsonDelegate(id, type)
         if (source.uid in filter.users) {
             logger.info { "${type}(${id}) 用户屏蔽，跳过 ${source.id} ${source.username}" }
             return@filter false
@@ -72,11 +71,11 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
                 return@filter false
             }
         }
-        for (item in json) {
-            if (source.id == item.value.id || source.id == item.value.retweeted?.id) {
-                logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }
-                return@filter false
-            }
+        if (source.id in histories) {
+            logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }
+            return@filter false
+        } else {
+            histories.add(source.id)
         }
         true
     }
@@ -87,7 +86,8 @@ abstract class WeiboListener(val type: String) : CoroutineScope by WeiboHelperPl
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (json.near()) IntervalSlow else IntervalFast).toMillis())
             runCatching {
-                val list = load(id).asFlow().filter { predicate(it, id) }.onEach { blog ->
+                val histories = json.values.flatMap { setOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
+                val list = load(id).asFlow().filter { predicate(it, id, histories) }.onEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)

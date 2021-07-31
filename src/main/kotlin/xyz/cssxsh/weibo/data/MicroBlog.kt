@@ -50,7 +50,7 @@ data class MicroBlog(
 @Serializable
 data class UrlStruct(
     @SerialName("long_url")
-    val long: String,
+    val long: String = "",
     @SerialName("short_url")
     val short: String,
     @SerialName("url_title")
@@ -91,9 +91,6 @@ data class LongTextContent(
 data class TimelineData(
     @SerialName("max_id")
     val maxId: Long = 0,
-    @SerialName("ok")
-    @Serializable(NumberToBooleanSerializer::class)
-    val ok: Boolean = true,
     @SerialName("since_id")
     val sinceId: Long = 0,
     @SerialName("statuses")
@@ -109,9 +106,7 @@ data class UserBlog(
 @Serializable
 data class EmotionData(
     @SerialName("emoticon")
-    val emoticon: EmoticonMap,
-//    @SerialName("emoticon_format")
-//    val emoticonFormat: List<EmoticonFormat>
+    val emoticon: EmoticonMap
 )
 
 @Serializable
@@ -144,4 +139,27 @@ data class Emoticon(
     val url: String,
     @SerialName("value")
     val value: String
+)
+
+@Serializable
+data class SearchResult(
+    @SerialName("cardlist_title")
+    val title: String,
+    @SerialName("cards")
+    val cards: List<SearchResultCard>
+)
+
+@Serializable
+data class SearchResultCard(
+    @SerialName("card_group")
+    val group: List<SearchResultCard> = emptyList(),
+    @SerialName("card_type")
+    val type: Int,
+    @SerialName("is_hotweibo")
+    @Serializable(NumberToBooleanSerializer::class)
+    val isHot: Boolean = false,
+    @SerialName("mblog")
+    val blog: MicroBlog? = null,
+    @SerialName("user")
+    val user: MicroBlogUser? = null
 )

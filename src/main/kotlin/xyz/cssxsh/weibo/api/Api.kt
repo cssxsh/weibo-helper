@@ -2,15 +2,6 @@ package xyz.cssxsh.weibo.api
 
 fun Boolean.toInt() = if (this) 1 else 0
 
-enum class FeatureType(private val value: Int) {
-    ALL(0),
-    ORIGINAL(1),
-    HOT(2),
-    ARTICLE(10);
-
-    override fun toString(): String = value.toString()
-}
-
 const val INDEX_PAGE = "https://weibo.com"
 const val LOGIN_PAGE = "https://weibo.com/login.php"
 
@@ -26,6 +17,7 @@ const val STATUSES_REPOST = "https://weibo.com/ajax/statuses/repostTimeline"
 const val STATUSES_LIKE_LIST = "https://weibo.com/ajax/statuses/likelist?uid=3603567912&page=1"
 const val STATUSES_LIKE_SHOW = "https://weibo.com/ajax/statuses/likeShow"
 const val STATUSES_FAVORITES = "https://weibo.com/ajax/favorites/all_fav?uid=3603567912&page=1"
+const val SEARCH_ALL = "https://weibo.com/ajax/search/all"
 
 // COMMENTS
 const val COMMENTS_MENTIONS = "https://weibo.com/ajax/comments/mentions"

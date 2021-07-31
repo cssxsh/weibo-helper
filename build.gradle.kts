@@ -6,11 +6,10 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.0.7"
+version = "1.0.8"
 
 repositories {
     mavenLocal()
-    maven(url = "https://maven.aliyun.com/repository/releases")
     maven(url = "https://maven.aliyun.com/repository/public")
     mavenCentral()
     jcenter()

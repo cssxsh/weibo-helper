@@ -13,7 +13,7 @@ import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.0.7") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.0.8") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -81,6 +81,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboCacheCommand.register()
         WeiboLoginCommand.register()
         WeiboDetailCommand.register()
+        WeiboHotCommand.register()
 
         runBlocking {
             start()
@@ -90,6 +91,7 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboUserCommand.listener.start()
         WeiboGroupCommand.listener.start()
+        WeiboHotCommand.listener.start()
 
         clear = clear()
     }
@@ -100,9 +102,11 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboCacheCommand.unregister()
         WeiboLoginCommand.unregister()
         WeiboDetailCommand.unregister()
+        WeiboHotCommand.unregister()
 
         WeiboUserCommand.listener.stop()
         WeiboGroupCommand.listener.stop()
+        WeiboHotCommand.listener.stop()
 
         WeiboSubscriber.stop()
 

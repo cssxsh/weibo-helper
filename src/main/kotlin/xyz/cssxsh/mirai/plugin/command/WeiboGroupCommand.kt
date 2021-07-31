@@ -7,7 +7,7 @@ import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import xyz.cssxsh.weibo.getGroup
+import xyz.cssxsh.weibo.*
 
 object WeiboGroupCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
@@ -20,13 +20,13 @@ object WeiboGroupCommand : CompositeCommand(
             client.getGroupsTimeline(gid = id, count = 100).statuses
         }
 
-        override val predicate: (MicroBlog, Long) -> Boolean = filter@{ blog, id ->
+        override val predicate: (MicroBlog, Long, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
             val source = blog.retweeted ?: blog
             if (source.reposts < filter.repost) {
                 logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
                 return@filter false
             }
-            super.predicate(blog, id)
+            super.predicate(blog, id, histories)
         }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::groups
