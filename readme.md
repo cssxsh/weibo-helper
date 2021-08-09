@@ -72,20 +72,20 @@
 
 位于`Mirai-Console`运行目录下的`config/weibo-helper`文件夹下的`WeiboHelperSettings`文件
 
-1. `cache` 图片缓存位置
-1. `expire` 图片缓存过期时间，单位小时，默认3天，为0时不会过期
-1. `following` 是否清理收藏的用户的缓存，默认 true (since 1.0.7)
-1. `fast` 快速轮询间隔，单位分钟
-1. `slow` 慢速轮询间隔，单位分钟
-1. `quiet` 安静群聊，添加群号，设置不开启[解析微博链接](#解析微博链接)
-1. `contact` 登录状态失效联系人，当微博的登录状态失效时会向这个QQ号发送消息
-1. `repost` 微博订阅器，最少转发数过滤器，只对列表订阅生效，默认16 (since 1.0.0-dev-5)
-1. `users` 微博订阅器，屏蔽用户 (since 1.0.1)
-1. `regexes` 微博订阅器，屏蔽的关键词正则表达式 (since 1.0.1)
+* `cache` 图片缓存位置
+* `expire` 图片缓存过期时间，单位小时，默认3天，为0时不会过期
+* `following` 是否清理收藏的用户的缓存，默认 true (since *0.7)
+* `fast` 快速轮询间隔，单位分钟
+* `slow` 慢速轮询间隔，单位分钟
+* `quiet` 安静群聊，添加群号，设置不开启[解析微博链接](#解析微博链接)
+* `contact` 登录状态失效联系人，当微博的登录状态失效时会向这个QQ号发送消息
+* `repost` 微博订阅器，最少转发数过滤器，只对列表订阅生效，默认16 (since 1.0.0-dev-5)
+* `users` 微博订阅器，屏蔽用户 (since 1.0.1)
+* `regexes` 微博订阅器，屏蔽的关键词正则表达式 (since 1.0.1)
 
 ## 安装
 
 ### 手动安装
 
-1. 运行 [Mirai Console](https://github.com/mamoe/mirai-console) 生成`plugins`文件夹
-1. 从 [Releases](https://github.com/cssxsh/weibo-helper/releases) 下载`jar`并将其放入`plugins`文件夹中
+* 运行 [Mirai Console](https://github.com/mamoe/mirai-console) 生成`plugins`文件夹
+* 从 [Releases](https://github.com/cssxsh/weibo-helper/releases) 下载`jar`并将其放入`plugins`文件夹中
