@@ -6,9 +6,10 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.0.8"
+version = "1.1.0"
 
 repositories {
+    removeAt(0)
     mavenLocal()
     maven(url = "https://maven.aliyun.com/repository/public")
     mavenCentral()
@@ -39,6 +40,7 @@ dependencies {
         exclude(group = "io.ktor", module = "ktor-client-core")
     }
     implementation("org.jclarion:image4j:0.7")
+    implementation("org.apache.commons:commons-text:1.9")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.9.0")
     testImplementation(kotlin("test-junit"))

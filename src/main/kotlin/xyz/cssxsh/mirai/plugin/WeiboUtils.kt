@@ -1,26 +1,25 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import net.mamoe.mirai.Bot
-import net.mamoe.mirai.console.command.CommandSenderOnMessage
+import kotlinx.serialization.*
+import net.mamoe.mirai.*
+import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
-import net.sf.image4j.codec.ico.ICOEncoder
+import net.sf.image4j.codec.ico.*
+import org.apache.commons.text.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import java.io.File
-import java.net.URL
-import java.time.Duration
-import java.time.YearMonth
-import javax.imageio.ImageIO
+import java.io.*
+import java.net.*
+import java.time.*
+import javax.imageio.*
 
 internal val logger by WeiboHelperPlugin::logger
 
@@ -50,6 +49,8 @@ internal val LoginContact by lazy {
 internal val Emoticons by WeiboEmoticonData::emoticons
 
 internal val EmoticonCache get() = ImageCache.resolve("emoticon")
+
+typealias BuildMessage = suspend (contact: Contact) -> Message
 
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
@@ -95,7 +96,7 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
             logger.warning { "获取微博[${id}]长文本失败 $it" }
         }
     }
-    links.fold(content.orEmpty()) { acc, struct ->
+    links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
         if (struct.long.isBlank()) return@fold acc
         acc.replace(struct.short, "[${struct.title}](${struct.long})")
     }

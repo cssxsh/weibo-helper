@@ -3,7 +3,7 @@ package xyz.cssxsh.mirai.plugin
 import kotlinx.coroutines.*
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
-import net.mamoe.mirai.console.data.PluginConfig
+import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.plugin.jvm.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.command.*
@@ -13,7 +13,7 @@ import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.0.8") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.0") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -87,11 +87,11 @@ object WeiboHelperPlugin : KotlinPlugin(
             start()
         }
 
-        WeiboSubscriber.start()
+        WeiboListener.start()
 
-        WeiboUserCommand.listener.start()
-        WeiboGroupCommand.listener.start()
-        WeiboHotCommand.listener.start()
+        WeiboUserCommand.subscriber.start()
+        WeiboGroupCommand.subscriber.start()
+        WeiboHotCommand.subscriber.start()
 
         clear = clear()
     }
@@ -104,11 +104,11 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboDetailCommand.unregister()
         WeiboHotCommand.unregister()
 
-        WeiboUserCommand.listener.stop()
-        WeiboGroupCommand.listener.stop()
-        WeiboHotCommand.listener.stop()
+        WeiboUserCommand.subscriber.stop()
+        WeiboGroupCommand.subscriber.stop()
+        WeiboHotCommand.subscriber.stop()
 
-        WeiboSubscriber.stop()
+        WeiboListener.stop()
 
         WeiboStatusData.status = client.status()
 
