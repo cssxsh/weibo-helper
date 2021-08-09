@@ -1,9 +1,8 @@
 package xyz.cssxsh.mirai.plugin.command
 
-import net.mamoe.mirai.console.command.CommandSenderOnMessage
-import net.mamoe.mirai.console.command.CompositeCommand
-import net.mamoe.mirai.message.data.toPlainText
-import net.mamoe.mirai.utils.verbose
+import net.mamoe.mirai.console.command.*
+import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
@@ -16,7 +15,7 @@ object WeiboHotCommand : CompositeCommand(
 ) {
     private val keyword by WeiboTaskData::keyword
 
-    internal val listener: WeiboListener = object : WeiboListener("Hot") {
+    internal val subscriber: WeiboSubscriber = object : WeiboSubscriber("Hot") {
 
         override val load: suspend (Long) -> List<MicroBlog> = { timestamp ->
             client.search(keyword = keyword.getValue(timestamp), type = ChannelType.HOT).cards.mapNotNull { it.blog }
@@ -38,18 +37,18 @@ object WeiboHotCommand : CompositeCommand(
     suspend fun CommandSenderOnMessage<*>.task(word: String) = sendMessage {
         val timestamp = System.currentTimeMillis()
         keyword[timestamp] = word
-        listener.add(id = timestamp, name = word, subject = fromEvent.subject)
+        subscriber.add(id = timestamp, name = word, subject = fromEvent.subject)
         "对${word}的监听任务, 添加完成".toPlainText()
     }
 
     @SubCommand("stop", "停止")
     suspend fun CommandSenderOnMessage<*>.stop(timestamp: Long) = sendMessage {
-        listener.remove(id = timestamp, subject = fromEvent.subject)
+        subscriber.remove(id = timestamp, subject = fromEvent.subject)
         "对${keyword[timestamp]}的监听任务, 取消完成".toPlainText()
     }
 
     @SubCommand("detail", "详情")
     suspend fun CommandSenderOnMessage<*>.detail() = sendMessage {
-        listener.detail(subject = fromEvent.subject).toPlainText()
+        subscriber.detail(subject = fromEvent.subject).toPlainText()
     }
 }

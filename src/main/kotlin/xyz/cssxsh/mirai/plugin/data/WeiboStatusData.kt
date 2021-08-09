@@ -1,9 +1,7 @@
 package xyz.cssxsh.mirai.plugin.data
 
-import net.mamoe.mirai.console.data.AutoSavePluginData
-import net.mamoe.mirai.console.data.ValueDescription
-import net.mamoe.mirai.console.data.value
-import xyz.cssxsh.weibo.data.LoginStatus
+import net.mamoe.mirai.console.data.*
+import xyz.cssxsh.weibo.data.*
 
 object WeiboStatusData : AutoSavePluginData("WeiboStatusData") {
 
