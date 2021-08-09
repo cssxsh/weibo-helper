@@ -50,6 +50,8 @@ internal val Emoticons by WeiboEmoticonData::emoticons
 
 internal val EmoticonCache get() = ImageCache.resolve("emoticon")
 
+typealias BuildMessage = suspend (contact: Contact) -> Message
+
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
     resolve("desktop.ini").apply { if (isHidden) delete() }.writeText(buildString {

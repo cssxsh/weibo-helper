@@ -14,19 +14,10 @@ object WeiboGroupCommand : CompositeCommand(
     "wgroup", "微博分组",
     description = "微博分组指令",
 ) {
-    internal val subscriber: WeiboSubscriber = object : WeiboSubscriber("Group") {
+    internal val subscriber = object : WeiboSubscriber<Long>("Group") {
 
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getGroupsTimeline(gid = id, count = 100).statuses
-        }
-
-        override val predicate: (MicroBlog, Long, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
-            val source = blog.retweeted ?: blog
-            if (source.reposts < filter.repost) {
-                logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
-                return@filter false
-            }
-            super.predicate(blog, id, histories)
         }
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::groups

@@ -6,7 +6,7 @@ import xyz.cssxsh.weibo.data.*
 import kotlin.properties.*
 import kotlin.reflect.*
 
-class WeiboJsonDelegate(id: Long, type: String) : ReadWriteProperty<Any?, Map<Long, MicroBlog>> {
+class WeiboJsonDelegate<K: Comparable<K>>(id: K, type: String) : ReadWriteProperty<Any?, Map<Long, MicroBlog>> {
     private val file by lazy {
         data.resolve(type).resolve("$id.json").apply { parentFile.mkdirs() }
     }

@@ -2,7 +2,6 @@ package xyz.cssxsh.mirai.plugin.command
 
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.message.data.*
-import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
@@ -13,38 +12,25 @@ object WeiboHotCommand : CompositeCommand(
     "whot", "微博热搜",
     description = "微博分组指令",
 ) {
-    private val keyword by WeiboTaskData::keyword
+    internal val subscriber = object : WeiboSubscriber<String>("Hot") {
 
-    internal val subscriber: WeiboSubscriber = object : WeiboSubscriber("Hot") {
-
-        override val load: suspend (Long) -> List<MicroBlog> = { timestamp ->
-            client.search(keyword = keyword.getValue(timestamp), type = ChannelType.HOT).cards.mapNotNull { it.blog }
+        override val load: suspend (String) -> List<MicroBlog> = { keyword ->
+            client.search(keyword = keyword, type = ChannelType.HOT).cards.mapNotNull { it.blog }
         }
 
-        override val predicate: (MicroBlog, Long, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
-            val source = blog.retweeted ?: blog
-            if (source.reposts < filter.repost) {
-                logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
-                return@filter false
-            }
-            super.predicate(blog, id, histories)
-        }
-
-        override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::hot
+        override val tasks: MutableMap<String, WeiboTaskInfo> by WeiboTaskData::hots
     }
 
     @SubCommand("add", "task", "订阅")
     suspend fun CommandSenderOnMessage<*>.task(word: String) = sendMessage {
-        val timestamp = System.currentTimeMillis()
-        keyword[timestamp] = word
-        subscriber.add(id = timestamp, name = word, subject = fromEvent.subject)
-        "对${word}的监听任务, 添加完成".toPlainText()
+        subscriber.add(id = word, name = word, subject = fromEvent.subject)
+        "对<${word}>的监听任务, 添加完成".toPlainText()
     }
 
     @SubCommand("stop", "停止")
-    suspend fun CommandSenderOnMessage<*>.stop(timestamp: Long) = sendMessage {
-        subscriber.remove(id = timestamp, subject = fromEvent.subject)
-        "对${keyword[timestamp]}的监听任务, 取消完成".toPlainText()
+    suspend fun CommandSenderOnMessage<*>.stop(word: String) = sendMessage {
+        subscriber.remove(id = word, subject = fromEvent.subject)
+        "对<${word}>的监听任务, 取消完成".toPlainText()
     }
 
     @SubCommand("detail", "详情")

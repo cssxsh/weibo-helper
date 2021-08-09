@@ -12,11 +12,13 @@ object WeiboUserCommand : CompositeCommand(
     "wuser", "微博用户",
     description = "微博好友指令",
 ) {
-    internal val subscriber: WeiboSubscriber = object : WeiboSubscriber("User") {
+    internal val subscriber = object : WeiboSubscriber<Long>("User") {
 
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getUserMicroBlogs(uid = id, page = 1).list
         }
+
+        override val reposts: Boolean = false
 
         override val tasks: MutableMap<Long, WeiboTaskInfo> by WeiboTaskData::users
     }

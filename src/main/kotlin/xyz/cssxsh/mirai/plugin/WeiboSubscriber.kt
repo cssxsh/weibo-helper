@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
-import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
@@ -12,21 +11,22 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import java.time.*
 
-abstract class WeiboSubscriber(val type: String) : CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
+abstract class WeiboSubscriber<K: Comparable<K>>(val type: String) :
+    CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
 
-    abstract val load: suspend (id: Long) -> List<MicroBlog>
+    abstract val load: suspend (id: K) -> List<MicroBlog>
 
     protected val filter: WeiboFilter get() = WeiboHelperSettings
 
-    protected abstract val tasks: MutableMap<Long, WeiboTaskInfo>
+    protected abstract val tasks: MutableMap<K, WeiboTaskInfo>
 
-    private val taskJobs = mutableMapOf<Long, Job>()
+    private val taskJobs = mutableMapOf<K, Job>()
 
-    private fun infos(id: Long) = tasks[id]?.contacts.orEmpty()
+    private fun infos(id: K) = tasks[id]?.contacts.orEmpty()
 
     fun start(): Unit = synchronized(taskJobs) {
-        tasks.forEach { (uid, _) ->
-            taskJobs[uid] = listener(uid)
+        tasks.forEach { (id, _) ->
+            taskJobs[id] = listener(id)
         }
     }
 
@@ -35,13 +35,10 @@ abstract class WeiboSubscriber(val type: String) : CoroutineScope by WeiboHelper
         taskJobs.clear()
     }
 
-    private suspend fun sendMessageToTaskContacts(
-        id: Long,
-        block: suspend (contact: Contact) -> Message
-    ) = infos(id).forEach { delegate ->
+    private suspend fun sendMessageToTaskContacts(id: K, build: BuildMessage) = infos(id).forEach { delegate ->
         runCatching {
             requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
-                contact.sendMessage(block(contact))
+                contact.sendMessage(build(contact))
             }
         }.onFailure {
             logger.warning({ "对[${delegate}]构建消息失败" }, it)
@@ -55,8 +52,14 @@ abstract class WeiboSubscriber(val type: String) : CoroutineScope by WeiboHelper
         return values.map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    protected open val predicate: (MicroBlog, Long, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
+    protected open val reposts = true
+
+    protected open val predicate: (MicroBlog, K, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
         val source = blog.retweeted ?: blog
+        if (reposts && source.reposts < filter.repost) {
+            logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
+            return@filter false
+        }
         if (source.uid in filter.users) {
             logger.info { "${type}(${id}) 用户屏蔽，跳过 ${source.id} ${source.username}" }
             return@filter false
@@ -76,7 +79,7 @@ abstract class WeiboSubscriber(val type: String) : CoroutineScope by WeiboHelper
         true
     }
 
-    private fun listener(id: Long): Job = launch(SupervisorJob()) {
+    private fun listener(id: K): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         var json by WeiboJsonDelegate(id, type)
         while (isActive && infos(id).isNotEmpty()) {
@@ -122,7 +125,7 @@ abstract class WeiboSubscriber(val type: String) : CoroutineScope by WeiboHelper
         }
     }
 
-    fun add(id: Long, name: String, subject: Contact): Unit = synchronized(tasks) {
+    fun add(id: K, name: String, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             (info ?: WeiboTaskInfo(name = name)).run {
                 copy(contacts = contacts + subject.delegate)
@@ -133,7 +136,7 @@ abstract class WeiboSubscriber(val type: String) : CoroutineScope by WeiboHelper
         }
     }
 
-    fun remove(id: Long, subject: Contact): Unit = synchronized(tasks) {
+    fun remove(id: K, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             info?.run {
                 copy(contacts = contacts - subject.delegate)
