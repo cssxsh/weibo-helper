@@ -53,9 +53,6 @@ mirai {
         exclude {
             it.path.startsWith("kotlin")
         }
-        exclude {
-            it.path.startsWith("org")
-        }
     }
 }
 
