@@ -83,7 +83,7 @@ abstract class WeiboSubscriber<K: Comparable<K>>(val type: String) :
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         var json by WeiboJsonDelegate(id, type)
         while (isActive && infos(id).isNotEmpty()) {
-            delay((if (json.near()) IntervalSlow else IntervalFast).toMillis())
+            delay((if (json.near()) IntervalFast else IntervalSlow).toMillis())
             runCatching {
                 val histories = json.values.flatMap { setOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
                 val list = load(id).asFlow().filter { predicate(it, id, histories) }.onEach { blog ->
