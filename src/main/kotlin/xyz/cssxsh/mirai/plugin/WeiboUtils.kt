@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.*
 import net.mamoe.mirai.console.command.*
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
@@ -39,6 +40,7 @@ internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.to
 
 internal val QuietGroups by WeiboHelperSettings::quiet
 
+@OptIn(ConsoleExperimentalApi::class)
 internal val LoginContact by lazy {
     for (bot in Bot.instances) {
         return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: continue

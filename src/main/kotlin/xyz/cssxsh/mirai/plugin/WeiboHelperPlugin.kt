@@ -5,15 +5,14 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.plugin.jvm.*
-import net.mamoe.mirai.utils.*
+import net.mamoe.mirai.console.util.*
 import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.1") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.2") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -36,6 +35,7 @@ object WeiboHelperPlugin : KotlinPlugin(
 
     private lateinit var clear: Job
 
+    @OptIn(ConsoleExperimentalApi::class)
     private fun <T : PluginConfig> T.save() = loader.configStorage.store(this@WeiboHelperPlugin, this)
 
     override fun onEnable() {

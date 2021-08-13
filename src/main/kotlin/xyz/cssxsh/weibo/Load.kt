@@ -5,15 +5,14 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import java.nio.charset.Charset
-import java.time.format.DateTimeFormatter
+import java.nio.charset.*
+import java.time.format.*
+
+fun Boolean.toInt() = if (this) 1 else 0
 
 @Serializable
 data class TempData(

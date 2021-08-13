@@ -2,6 +2,7 @@ package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.utils.*
@@ -11,12 +12,13 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import java.time.*
 
+@OptIn(ConsoleExperimentalApi::class)
 abstract class WeiboSubscriber<K: Comparable<K>>(val type: String) :
     CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
 
     abstract val load: suspend (id: K) -> List<MicroBlog>
 
-    protected val filter: WeiboFilter get() = WeiboHelperSettings
+    protected open val filter: WeiboFilter get() = WeiboHelperSettings
 
     protected abstract val tasks: MutableMap<K, WeiboTaskInfo>
 

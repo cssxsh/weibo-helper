@@ -1,7 +1,5 @@
 package xyz.cssxsh.weibo.api
 
-fun Boolean.toInt() = if (this) 1 else 0
-
 const val INDEX_PAGE = "https://weibo.com"
 const val LOGIN_PAGE = "https://weibo.com/login.php"
 
