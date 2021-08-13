@@ -36,37 +36,6 @@ object WeiboHelperPlugin : KotlinPlugin(
 
     private lateinit var clear: Job
 
-    private fun start() = launch {
-        runCatching {
-            client.restore()
-        }.onSuccess {
-            logger.info { "登陆成功, $it" }
-        }.onFailure {
-            logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
-            runCatching {
-                client.incarnate()
-            }.onSuccess {
-                logger.info { "模拟游客成功，置信度${it}" }
-            }.onFailure {
-                logger.warning { "模拟游客失败, ${it.message}" }
-            }
-        }
-
-        runCatching {
-            client.getEmoticon().emoticon.let { map ->
-                (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
-                    it.phrase
-                }.let {
-                    Emoticons.putAll(it)
-                }
-            }
-        }.onSuccess {
-            logger.info { "加载表情成功" }
-        }.onFailure {
-            logger.warning { "加载表情失败, $it" }
-        }
-    }
-
     private fun <T : PluginConfig> T.save() = loader.configStorage.store(this@WeiboHelperPlugin, this)
 
     override fun onEnable() {
@@ -84,7 +53,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboHotCommand.register()
 
         runBlocking {
-            start()
+            client.init()
         }
 
         WeiboListener.start()

@@ -275,6 +275,37 @@ internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
     }
 }
 
+internal suspend fun WeiboClient.init() = supervisorScope {
+    runCatching {
+        restore()
+    }.onSuccess {
+        logger.info { "登陆成功, $it" }
+    }.onFailure {
+        logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
+        runCatching {
+            incarnate()
+        }.onSuccess {
+            logger.info { "模拟游客成功，置信度${it}" }
+        }.onFailure {
+            logger.warning { "模拟游客失败, ${it.message}" }
+        }
+    }
+
+    runCatching {
+        getEmoticon().emoticon.let { map ->
+            (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
+                it.phrase
+            }.let {
+                Emoticons.putAll(it)
+            }
+        }
+    }.onSuccess {
+        logger.info { "加载表情成功" }
+    }.onFailure {
+        logger.warning { "加载表情失败, $it" }
+    }
+}
+
 internal val SendLimit = """本群每分钟只能发\d+条消息""".toRegex()
 
 internal const val SendDelay = 60 * 1000L
