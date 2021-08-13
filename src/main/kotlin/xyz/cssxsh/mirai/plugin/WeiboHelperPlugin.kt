@@ -5,15 +5,14 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.plugin.jvm.*
-import net.mamoe.mirai.utils.*
+import net.mamoe.mirai.console.util.*
 import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.1") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.2") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -36,37 +35,7 @@ object WeiboHelperPlugin : KotlinPlugin(
 
     private lateinit var clear: Job
 
-    private fun start() = launch {
-        runCatching {
-            client.restore()
-        }.onSuccess {
-            logger.info { "登陆成功, $it" }
-        }.onFailure {
-            logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
-            runCatching {
-                client.incarnate()
-            }.onSuccess {
-                logger.info { "模拟游客成功，置信度${it}" }
-            }.onFailure {
-                logger.warning { "模拟游客失败, ${it.message}" }
-            }
-        }
-
-        runCatching {
-            client.getEmoticon().emoticon.let { map ->
-                (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
-                    it.phrase
-                }.let {
-                    Emoticons.putAll(it)
-                }
-            }
-        }.onSuccess {
-            logger.info { "加载表情成功" }
-        }.onFailure {
-            logger.warning { "加载表情失败, $it" }
-        }
-    }
-
+    @OptIn(ConsoleExperimentalApi::class)
     private fun <T : PluginConfig> T.save() = loader.configStorage.store(this@WeiboHelperPlugin, this)
 
     override fun onEnable() {
@@ -84,7 +53,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboHotCommand.register()
 
         runBlocking {
-            start()
+            client.init()
         }
 
         WeiboListener.start()

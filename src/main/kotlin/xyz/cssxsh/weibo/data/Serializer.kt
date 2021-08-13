@@ -1,14 +1,15 @@
+@file:OptIn(
+    ExperimentalSerializationApi::class,
+    InternalSerializationApi::class
+)
+
 package xyz.cssxsh.weibo.data
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
+import kotlinx.serialization.encoding.*
+import java.time.*
+import java.time.format.*
 import java.util.*
 
 typealias HistoryInfo = Map<Int, List<Int>>
@@ -25,7 +26,7 @@ object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("E MMM d HH:mm:ss Z yyyy", Locale.ENGLISH)
 
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("OffsetDateTimeSerializerTo[$formatter]", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(OffsetDateTime::class.qualifiedName!!, PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), formatter)
 
@@ -121,7 +122,7 @@ enum class UserGroupType(override val value: Int) : WeiboValue<Int> {
  * verified_type < 8 ? "微博官方认证" : "微博个人认证"
  */
 @Serializable(with = VerifiedType.Companion::class)
-enum class VerifiedType(override val value: Int): WeiboValue<Int> {
+enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
     NONE(value = -1),
     PERSONAL(value = 0),
     GOVERNMENT(value = 1),

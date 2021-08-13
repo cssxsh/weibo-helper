@@ -7,17 +7,19 @@ import io.ktor.client.features.compression.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.sync.*
+import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.IOException
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.properties.Delegates
+import kotlin.coroutines.*
+import kotlin.coroutines.cancellation.*
+import kotlin.properties.*
 
+@OptIn(KtorExperimentalAPI::class)
 open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {
     override val coroutineContext: CoroutineContext
         get() = client.coroutineContext
@@ -99,6 +101,6 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
                 if (++count > max || ignore(it).not()) throw it
             }
         }
-        throw CancellationException()
+        throw CancellationException(null)
     }
 }

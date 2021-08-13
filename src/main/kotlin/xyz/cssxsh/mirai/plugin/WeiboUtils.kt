@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.*
 import net.mamoe.mirai.console.command.*
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
@@ -39,6 +40,7 @@ internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.to
 
 internal val QuietGroups by WeiboHelperSettings::quiet
 
+@OptIn(ConsoleExperimentalApi::class)
 internal val LoginContact by lazy {
     for (bot in Bot.instances) {
         return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: continue
@@ -184,7 +186,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     }
 
     retweeted?.let {
-        appendLine("==============================")
+        appendLine("========================")
         add(it.copy(urls = urls).toMessage(contact))
     }
 }
@@ -272,6 +274,37 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
 internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
     WeiboClient.DefaultIgnore(throwable).also {
         if (it) logger.warning { "WeiboClient Ignore $throwable" }
+    }
+}
+
+internal suspend fun WeiboClient.init() = supervisorScope {
+    runCatching {
+        restore()
+    }.onSuccess {
+        logger.info { "登陆成功, $it" }
+    }.onFailure {
+        logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
+        runCatching {
+            incarnate()
+        }.onSuccess {
+            logger.info { "模拟游客成功，置信度${it}" }
+        }.onFailure {
+            logger.warning { "模拟游客失败, ${it.message}" }
+        }
+    }
+
+    runCatching {
+        getEmoticon().emoticon.let { map ->
+            (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
+                it.phrase
+            }.let {
+                Emoticons.putAll(it)
+            }
+        }
+    }.onSuccess {
+        logger.info { "加载表情成功" }
+    }.onFailure {
+        logger.warning { "加载表情失败, $it" }
     }
 }
 
