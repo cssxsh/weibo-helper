@@ -184,7 +184,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     }
 
     retweeted?.let {
-        appendLine("==============================")
+        appendLine("========================")
         add(it.copy(urls = urls).toMessage(contact))
     }
 }
