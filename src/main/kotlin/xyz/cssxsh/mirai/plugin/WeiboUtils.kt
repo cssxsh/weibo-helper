@@ -1,10 +1,13 @@
 package xyz.cssxsh.mirai.plugin
 
+import io.ktor.client.*
+import io.ktor.client.features.cookies.*
+import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.*
 import net.mamoe.mirai.console.command.*
-import net.mamoe.mirai.console.util.ConsoleExperimentalApi
+import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
@@ -24,7 +27,32 @@ import javax.imageio.*
 
 internal val logger by WeiboHelperPlugin::logger
 
-internal val client by WeiboHelperPlugin::client
+internal val client: WeiboClient by lazy {
+    object : WeiboClient(ignore = ClientIgnore) {
+        override var info: LoginUserInfo
+            get() = super.info
+            set(value) {
+                WeiboStatusData.status = LoginStatus(value, cookies)
+                super.info = value
+            }
+
+        override val client: HttpClient = super.client.config {
+            install(HttpCookies) {
+                val delegate = super.storage
+                storage = object : CookiesStorage by delegate {
+                    override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
+                        delegate.addCookie(requestUrl, cookie)
+                        WeiboStatusData.status = status()
+                    }
+                }
+            }
+        }
+
+        init {
+            load(WeiboStatusData.status)
+        }
+    }
+}
 
 internal val data by WeiboHelperPlugin::dataFolder
 

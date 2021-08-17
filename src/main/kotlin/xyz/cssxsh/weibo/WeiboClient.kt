@@ -12,7 +12,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import kotlinx.serialization.json.*
-import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.io.IOException
 import kotlin.coroutines.*
@@ -26,12 +25,9 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
 
     override fun close() = client.close()
 
-    fun status(): LoginStatus = runBlocking {
-        storage.get(Url(SSO_LOGIN)) // cleanup
-        storage.mutex.withLock {
-            LoginStatus(info, storage.container.filter { it.expires != null }.map(::renderSetCookieHeader))
-        }
-    }
+    protected val cookies get() = storage.container.filter { it.expires != null }.map(::renderSetCookieHeader)
+
+    fun status() = LoginStatus(info, cookies)
 
     fun load(status: LoginStatus) = runBlocking {
         info = status.info
@@ -40,7 +36,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
         }
     }
 
-    private val storage = AcceptAllCookiesStorage()
+    protected val storage = AcceptAllCookiesStorage()
 
     internal open var info: LoginUserInfo by Delegates.notNull()
 
@@ -50,7 +46,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
 
     protected open val timeout: Long = 30_000 // attr(open) ok ?
 
-    private val client = HttpClient(OkHttp) {
+    protected open val client = HttpClient(OkHttp) {
         install(HttpTimeout) {
             socketTimeoutMillis = timeout
             connectTimeoutMillis = timeout
