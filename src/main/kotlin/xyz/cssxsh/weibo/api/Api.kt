@@ -1,21 +1,12 @@
 package xyz.cssxsh.weibo.api
 
-fun Boolean.toInt() = if (this) 1 else 0
-
-enum class FeatureType(private val value: Int) {
-    ALL(0),
-    ORIGINAL(1),
-    HOT(2),
-    ARTICLE(10);
-
-    override fun toString(): String = value.toString()
-}
-
 const val INDEX_PAGE = "https://weibo.com"
+const val LOGIN_PAGE = "https://weibo.com/login.php"
 
 const val PAGE_SIZE = 20
 
 // STATUSES
+const val STATUSES_CONFIG = "https://weibo.com/ajax/statuses/config"
 const val STATUSES_MY_MICRO_BLOG = "https://weibo.com/ajax/statuses/mymblog"
 const val STATUSES_SHOW = "https://weibo.com/ajax/statuses/show"
 const val STATUSES_LONGTEXT = "https://weibo.com/ajax/statuses/longtext"
@@ -24,6 +15,7 @@ const val STATUSES_REPOST = "https://weibo.com/ajax/statuses/repostTimeline"
 const val STATUSES_LIKE_LIST = "https://weibo.com/ajax/statuses/likelist?uid=3603567912&page=1"
 const val STATUSES_LIKE_SHOW = "https://weibo.com/ajax/statuses/likeShow"
 const val STATUSES_FAVORITES = "https://weibo.com/ajax/favorites/all_fav?uid=3603567912&page=1"
+const val SEARCH_ALL = "https://weibo.com/ajax/search/all"
 
 // COMMENTS
 const val COMMENTS_MENTIONS = "https://weibo.com/ajax/comments/mentions"
@@ -70,4 +62,4 @@ const val SSO_LOGIN = "https://login.sina.com.cn/sso/login.php"
 const val SSO_QRCODE_IMAGE = "https://login.sina.com.cn/sso/qrcode/image"
 const val SSO_QRCODE_CHECK = "https://login.sina.com.cn/sso/qrcode/check"
 const val PASSPORT_VISITOR = "https://passport.weibo.com/visitor/visitor"
-const val PASSPORT_GEN_VISITOR = "https://passport.weibo.com/visitor/genvisitor?cb=restore_back"
+const val PASSPORT_GEN_VISITOR = "https://passport.weibo.com/visitor/genvisitor"

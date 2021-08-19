@@ -5,14 +5,13 @@ import io.ktor.http.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 
-suspend fun WeiboClient.getFeedGroups(
-    isNewSegment: Boolean = true,
-    fetchHot: Boolean = true,
-): UserGroupData = get(FEED_ALL_GROUPS) {
-    header(HttpHeaders.Referrer, INDEX_PAGE)
+suspend fun WeiboClient.getFeedGroups(isNewSegment: Boolean = true, fetchHot: Boolean = true): UserGroupData {
+    return json(FEED_ALL_GROUPS) {
+        header(HttpHeaders.Referrer, INDEX_PAGE)
 
-    parameter("is_new_segment", isNewSegment.toInt())
-    parameter("fetch_hot", fetchHot.toInt())
+        parameter("is_new_segment", isNewSegment.toInt())
+        parameter("fetch_hot", fetchHot.toInt())
+    }
 }
 
 suspend fun WeiboClient.getGroupsTimeline(
@@ -22,7 +21,7 @@ suspend fun WeiboClient.getGroupsTimeline(
     since: Long? = null,
     max: Long? = null,
     fast: Boolean? = null
-): TimelineData = get(FEED_GROUPS_TIMELINE) {
+): TimelineData = json(FEED_GROUPS_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
     parameter("list_id", gid)
@@ -40,7 +39,7 @@ suspend fun WeiboClient.getUnreadTimeline(
     since: Long? = null,
     max: Long? = null,
     fast: Boolean? = null
-): TimelineData = get(FEED_UNREAD_FRIENDS_TIMELINE) {
+): TimelineData = json(FEED_UNREAD_FRIENDS_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
     parameter("list_id", gid)
@@ -58,7 +57,7 @@ suspend fun WeiboClient.getFriendsTimeline(
     since: Long? = null,
     max: Long? = null,
     fast: Boolean? = null
-): TimelineData = get(FEED_FRIENDS_TIMELINE) {
+): TimelineData = json(FEED_FRIENDS_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/mygroups?gid=$gid")
 
     parameter("list_id", gid)
@@ -75,7 +74,7 @@ suspend fun WeiboClient.getHotTimeline(
     extend: List<String> = listOf("discover", "new_feed"),
     count: Int = PAGE_SIZE,
     refresh: Boolean = false,
-): TimelineData = get(FEED_HOT_TIMELINE) {
+): TimelineData = json(FEED_HOT_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/hot/list/$gid")
 
     parameter("group_id", gid)
@@ -86,7 +85,7 @@ suspend fun WeiboClient.getHotTimeline(
     parameter("refresh", refresh.toInt())
 }
 
-suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when(group.type) {
+suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when (group.type) {
     UserGroupType.USER, UserGroupType.QUIETLY -> {
         getGroupsTimeline(group.gid)
     }

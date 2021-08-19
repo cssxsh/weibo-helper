@@ -1,25 +1,26 @@
 package xyz.cssxsh.mirai.plugin.command
 
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.mamoe.mirai.console.command.*
-import net.mamoe.mirai.message.data.toPlainText
+import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
-import java.time.YearMonth
+import java.time.*
 
 object WeiboCacheCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "wcache", "微博缓存",
     description = "微博缓存指令",
 ) {
-
     @SubCommand
     suspend fun CommandSenderOnMessage<*>.user(uid: Long, second: Int = 10, reposts: Int = 100) = sendMessage {
         val interval = second * 1000L
         val info = client.getUserInfo(uid).user
+        ImageCache.resolve("${info.id}").desktop(info)
         val history = client.getUserHistory(uid)
         val months = history.flatMap { (year, months) -> months.map { YearMonth.of(year, it)!! } }.sortedDescending()
         launch {
@@ -27,11 +28,10 @@ object WeiboCacheCommand : CompositeCommand(
             months.forEach { month ->
                 runCatching {
                     info.getRecord(month, interval).onEach { blog ->
-                        if (blog.repostsCount >= reposts) blog.getImages(flush = false)
+                        if (blog.reposts >= reposts) blog.getImages(flush = false)
                     }
                 }.onSuccess { record ->
                     count += record.size
-                    if (record.isNotEmpty()) sendMessage("对@${info.screen}的${month}缓存下载完成, Total: ${record.size}")
                 }.onFailure {
                     logger.warning("对@${info.screen}的${month}缓存下载失败", it)
                 }
@@ -68,11 +68,10 @@ object WeiboCacheCommand : CompositeCommand(
             months.forEach { month ->
                 runCatching {
                     info.getRecord(month, interval).onEach { blog ->
-                        if (blog.repostsCount >= reposts) blog.getImages(flush = false)
+                        if (blog.reposts >= reposts) blog.getImages(flush = false)
                     }
                 }.onSuccess { record ->
                     count += record.size
-                    // if (record.isNotEmpty()) sendMessage("对@${info.screen}的${month}缓存下载完成, Total: ${record.size}")
                 }.onFailure {
                     logger.warning("对@${info.screen}的${month}缓存下载失败", it)
                 }
@@ -80,5 +79,24 @@ object WeiboCacheCommand : CompositeCommand(
             sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statusesCount}")
         }
         "对Group($gid)的缓存文件夹图标已设置".toPlainText()
+    }
+
+    @SubCommand
+    suspend fun CommandSenderOnMessage<*>.clean(following: Boolean, num: Int) = sendMessage {
+        ImageCache.clean(following, num)
+        "清理完成".toPlainText()
+    }
+
+    @SubCommand
+    suspend fun CommandSenderOnMessage<*>.emoticon() = sendMessage {
+        Emoticons.values.onEach { emoticon ->
+            runCatching {
+                emoticon.file()
+            }.onFailure {
+                logger.warning { "表情${emoticon.phrase} 下载失败 ${emoticon.url} $it" }
+            }
+        }.joinToString { info ->
+            "${info.category.ifBlank { "默认" }}/${info.phrase}"
+        }.toPlainText()
     }
 }

@@ -1,8 +1,7 @@
 package xyz.cssxsh.weibo.data
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import java.time.OffsetDateTime
+import kotlinx.serialization.*
+import java.time.*
 import java.util.*
 
 @Serializable
@@ -66,64 +65,47 @@ data class UserInfo(
     override val avatarHighDefinition: String,
     @SerialName("avatar_large")
     override val avatarLarge: String,
-    @SerialName("city")
-    val city: Int,
-    @SerialName("created_at")
-    @Serializable(WeiboDateTimeSerializer::class)
-    val created: OffsetDateTime,
     @SerialName("description")
     val description: String,
     @SerialName("favourites_count")
-    val favouritesCount: Int,
+    val favouritesCount: Int = 0,
     @SerialName("followers_count")
-    val followersCount: Int,
+    val followersCount: Int = 0,
     @SerialName("following")
-    override val following: Boolean,
+    override val following: Boolean = false,
     @SerialName("follow_me")
-    val followMe: Boolean,
+    val followMe: Boolean = false,
     @SerialName("friends_count")
-    val friendsCount: Int,
+    val friendsCount: Int = 0,
     @SerialName("gender")
     val gender: GenderType = GenderType.NONE,
     @SerialName("id")
     override val id: Long,
     @SerialName("lang")
     @Serializable(LocaleSerializer::class)
-    val lang: Locale,
+    val lang: Locale = Locale.CHINA,
     @SerialName("like")
-    val like: Boolean,
+    val like: Boolean = false,
     @SerialName("like_me")
-    val likeMe: Boolean,
-    @SerialName("live_status")
-    @Serializable(NumberToBooleanSerializer::class)
-    val liveStatus: Boolean,
+    val likeMe: Boolean = false,
     @SerialName("location")
     val location: String,
     @SerialName("bi_followers_count")
-    val mutualFollowersCount: Int,
-    @SerialName("name")
-    val name: String,
-    @SerialName("online_status")
-    @Serializable(NumberToBooleanSerializer::class)
-    val onlineStatus: Boolean,
+    val mutualFollowersCount: Int = 0,
     @SerialName("profile_image_url")
     val profileImageUrl: String,
     @SerialName("profile_url")
     val profileUrl: String,
-    @SerialName("remark")
-    val remark: String,
     @SerialName("screen_name")
     override val screen: String,
     @SerialName("special_follow")
-    val specialFollow: Boolean,
-//    @SerialName("status") 目前没什么卵用
-//    val status: MicroBlog? = null,
+    val specialFollow: Boolean = false,
     @SerialName("statuses_count")
-    val statusesCount: Int,
+    val statusesCount: Int = 0,
     @SerialName("url")
     val url: String,
     @SerialName("verified")
-    val verified: Boolean,
+    val verified: Boolean = false,
     @SerialName("verified_type")
     val verifiedType: VerifiedType = VerifiedType.NONE,
 ): UserBaseInfo

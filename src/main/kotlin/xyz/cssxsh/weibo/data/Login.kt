@@ -1,8 +1,7 @@
 package xyz.cssxsh.weibo.data
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 @Serializable
 data class LoginData(
@@ -41,14 +40,6 @@ data class LoginVisitor(
 )
 
 @Serializable
-data class LoginCookie(
-    @SerialName("sub")
-    val sub: String,
-    @SerialName("subp")
-    val subp: String,
-)
-
-@Serializable
 data class LoginResult(
     @SerialName("result")
     val result: Boolean,
@@ -74,6 +65,14 @@ data class LoginFlush(
     val code: String,
     @SerialName("uid")
     val uid: String
+)
+
+@Serializable
+data class LoginCrossFlush(
+    @SerialName("arrURL")
+    val urls: List<String>,
+    @SerialName("retcode")
+    val code: String
 )
 
 @Serializable

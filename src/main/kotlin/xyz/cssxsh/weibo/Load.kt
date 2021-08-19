@@ -1,15 +1,18 @@
 package xyz.cssxsh.weibo
 
+import io.ktor.client.call.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import java.nio.charset.Charset
-import java.time.format.DateTimeFormatter
+import java.nio.charset.*
+import java.time.format.*
+
+fun Boolean.toInt() = if (this) 1 else 0
 
 @Serializable
 data class TempData(
@@ -24,24 +27,57 @@ data class TempData(
     val ok: Boolean = true
 )
 
-inline fun <reified T> TempData.data(): T = WeiboClient.Json.decodeFromJsonElement(requireNotNull(data) { toString() })
+const val ErrorMessageLength = 32
 
-internal suspend inline fun <reified T> WeiboClient.temp(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit
-) = get<TempData>(url, block).data<T>()
+suspend inline fun <reified T> WeiboClient.temp(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
+    val text = text(url, block)
+    val temp = WeiboClient.Json.decodeFromString<TempData>(text)
+    val data = requireNotNull(temp.data) {
+        if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
+            "登陆状态无效，请登录"
+        } else {
+            text.substring(0, minOf(ErrorMessageLength, text.length))
+        }
+    }
+    return WeiboClient.Json.decodeFromJsonElement(data)
+}
 
-internal suspend inline fun <reified T> WeiboClient.callback(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit = {}
-) = WeiboClient.Json.decodeFromString<T>(get<String>(url, block).substringAfter('(').substringBeforeLast(')'))
+suspend inline fun <reified T> WeiboClient.callback(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
+    val json = text(url, block).substringAfter('(').substringBefore(')')
+    return runCatching {
+        WeiboClient.Json.decodeFromString<T>(json)
+    }.getOrElse {
+        throw IllegalArgumentException(json, it)
+    }
+}
 
-suspend inline fun <reified T> WeiboClient.get(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit = {}
-): T = useHttpClient { client -> client.get(url, block) }
+suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestBuilder.() -> Unit): String {
+    return useHttpClient { client -> client.get(url, block) }
+}
 
-suspend inline fun <reified T> WeiboClient.get(url: Url): T = useHttpClient { client -> client.get(url) }
+suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
+    val text = text(url, block)
+    val temp = WeiboClient.Json.decodeFromString<TempData>(text)
+    require(temp.ok) {
+        if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
+            "登陆状态无效，请登录"
+        } else {
+            text.substring(0, minOf(ErrorMessageLength, text.length))
+        }
+    }
+    return WeiboClient.Json.decodeFromString(text)
+}
+
+suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient { client ->
+    client.get<HttpResponse>(url) {
+        header(HttpHeaders.Referrer, INDEX_PAGE)
+    }.also { response ->
+        val length = response.contentLength() ?: return@also
+        if (length < 1024) {
+            throw ClientRequestException(response, response.readText())
+        }
+    }.receive()
+}
 
 internal val ChineseCharset = Charset.forName("GBK")
 
@@ -67,9 +103,11 @@ internal val ImageExtensions = mapOf(
 
 internal fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 
-internal fun image(pid: String) = Url("https://${ImageServer.random()}.sinaimg.cn/large/${pid}")
+internal fun image(pid: String) = "https://${ImageServer.random()}.sinaimg.cn/large/${pid}.${extension(pid)}"
 
-val MicroBlog.link get() = "https://weibo.com/detail/${id}"
+internal fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
+
+val MicroBlog.link get() = "https://weibo.com/${user?.id ?: "detail"}/${mid}"
 
 val MicroBlog.username get() = user?.screen ?: "[未知用户]"
 

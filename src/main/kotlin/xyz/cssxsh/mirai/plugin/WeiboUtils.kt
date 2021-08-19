@@ -1,28 +1,61 @@
 package xyz.cssxsh.mirai.plugin
 
+import io.ktor.client.*
+import io.ktor.client.features.cookies.*
+import io.ktor.http.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import net.mamoe.mirai.Bot
+import kotlinx.serialization.*
+import net.mamoe.mirai.*
+import net.mamoe.mirai.console.command.*
+import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
-import net.sf.image4j.codec.ico.ICOEncoder
+import net.sf.image4j.codec.ico.*
+import org.apache.commons.text.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
-import java.io.File
-import java.net.URL
-import java.time.Duration
-import java.time.YearMonth
-import javax.imageio.ImageIO
+import java.io.*
+import java.net.*
+import java.time.*
+import javax.imageio.*
 
-internal val logger by WeiboHelperPlugin::logger
+internal val logger by lazy {
+    val open = System.getProperty("xyz.cssxsh.mirai.plugin.logger", "${true}").toBoolean()
+    if (open) WeiboHelperPlugin.logger else SilentLogger
+}
 
-internal val client by WeiboHelperPlugin::client
+internal val client: WeiboClient by lazy {
+    object : WeiboClient(ignore = ClientIgnore) {
+        override var info: LoginUserInfo
+            get() = super.info
+            set(value) {
+                WeiboStatusData.status = LoginStatus(value, cookies)
+                super.info = value
+            }
+
+        override val client: HttpClient = super.client.config {
+            install(HttpCookies) {
+                val delegate = super.storage
+                storage = object : CookiesStorage by delegate {
+                    override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
+                        delegate.addCookie(requestUrl, cookie)
+                        WeiboStatusData.status = status()
+                    }
+                }
+            }
+        }
+
+        init {
+            load(WeiboStatusData.status)
+        }
+    }
+}
 
 internal val data by WeiboHelperPlugin::dataFolder
 
@@ -30,12 +63,15 @@ internal val ImageCache get() = File(WeiboHelperSettings.cache)
 
 internal val ImageExpire get() = Duration.ofHours(WeiboHelperSettings.expire.toLong())
 
+internal val ImageClearFollowing get() = WeiboHelperSettings.following
+
 internal val IntervalFast get() = Duration.ofMinutes(WeiboHelperSettings.fast.toLong())
 
 internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.toLong())
 
 internal val QuietGroups by WeiboHelperSettings::quiet
 
+@OptIn(ConsoleExperimentalApi::class)
 internal val LoginContact by lazy {
     for (bot in Bot.instances) {
         return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: continue
@@ -43,18 +79,11 @@ internal val LoginContact by lazy {
     return@lazy null
 }
 
-internal suspend fun MicroBlog.getContent(): String {
-    return if (isLongText) {
-        runCatching {
-            requireNotNull(client.getLongText(id).content) { "mid: $id" }
-        }.getOrElse {
-            logger.warning({ "获取微博[${id}]长文本失败" }, it)
-            raw ?: text
-        }
-    } else {
-        raw ?: text
-    }
-}
+internal val Emoticons by WeiboEmoticonData::emoticons
+
+internal val EmoticonCache get() = ImageCache.resolve("emoticon")
+
+typealias BuildMessage = suspend (contact: Contact) -> Message
 
 internal fun File.desktop(user: UserBaseInfo) {
     mkdirs()
@@ -80,50 +109,116 @@ internal fun File.desktop(user: UserBaseInfo) {
     }
 }
 
-internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> = withContext(Dispatchers.IO) {
-    if (pictures.isEmpty()) return@withContext emptyList()
-    val cache = ImageCache.resolve("$uid").apply {
-        if (resolve("desktop.ini").exists().not()) {
-            desktop(requireNotNull(user))
-        }
-    }
-    val last = created.toEpochSecond() * 1_000
-    pictures.mapIndexed { index, pid ->
-        runCatching {
-            cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
-                if (flush || !exists()) {
-                    writeBytes(client.get<ByteArray>(image(pid)).also {
-                        logger.info {
-                            "[${name}]下载完成, 大小${it.size / 1024}KB"
-                        }
-                    })
-                    setLastModified(last)
-                }
-            }
-        }.onFailure {
-            logger.warning({ "微博图片下载失败: $pid" }, it)
+internal suspend fun Emoticon.file(): File {
+    return EmoticonCache.resolve(category.ifBlank { "默认" }).resolve("$phrase.${url.substringAfterLast('.')}").apply {
+        if (exists().not()) {
+            parentFile.mkdirs()
+            writeBytes(client.download(url))
         }
     }
 }
 
+internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = supervisorScope {
+    var content = raw
+    if (isLongText) {
+        runCatching {
+            content = requireNotNull(client.getLongText(id).content) { "长文本为空 id: $id" }
+        }.recoverCatching {
+            content = requireNotNull(client.getLongText(mid).content) { "长文本为空 mid: $mid" }
+        }.onFailure {
+            logger.warning { "获取微博[${id}]长文本失败 $it" }
+        }
+    }
+    links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
+        if (struct.long.isBlank()) return@fold acc
+        acc.replace(struct.short, "[${struct.title}](${struct.long})")
+    }
+}
+
+internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
+    if (pictures.isEmpty()) return emptyList()
+    val user = requireNotNull(user) { "没有用户信息" }
+    val cache = ImageCache.resolve("${user.id}").apply {
+        if (resolve("desktop.ini").exists().not())  {
+            desktop(user)
+        } else if (user.following && resolve("avatar.ico").exists().not()) {
+            desktop(user)
+        }
+    }
+    val last = created.toEpochSecond() * 1_000
+    return pictures.mapIndexed { index, pid ->
+        runCatching {
+            cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
+                if (flush || !exists()) {
+                    writeBytes(runCatching {
+                        client.download(image(pid))
+                    }.recoverCatching {
+                        client.download(download(pid))
+                    }.recoverCatching {
+                        client.download(image(pid).replace("large", "mw2000"))
+                    }.onSuccess {
+                        logger.verbose { "[${name}]下载完成, 大小${it.size / 1024}KB" }
+                    }.getOrThrow())
+                    setLastModified(last)
+                }
+            }
+        }.onFailure {
+            logger.warning { "微博图片下载失败: $pid, $it" }
+        }
+    }
+}
+
+private suspend fun MessageChainBuilder.parse(content: String, contact: Contact) {
+    var pos = 0
+    while (pos < content.length) {
+        val start = content.indexOf('[', pos).takeIf { it != -1 } ?: break
+        val emoticon = Emoticons.values.find { content.startsWith(it.phrase, start) }
+
+        if (emoticon == null) {
+            add(content.substring(pos, start + 1))
+            pos = start + 1
+            continue
+        }
+
+        runCatching {
+            emoticon.file().uploadAsImage(contact)
+        }.onSuccess {
+            add(content.substring(pos, start))
+            add(it)
+        }.onFailure {
+            logger.warning("获取微博表情${emoticon.phrase}图片失败, $it")
+            add(content.substring(pos, start + emoticon.phrase.length))
+        }
+        pos = start + emoticon.phrase.length
+    }
+    appendLine(content.substring(pos))
+}
+
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
-    appendLine("@${username}")
+    appendLine("@${username}#${uid}")
     appendLine("时间: $created")
     appendLine("链接: $link")
-    appendLine(getContent())
+
+    val content = getContent()
+
+    if (Emoticons.isEmpty()) {
+        appendLine(content)
+    } else {
+        parse(content, contact)
+    }
 
     getImages().forEachIndexed { index, result ->
         result.mapCatching {
-            append(it.uploadAsImage(contact))
+            add(it.uploadAsImage(contact))
         }.onFailure {
-            logger.warning({ "获取微博[${id}]图片[${index}]失败, ${it.message}" }, it)
-            appendLine("获取微博[${id}]图片[${index}]失败")
+            logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $it")
+            appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $it")
         }
     }
 
-    retweeted?.let {
-        appendLine("==============================")
-        append(it.toMessage(contact))
+    retweeted?.let { blog ->
+        appendLine("======================")
+        add(blog.copy(urls = urls).toMessage(contact))
     }
 }
 
@@ -140,25 +235,37 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
-internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch {
-    if (ImageExpire.isNegative.not()) return@launch
-    while (isActive) {
-        delay(interval)
-        logger.info { "微博图片清理开始" }
-        val last = System.currentTimeMillis() - ImageExpire.toMillis()
-        ImageCache.walkBottomUp().filter { file ->
+internal fun File.clean(following: Boolean, num: Int = 0) {
+    logger.info { "微博图片清理开始" }
+    val last = System.currentTimeMillis() - ImageExpire.toMillis()
+    listFiles { file -> file != Emoticons }.orEmpty().forEach { dir ->
+        val avatar = dir.resolve("avatar.ico").exists()
+        if (following.not() && avatar) return@forEach
+        val images = dir.listFiles {  file ->
             (file.extension in ImageExtensions.values) && file.lastModified() < last
-        }.forEach { file ->
+        }.orEmpty()
+        // XXX
+        if (num > 0 && images.size > num) return@forEach
+        images.forEach { file ->
             runCatching {
                 check(file.delete())
             }.onFailure {
                 logger.info { "${file.absolutePath} 删除失败" }
             }
         }
+        if (avatar.not()) dir.apply { listFiles()?.forEach { it.delete() } }.delete()
     }
 }
 
-internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = withContext(Dispatchers.IO) {
+internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(SupervisorJob()) {
+    if (ImageExpire.isNegative.not()) return@launch
+    while (isActive) {
+        delay(interval)
+        ImageCache.clean(following = ImageClearFollowing)
+    }
+}
+
+internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
             desktop(this@getRecord)
@@ -199,4 +306,87 @@ internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
     WeiboClient.DefaultIgnore(throwable).also {
         if (it) logger.warning { "WeiboClient Ignore $throwable" }
     }
+}
+
+internal suspend fun WeiboClient.init() = supervisorScope {
+    runCatching {
+        restore()
+    }.onSuccess {
+        logger.info { "登陆成功, $it" }
+    }.onFailure {
+        logger.warning { "登陆失败, ${it.message}, 请尝试使用 /wlogin 指令登录" }
+        runCatching {
+            incarnate()
+        }.onSuccess {
+            logger.info { "模拟游客成功，置信度${it}" }
+        }.onFailure {
+            logger.warning { "模拟游客失败, ${it.message}" }
+        }
+    }
+
+    runCatching {
+        getEmoticon().emoticon.let { map ->
+            (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
+                it.phrase
+            }.let {
+                Emoticons.putAll(it)
+            }
+        }
+    }.onSuccess {
+        logger.info { "加载表情成功" }
+    }.onFailure {
+        logger.warning { "加载表情失败, $it" }
+    }
+}
+
+internal val SendLimit = """本群每分钟只能发\d+条消息""".toRegex()
+
+internal const val SendDelay = 60 * 1000L
+
+internal suspend fun <T : CommandSenderOnMessage<*>> T.sendMessage(block: suspend T.(Contact) -> Message): Boolean {
+    return runCatching {
+        block(fromEvent.subject)
+    }.onSuccess { message ->
+        quoteReply(message)
+    }.onFailure {
+        logger.warning {
+            "发送消息失败, $it"
+        }
+        when {
+            SendLimit.containsMatchIn(it.message.orEmpty()) -> {
+                delay(SendDelay)
+                quoteReply(SendLimit.find(it.message!!)!!.value)
+            }
+            else -> {
+                quoteReply("发送消息失败， ${it.message}")
+            }
+        }
+    }.isSuccess
+}
+
+suspend fun CommandSenderOnMessage<*>.quoteReply(message: Message) = sendMessage(fromEvent.message.quote() + message)
+
+suspend fun CommandSenderOnMessage<*>.quoteReply(message: String) = quoteReply(message.toPlainText())
+
+/**
+ * 通过正负号区分群和用户
+ */
+val Contact.delegate get() = if (this is Group) id * -1 else id
+
+/**
+ * 查找Contact
+ */
+fun findContact(delegate: Long): Contact? {
+    Bot.instances.forEach { bot ->
+        if (delegate < 0) {
+            bot.getGroup(delegate * -1)?.let { return@findContact it }
+        } else {
+            bot.getFriend(delegate)?.let { return@findContact it }
+            bot.getStranger(delegate)?.let { return@findContact it }
+            bot.groups.forEach { group ->
+                group.getMember(delegate)?.let { return@findContact it }
+            }
+        }
+    }
+    return null
 }

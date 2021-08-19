@@ -1,7 +1,6 @@
 package xyz.cssxsh.weibo.data
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 
 @Serializable
 data class UserGroupData(
@@ -16,9 +15,6 @@ data class UserGroupData(
     @SerialName("is_new_segment")
     @Serializable(NumberToBooleanSerializer::class)
     val isNewSegment: Boolean,
-    @SerialName("ok")
-    @Serializable(NumberToBooleanSerializer::class)
-    val ok: Boolean = true,
     @SerialName("total_number")
     val total: Int
 )

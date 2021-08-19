@@ -1,9 +1,8 @@
 package xyz.cssxsh.weibo.data
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import java.time.OffsetDateTime
+import java.time.*
 
 val MicroBlog.isLongText get() = (continueTag != null)
 
@@ -13,12 +12,12 @@ data class MicroBlog(
      * 点赞数
      */
     @SerialName("attitudes_count")
-    val attitudesCount: Int = 0,
+    val attitudes: Int = 0,
     /**
      * 评论数
      */
     @SerialName("comments_count")
-    val commentsCount: Int = 0,
+    val comments: Int = 0,
     @SerialName("created_at")
     @Serializable(WeiboDateTimeSerializer::class)
     val created: OffsetDateTime,
@@ -36,17 +35,25 @@ data class MicroBlog(
      * 转发数
      */
     @SerialName("reposts_count")
-    val repostsCount: Int = 0,
+    val reposts: Int = 0,
     @SerialName("retweeted_status")
     val retweeted: MicroBlog? = null,
-    @SerialName("text")
-    val text: String = "",
     @SerialName("text_raw")
     val raw: String? = null,
     @SerialName("user")
     val user: MicroBlogUser? = null,
-    @SerialName("userType")
-    val userType: Int? = null,
+    @SerialName("url_struct")
+    val urls: List<UrlStruct> = emptyList()
+)
+
+@Serializable
+data class UrlStruct(
+    @SerialName("long_url")
+    val long: String = "",
+    @SerialName("short_url")
+    val short: String,
+    @SerialName("url_title")
+    val title: String
 )
 
 @Serializable
@@ -82,12 +89,9 @@ data class LongTextContent(
 @Serializable
 data class TimelineData(
     @SerialName("max_id")
-    val maxId: Long,
-    @SerialName("ok")
-    @Serializable(NumberToBooleanSerializer::class)
-    val ok: Boolean = true,
+    val maxId: Long = 0,
     @SerialName("since_id")
-    val sinceId: Long,
+    val sinceId: Long = 0,
     @SerialName("statuses")
     val statuses: List<MicroBlog> = emptyList(),
 )
@@ -96,4 +100,65 @@ data class TimelineData(
 data class UserBlog(
     @SerialName("list")
     val list: List<MicroBlog> = emptyList()
+)
+
+@Serializable
+data class EmotionData(
+    @SerialName("emoticon")
+    val emoticon: EmoticonMap
+)
+
+@Serializable
+data class EmoticonMap(
+    @SerialName("brand")
+    val brand: Map<String, Map<String, List<Emoticon>>>,
+    @SerialName("more")
+    val more: Map<String, List<Emoticon>>,
+    @SerialName("usual")
+    val usual: Map<String, List<Emoticon>>
+)
+
+@Serializable
+data class Emoticon(
+    @SerialName("category")
+    val category: String,
+    @SerialName("common")
+    val common: Boolean,
+    @SerialName("hot")
+    val hot: Boolean,
+    @SerialName("icon")
+    val icon: String,
+    @SerialName("phrase")
+    val phrase: String,
+    @SerialName("picid")
+    val id: String,
+    @SerialName("type")
+    val type: String,
+    @SerialName("url")
+    val url: String,
+    @SerialName("value")
+    val value: String
+)
+
+@Serializable
+data class SearchResult(
+    @SerialName("cardlist_title")
+    val title: String,
+    @SerialName("cards")
+    val cards: List<SearchResultCard>
+)
+
+@Serializable
+data class SearchResultCard(
+    @SerialName("card_group")
+    val group: List<SearchResultCard> = emptyList(),
+    @SerialName("card_type")
+    val type: Int,
+    @SerialName("is_hotweibo")
+    @Serializable(NumberToBooleanSerializer::class)
+    val isHot: Boolean = false,
+    @SerialName("mblog")
+    val blog: MicroBlog? = null,
+    @SerialName("user")
+    val user: MicroBlogUser? = null
 )
