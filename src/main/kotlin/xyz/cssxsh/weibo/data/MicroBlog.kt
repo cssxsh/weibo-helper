@@ -28,7 +28,7 @@ data class MicroBlog(
     val favorited: Boolean = false,
     @SerialName("id")
     val id: Long,
-    @SerialName("mid")
+    @SerialName("mblogid")
     val mid: String,
     @SerialName("pic_ids")
     val pictures: List<String> = emptyList(),
