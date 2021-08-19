@@ -8,31 +8,13 @@ import net.mamoe.mirai.console.plugin.jvm.*
 import net.mamoe.mirai.console.util.*
 import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
-import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.2") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.3") {
         name("weibo-helper")
         author("cssxsh")
     }
 ) {
-
-    internal val client: WeiboClient by lazy {
-        object : WeiboClient(ignore = ClientIgnore) {
-            override var info: LoginUserInfo
-                get() = super.info
-                set(value) {
-                    super.info = value
-                    launch { WeiboStatusData.status = status() }
-                }
-
-            init {
-                load(WeiboStatusData.status)
-            }
-        }
-    }
-
     private lateinit var clear: Job
 
     @OptIn(ConsoleExperimentalApi::class)
@@ -78,8 +60,6 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboHotCommand.subscriber.stop()
 
         WeiboListener.stop()
-
-        WeiboStatusData.status = client.status()
 
         clear.cancel()
     }

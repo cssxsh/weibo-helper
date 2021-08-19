@@ -116,12 +116,12 @@ abstract class WeiboSubscriber<K: Comparable<K>>(val type: String) :
                     }.onFailure { cause ->
                         if ("login" in cause.message.orEmpty()) {
                             logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
-                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
                         }
                     }
                 } else {
-                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
-                    logger.warning { "$type(${id})监听任务执行失败, ${it}，" }
+                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
+                    logger.warning { "$type(${id})监听任务执行失败, $it" }
                 }
             }
         }

@@ -39,7 +39,7 @@ internal object WeiboListener
                         logger.info { "登录成功, $it" }
                     }.onFailure { cause ->
                         if ("login" in cause.message.orEmpty()) {
-                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆")
+                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
                         }
                     }
                 }.getOrElse {

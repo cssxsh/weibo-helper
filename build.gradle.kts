@@ -6,10 +6,10 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.1.2"
+version = "1.1.3"
 
 repositories {
-    removeAt(0)
+    clear()
     mavenLocal()
     maven(url = "https://maven.aliyun.com/repository/public")
     mavenCentral()
@@ -52,6 +52,15 @@ mirai {
     configureShadow {
         exclude {
             it.path.startsWith("kotlin")
+        }
+        exclude {
+            it.path.startsWith("org/intellij")
+        }
+        exclude {
+            it.path.startsWith("org/jetbrains")
+        }
+        exclude {
+            it.path.startsWith("org/slf4j")
         }
     }
 }
