@@ -107,7 +107,7 @@ internal fun image(pid: String) = "https://${ImageServer.random()}.sinaimg.cn/la
 
 internal fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
 
-val MicroBlog.link get() = "https://weibo.com/detail/${id}"
+val MicroBlog.link get() = "https://weibo.com/${user?.id ?: "detail"}/${mid}"
 
 val MicroBlog.username get() = user?.screen ?: "[未知用户]"
 
