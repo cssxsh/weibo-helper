@@ -10,7 +10,7 @@ import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.2") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.1.3") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -60,8 +60,6 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboHotCommand.subscriber.stop()
 
         WeiboListener.stop()
-
-        WeiboStatusData.status = client.status()
 
         clear.cancel()
     }

@@ -25,7 +25,10 @@ import java.net.*
 import java.time.*
 import javax.imageio.*
 
-internal val logger by WeiboHelperPlugin::logger
+internal val logger by lazy {
+    val open = System.getProperty("xyz.cssxsh.mirai.plugin.logger", "${true}").toBoolean()
+    if (open) WeiboHelperPlugin.logger else SilentLogger
+}
 
 internal val client: WeiboClient by lazy {
     object : WeiboClient(ignore = ClientIgnore) {
@@ -213,9 +216,9 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         }
     }
 
-    retweeted?.let {
-        appendLine("========================")
-        add(it.copy(urls = urls).toMessage(contact))
+    retweeted?.let { blog ->
+        appendLine("======================")
+        add(blog.copy(urls = urls).toMessage(contact))
     }
 }
 
