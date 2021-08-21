@@ -10,7 +10,6 @@ import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.nio.charset.*
-import java.time.format.*
 
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -118,7 +117,5 @@ val MicroBlog.link get() = "https://weibo.com/${user?.id ?: "detail"}/${mid}"
 val MicroBlog.username get() = user?.screen ?: "[未知用户]"
 
 val MicroBlog.uid get() = user?.id ?: 0
-
-val MicroBlog.datetime: String get() = created.format(DateTimeFormatter.ISO_LOCAL_DATE)
 
 fun UserGroupData.getGroup(id: Long) = groups.flatMap { it.list }.first { it.gid == id }
