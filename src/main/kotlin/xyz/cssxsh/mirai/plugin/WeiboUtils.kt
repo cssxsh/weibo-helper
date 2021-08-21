@@ -139,7 +139,7 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
     }
     links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
         if (struct.long.isBlank()) return@fold acc
-        acc.replace(struct.short, "[${struct.title}](${struct.long})")
+        acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
     }
 }
 
@@ -147,7 +147,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
     if (pictures.isEmpty()) return emptyList()
     val user = requireNotNull(user) { "没有用户信息" }
     val cache = ImageCache.resolve("${user.id}").apply {
-        if (resolve("desktop.ini").exists().not())  {
+        if (resolve("desktop.ini").exists().not()) {
             desktop(user)
         } else if (user.following && resolve("avatar.ico").exists().not()) {
             desktop(user)
@@ -176,7 +176,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
     }
 }
 
-private suspend fun MessageChainBuilder.parse(content: String, contact: Contact) {
+private suspend fun MessageChainBuilder.emoticon(content: String, contact: Contact) {
     var pos = 0
     while (pos < content.length) {
         val start = content.indexOf('[', pos).takeIf { it != -1 } ?: break
@@ -212,7 +212,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     if (Emoticons.isEmpty()) {
         appendLine(content)
     } else {
-        parse(content, contact)
+        emoticon(content, contact)
     }
 
     if (PictureCount == -1 || pictures.size <= PictureCount) {
@@ -253,7 +253,7 @@ internal fun File.clean(following: Boolean, num: Int = 0) {
     listFiles { file -> file != Emoticons }.orEmpty().forEach { dir ->
         val avatar = dir.resolve("avatar.ico").exists()
         if (following.not() && avatar) return@forEach
-        val images = dir.listFiles {  file ->
+        val images = dir.listFiles { file ->
             (file.extension in ImageExtensions.values) && file.lastModified() < last
         }.orEmpty()
         // XXX

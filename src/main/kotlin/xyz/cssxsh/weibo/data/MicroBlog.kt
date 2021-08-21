@@ -53,7 +53,9 @@ data class UrlStruct(
     @SerialName("short_url")
     val short: String,
     @SerialName("url_title")
-    val title: String
+    val title: String,
+    @SerialName("url_type")
+    val type: Int
 )
 
 @Serializable
@@ -61,7 +63,7 @@ data class MicroBlogUser(
     @SerialName("avatar_hd")
     override val avatarHighDefinition: String = "",
     @SerialName("avatar_large")
-    override val avatarLarge: String ="",
+    override val avatarLarge: String = "",
     @SerialName("following")
     override val following: Boolean = false,
     @SerialName("follow_me")
@@ -78,7 +80,7 @@ data class MicroBlogUser(
     val verified: Boolean = false,
     @SerialName("verified_type")
     val verifiedType: VerifiedType = VerifiedType.NONE,
-): UserBaseInfo
+) : UserBaseInfo
 
 @Serializable
 data class LongTextContent(

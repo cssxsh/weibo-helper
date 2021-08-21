@@ -13,7 +13,7 @@ import xyz.cssxsh.weibo.api.*
 import java.time.*
 
 @OptIn(ConsoleExperimentalApi::class)
-abstract class WeiboSubscriber<K: Comparable<K>>(val type: String) :
+abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
 
     abstract val load: suspend (id: K) -> List<MicroBlog>
@@ -71,6 +71,10 @@ abstract class WeiboSubscriber<K: Comparable<K>>(val type: String) :
                 logger.info { "${type}(${id}) 正则屏蔽，跳过 ${source.id} $regex" }
                 return@filter false
             }
+        }
+        if (blog.urls.any { it.type in filter.urls }) {
+            logger.info { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${source.urls}" }
+            return@filter false
         }
         if (source.id in histories) {
             logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }

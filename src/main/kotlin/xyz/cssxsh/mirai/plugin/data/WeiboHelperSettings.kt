@@ -34,6 +34,9 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     private val regexes_: Set<String> by value(setOf("女拳"))
     override val regexes: List<Regex> by lazy { regexes_.map { it.toRegex() } }
 
+    @ValueDescription("屏蔽URL类型，填入 39 可以屏蔽微博视频")
+    override val urls by value(emptySet<Int>())
+
     @ValueDescription("关闭链接监听的群号, 作废，请通过权限系统设置 /perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group")
     val quiet by value(emptySet<Long>())
 
