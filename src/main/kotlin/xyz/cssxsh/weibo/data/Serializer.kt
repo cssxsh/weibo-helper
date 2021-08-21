@@ -23,7 +23,8 @@ data class SetResult(
 @Serializer(OffsetDateTime::class)
 object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
-    private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("E MMM d HH:mm:ss Z yyyy", Locale.ENGLISH)
+    private val formatter: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("E MMM d HH:mm:ss Z yyyy", Locale.ENGLISH)
 
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(OffsetDateTime::class.qualifiedName!!, PrimitiveKind.STRING)
@@ -38,7 +39,7 @@ object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 object LocaleSerializer : KSerializer<Locale> {
 
     override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("LocaleSerializer", PrimitiveKind.STRING)
+        PrimitiveSerialDescriptor(Locale::class.qualifiedName!!, PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Locale = Locale(decoder.decodeString())
 
@@ -51,11 +52,9 @@ object NumberToBooleanSerializer : KSerializer<Boolean> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("NumberToBooleanSerializer", PrimitiveKind.BOOLEAN)
 
-    override fun deserialize(decoder: Decoder): Boolean =
-        decoder.decodeLong() != 0L
+    override fun deserialize(decoder: Decoder): Boolean = decoder.decodeLong() != 0L
 
-    override fun serialize(encoder: Encoder, value: Boolean) =
-        encoder.encodeLong(if (value) 1L else 0L)
+    override fun serialize(encoder: Encoder, value: Boolean) = encoder.encodeLong(if (value) 1L else 0L)
 }
 
 interface WeiboValue<T> {
