@@ -1,6 +1,8 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
+import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
+import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
@@ -24,9 +26,10 @@ internal object WeiboListener
     private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+""".toRegex()
 
     fun start() {
+        QuietGroup
         globalEventChannel().subscribeMessages {
             WEIBO_REGEX findingReply replier@{ result ->
-                if (subject is Group && subject.id in QuietGroups) return@replier null
+                if (subject is Group || QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null
 
                 logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
                 runCatching {

@@ -7,6 +7,8 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.*
 import net.mamoe.mirai.console.command.*
+import net.mamoe.mirai.console.permission.*
+import net.mamoe.mirai.console.plugin.jvm.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.contact.*
@@ -57,6 +59,10 @@ internal val client: WeiboClient by lazy {
     }
 }
 
+internal fun AbstractJvmPlugin.registerPermission(name: String, description: String): Permission {
+    return PermissionService.INSTANCE.register(permissionId(name), description, parentPermission)
+}
+
 internal val data by WeiboHelperPlugin::dataFolder
 
 internal val ImageCache get() = File(WeiboHelperSettings.cache)
@@ -69,7 +75,9 @@ internal val IntervalFast get() = Duration.ofMinutes(WeiboHelperSettings.fast.to
 
 internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.toLong())
 
-internal val QuietGroups by WeiboHelperSettings::quiet
+internal val QuietGroup by lazy { WeiboHelperPlugin.registerPermission("quiet.group", "关闭链接监听") }
+
+internal val PictureCount by WeiboHelperSettings::pictures
 
 @OptIn(ConsoleExperimentalApi::class)
 internal val LoginContact by lazy {
@@ -207,13 +215,17 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         parse(content, contact)
     }
 
-    getImages().forEachIndexed { index, result ->
-        result.mapCatching {
-            add(it.uploadAsImage(contact))
-        }.onFailure {
-            logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $it")
-            appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $it")
+    if (PictureCount == -1 || pictures.size <= PictureCount) {
+        getImages().forEachIndexed { index, result ->
+            result.mapCatching {
+                add(it.uploadAsImage(contact))
+            }.onFailure {
+                logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $it")
+                appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $it")
+            }
         }
+    } else if (pictures.size > PictureCount) {
+        appendLine("图片过多，已省略")
     }
 
     retweeted?.let { blog ->
@@ -283,7 +295,7 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
             var run = true
             while (isActive && run) {
                 delay(interval)
-                run = runCatching {
+                run = (runCatching {
                     client.getUserMicroBlogs(uid = id, page = page, month = month).list
                 }.onSuccess { list ->
                     blogs.putAll(list.associateBy { it.id })
@@ -291,7 +303,7 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
                     page++
                 }.onFailure {
                     logger.warning({ "@${screen}#${id}的${month}第${page}页加载失败" }, it)
-                }.getOrNull()?.size ?: Int.MAX_VALUE >= 16
+                }.getOrNull()?.size ?: Int.MAX_VALUE) >= 16
             }
             blogs.values.toList().also {
                 if (it.isNotEmpty()) {

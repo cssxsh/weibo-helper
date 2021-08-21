@@ -81,17 +81,19 @@ suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient 
 
 internal val ChineseCharset = Charset.forName("GBK")
 
-internal val EncodeChars = ('0'..'9').asIterable() + ('a'..'z').asIterable() + ('A'..'Z').asIterable()
+internal const val EncodeChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 internal fun String.decodeBase62() = fold(0L) { acc, char -> acc * 62 + EncodeChars.indexOf(char) }
-
-internal fun user(pid: String): Long = pid.substring(0..7).run {
-    if (startsWith("00")) decodeBase62() else toLong(16)
-}
 
 internal const val WEIBO_EPOCH = 515483463L
 
 internal fun timestamp(id: Long): Long = (id shr 22) + WEIBO_EPOCH
+
+internal fun id(mid: String): Long {
+    return mid.substring(0..0).decodeBase62().times(1_0000000_0000000L) +
+        mid.substring(1..4).decodeBase62().times(1_0000000L) +
+        mid.substring(5..8).decodeBase62()
+}
 
 private val ImageServer = listOf("wx1", "wx2", "wx3", "wx4")
 
@@ -100,6 +102,10 @@ internal val ImageExtensions = mapOf(
     ContentType.Image.GIF to "gif",
     ContentType.Image.PNG to "png",
 )
+
+internal fun user(pid: String): Long = with(pid.substring(0..7)) {
+    if (startsWith("00")) decodeBase62() else toLong(16)
+}
 
 internal fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 

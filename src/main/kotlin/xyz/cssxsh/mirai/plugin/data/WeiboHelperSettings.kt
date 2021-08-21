@@ -32,10 +32,11 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     @ValueDescription("屏蔽的关键词正则表达式")
     @ValueName("regexes")
     private val regexes_: Set<String> by value(setOf("女拳"))
-
-    @ValueDescription("屏蔽的关键词正则表达式")
     override val regexes: List<Regex> by lazy { regexes_.map { it.toRegex() } }
 
-    @ValueDescription("关闭链接监听的群号")
+    @ValueDescription("关闭链接监听的群号, 作废，请通过权限系统设置 /perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group")
     val quiet by value(emptySet<Long>())
+
+    @ValueDescription("显示图片数，超过则回复 图片过多 ，-1 表示全部显示")
+    val pictures by value(-1)
 }
