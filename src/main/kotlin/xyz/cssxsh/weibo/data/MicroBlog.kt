@@ -55,7 +55,7 @@ data class UrlStruct(
     @SerialName("url_title")
     val title: String,
     @SerialName("url_type")
-    val type: Int
+    val type: String
 )
 
 @Serializable

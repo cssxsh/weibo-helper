@@ -72,8 +72,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 return@filter false
             }
         }
-        if (blog.urls.any { it.type in filter.urls }) {
-            logger.info { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${source.urls}" }
+        if (blog.urls.any { it.type.toIntOrNull() in filter.urls }) {
+            logger.info { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
             return@filter false
         }
         if (source.id in histories) {
