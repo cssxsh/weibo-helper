@@ -85,6 +85,11 @@
 * `urls` 微博订阅器，屏蔽的URL类型, 屏蔽视频可以尝试填入`39` (since 1.2.1)
 * `pictures` 显示图片数，超过则回复`图片过多`，-1 表示全部显示 (since 1.2.0)
 
+### quiet.group
+
+安静群聊, 不解析URL链接, 通过权限系统配置  
+`/perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group`
+
 ## 安装
 
 ### 手动安装
