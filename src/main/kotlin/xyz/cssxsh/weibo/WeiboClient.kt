@@ -75,7 +75,6 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
             ignoreUnknownKeys = true
             isLenient = true
             allowStructuredMapKeys = true
-            coerceInputValues = true
         }
 
         private val IgnoreRegex = """Expected \d+, actual \d+""".toRegex()

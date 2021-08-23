@@ -46,9 +46,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
 
     send(download(code.image))
 
-    lateinit var token: LoginToken
-
-    supervisorScope {
+    val token: LoginToken = supervisorScope {
         while (isActive) {
             val json = callback<LoginData>(SSO_QRCODE_CHECK) {
                 parameter("entry", "weibo")
@@ -58,8 +56,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
             // println(json)
             when (json.code) {
                 SUCCESS_CODE -> {
-                    token = WeiboClient.Json.decodeFromJsonElement(json.data)
-                    break
+                    return@supervisorScope WeiboClient.Json.decodeFromJsonElement(json.data)
                 }
                 NO_USE_CODE, USED_CODE -> {
                     delay(CheckDelay)
@@ -69,6 +66,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
                 }
             }
         }
+        throw CancellationException()
     }
 
     val flush = callback<LoginFlush>(SSO_LOGIN) {
