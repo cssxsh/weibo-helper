@@ -75,8 +75,6 @@ internal val IntervalFast get() = Duration.ofMinutes(WeiboHelperSettings.fast.to
 
 internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.toLong())
 
-internal val QuietGroup by lazy { WeiboHelperPlugin.registerPermission("quiet.group", "关闭链接监听") }
-
 internal val PictureCount by WeiboHelperSettings::pictures
 
 @OptIn(ConsoleExperimentalApi::class)

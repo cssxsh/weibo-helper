@@ -13,8 +13,7 @@ object WeiboGroupCommand : CompositeCommand(
     "wgroup", "微博分组",
     description = "微博分组指令",
 ) {
-    internal val subscriber = object : WeiboSubscriber<Long>("Group") {
-
+    internal val subscriber = object : WeiboSubscriber<Long>(primaryName) {
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getGroupsTimeline(gid = id, count = 100).statuses
         }

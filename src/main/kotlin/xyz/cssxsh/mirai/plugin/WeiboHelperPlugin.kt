@@ -6,6 +6,8 @@ import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.plugin.jvm.*
 import net.mamoe.mirai.console.util.*
+import net.mamoe.mirai.event.events.*
+import net.mamoe.mirai.event.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
@@ -45,9 +47,11 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboListener.start()
 
-        WeiboUserCommand.subscriber.start()
-        WeiboGroupCommand.subscriber.start()
-        WeiboHotCommand.subscriber.start()
+        globalEventChannel().subscribeOnce<BotOnlineEvent> {
+            WeiboUserCommand.subscriber.start()
+            WeiboGroupCommand.subscriber.start()
+            WeiboHotCommand.subscriber.start()
+        }
 
         clear = clear()
     }

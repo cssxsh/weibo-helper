@@ -25,8 +25,9 @@ internal object WeiboListener
      */
     private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+""".toRegex()
 
+    private val QuietGroup = WeiboHelperPlugin.registerPermission("quiet.group", "关闭链接监听")
+
     fun start() {
-        QuietGroup
         globalEventChannel().subscribeMessages {
             WEIBO_REGEX findingReply replier@{ result ->
                 if (subject is Group || QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null

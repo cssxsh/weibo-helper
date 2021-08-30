@@ -12,8 +12,7 @@ object WeiboUserCommand : CompositeCommand(
     "wuser", "微博用户",
     description = "微博好友指令",
 ) {
-    internal val subscriber = object : WeiboSubscriber<Long>("User") {
-
+    internal val subscriber = object : WeiboSubscriber<Long>(primaryName) {
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getUserMicroBlogs(uid = id, page = 1).list
         }
