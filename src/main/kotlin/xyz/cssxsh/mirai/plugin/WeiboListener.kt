@@ -30,7 +30,7 @@ internal object WeiboListener
     fun start() {
         globalEventChannel().subscribeMessages {
             WEIBO_REGEX findingReply replier@{ result ->
-                if (subject is Group || QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null
+                if (subject is Group && QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null
 
                 logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
                 runCatching {
