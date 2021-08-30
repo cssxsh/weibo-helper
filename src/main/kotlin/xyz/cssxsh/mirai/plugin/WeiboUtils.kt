@@ -267,8 +267,8 @@ internal fun File.clean(following: Boolean, num: Int = 0) {
     }
 }
 
-internal fun CoroutineScope.clear(interval: Long = 1 * 60 * 60 * 1000) = launch(SupervisorJob()) {
-    if (ImageExpire.isNegative.not()) return@launch
+internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScope {
+    if (ImageExpire.isNegative.not()) return@supervisorScope
     while (isActive) {
         delay(interval)
         ImageCache.clean(following = ImageClearFollowing)

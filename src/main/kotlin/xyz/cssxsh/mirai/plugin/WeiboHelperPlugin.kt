@@ -53,7 +53,9 @@ object WeiboHelperPlugin : KotlinPlugin(
             WeiboHotCommand.subscriber.start()
         }
 
-        clear = clear()
+        clear = launch {
+            clear()
+        }
     }
 
     override fun onDisable() {
