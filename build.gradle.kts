@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.2.1"
+version = "1.2.2"
 
 repositories {
     clear()
@@ -21,10 +21,10 @@ repositories {
 kotlin {
     sourceSets {
         all {
-//            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
 //            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
 //            languageSettings.useExperimentalAnnotation("io.ktor.util.KtorExperimentalAPI")
-//            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
 //            languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
 //            languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.util.ConsoleExperimentalApi")
         }
@@ -42,7 +42,7 @@ dependencies {
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.9")
 
-    testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.9.0")
+    testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.0")
     testImplementation(kotlin("test-junit"))
     testImplementation(junit("api", Versions.junit))
     testRuntimeOnly(junit("engine", Versions.junit))
