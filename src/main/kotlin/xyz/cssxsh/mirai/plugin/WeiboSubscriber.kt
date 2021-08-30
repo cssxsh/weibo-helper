@@ -87,7 +87,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     private fun listener(id: K): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
-        var json by WeiboJsonDelegate(id, type)
+        var json by WeiboHistoryDelegate(id, type, this@WeiboSubscriber)
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (json.near()) IntervalFast else IntervalSlow).toMillis())
             runCatching {

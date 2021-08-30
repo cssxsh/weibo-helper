@@ -42,4 +42,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
 
     @ValueDescription("显示图片数，超过则回复 图片过多 ，-1 表示全部显示")
     val pictures by value(-1)
+
+    @ValueDescription("历史记录保留时间，单位天，默认 7d")
+    val history by value(7L)
 }

@@ -89,6 +89,8 @@ internal val Emoticons by WeiboEmoticonData::emoticons
 
 internal val EmoticonCache get() = ImageCache.resolve("emoticon")
 
+internal val HistoryExpire get() = WeiboHelperSettings.history
+
 typealias BuildMessage = suspend (contact: Contact) -> Message
 
 internal fun File.desktop(user: UserBaseInfo) {
@@ -153,6 +155,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
     }
     val last = created.toEpochSecond() * 1_000
     return pictures.mapIndexed { index, pid ->
+        // XXX PictureCount
         runCatching {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
@@ -275,6 +278,7 @@ internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScop
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
@@ -332,9 +336,7 @@ internal suspend fun WeiboClient.init() = supervisorScope {
         }.onFailure {
             logger.warning { "模拟游客失败, ${it.message}" }
         }
-    }
-
-    runCatching {
+    }.isSuccess && runCatching {
         getEmoticon().emoticon.let { map ->
             (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
                 it.phrase
@@ -346,7 +348,7 @@ internal suspend fun WeiboClient.init() = supervisorScope {
         logger.info { "加载表情成功" }
     }.onFailure {
         logger.warning { "加载表情失败, $it" }
-    }
+    }.isSuccess
 }
 
 internal val SendLimit = """本群每分钟只能发\d+条消息""".toRegex()
