@@ -34,14 +34,10 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
         }
     }
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Map<Long, MicroBlog> {
-        return synchronized(file) { map }
-    }
+    override fun getValue(thisRef: Any?, property: KProperty<*>): Map<Long, MicroBlog> = synchronized(file) { map }
 
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Map<Long, MicroBlog>) {
-        synchronized(file) {
-            val expire = OffsetDateTime.now().minusDays(HistoryExpire)
-            map = value.filterValues { blog -> blog.created > expire }
-        }
+    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Map<Long, MicroBlog>) = synchronized(file) {
+        val expire = OffsetDateTime.now().minusDays(HistoryExpire)
+        map = value.filterValues { blog -> blog.created > expire }
     }
 }

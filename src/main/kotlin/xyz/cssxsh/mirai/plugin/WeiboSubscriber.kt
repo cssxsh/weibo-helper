@@ -1,7 +1,6 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
@@ -92,13 +91,13 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             runCatching {
                 val histories = history.values.flatMap { setOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
-                val list = load(id).asFlow().filter { predicate(it, id, histories) }.onEach { blog ->
+                val list = load(id).filter { predicate(it, id, histories) }.onEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
                         }
                     }
-                }.toList()
+                }
 
                 history = history + list.associateBy { it.id }
 
