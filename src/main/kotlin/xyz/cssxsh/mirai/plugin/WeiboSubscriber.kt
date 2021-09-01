@@ -87,11 +87,11 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     private fun listener(id: K): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
-        var json by WeiboHistoryDelegate(id, type, this@WeiboSubscriber)
+        var history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
         while (isActive && infos(id).isNotEmpty()) {
-            delay((if (json.near()) IntervalFast else IntervalSlow).toMillis())
+            delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             runCatching {
-                val histories = json.values.flatMap { setOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
+                val histories = history.values.flatMap { setOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
                 val list = load(id).asFlow().filter { predicate(it, id, histories) }.onEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->
@@ -100,7 +100,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                     }
                 }.toList()
 
-                json = list.associateBy { it.id } + json
+                history = history + list.associateBy { it.id }
 
                 list.maxByOrNull { it.created }?.let { blog ->
                     logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }
