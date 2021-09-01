@@ -1,7 +1,7 @@
 package xyz.cssxsh.mirai.plugin.command
 
 import net.mamoe.mirai.console.command.*
-import net.mamoe.mirai.message.data.*
+import net.mamoe.mirai.contact.*
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
@@ -21,19 +21,19 @@ object WeiboHotCommand : CompositeCommand(
     }
 
     @SubCommand("add", "task", "订阅")
-    suspend fun CommandSenderOnMessage<*>.task(word: String) = sendMessage {
-        subscriber.add(id = word, name = word, subject = fromEvent.subject)
-        "对<${word}>的监听任务, 添加完成".toPlainText()
+    suspend fun CommandSender.task(word: String, subject: Contact = subject()) {
+        subscriber.add(id = word, name = word, subject = subject)
+        sendMessage("对<${word}>的监听任务, 添加完成")
     }
 
     @SubCommand("stop", "停止")
-    suspend fun CommandSenderOnMessage<*>.stop(word: String) = sendMessage {
-        subscriber.remove(id = word, subject = fromEvent.subject)
-        "对<${word}>的监听任务, 取消完成".toPlainText()
+    suspend fun CommandSender.stop(word: String, subject: Contact = subject()) {
+        subscriber.remove(id = word, subject = subject)
+        sendMessage("对<${word}>的监听任务, 取消完成")
     }
 
     @SubCommand("detail", "详情")
-    suspend fun CommandSenderOnMessage<*>.detail() = sendMessage {
-        subscriber.detail(subject = fromEvent.subject).toPlainText()
-    }
+    suspend fun CommandSender.detail(subject: Contact = subject()) = sendMessage(
+        subscriber.detail(subject = subject)
+    )
 }

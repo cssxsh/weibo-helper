@@ -75,11 +75,9 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             logger.verbose { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
             return@filter false
         }
-        if (source.id in histories) {
+        if (histories.add(source.id).not()) {
             logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }
             return@filter false
-        } else {
-            histories.add(source.id)
         }
         true
     }
@@ -90,7 +88,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             runCatching {
-                val histories = history.values.flatMap { setOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
+                val histories = history.values.flatMap { listOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
                 val list = load(id).filter { predicate(it, id, histories) }.onEach { blog ->
                     if (blog.created > tasks.getValue(id).last) {
                         sendMessageToTaskContacts(id) { contact ->

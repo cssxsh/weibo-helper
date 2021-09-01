@@ -15,7 +15,7 @@ object WeiboLoginCommand : SimpleCommand(
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage {
         runCatching {
             client.qrcode { image ->
-                sendMessage(image.inputStream().uploadAsImage(fromEvent.subject) + "请使用微博客户端扫码")
+                sendMessage(image.inputStream().uploadAsImage(it) + "请使用微博客户端扫码")
             }
         }.onFailure {
             logger.warning(it)
