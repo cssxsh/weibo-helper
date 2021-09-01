@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "xyz.cssxsh.mirai.plugin"
-version = "1.2.2"
+version = "1.2.3"
 
 repositories {
     clear()
@@ -42,7 +42,7 @@ dependencies {
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.9")
 
-    testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.0")
+    testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
     testImplementation(kotlin("test-junit"))
     testImplementation(junit("api", Versions.junit))
     testRuntimeOnly(junit("engine", Versions.junit))
@@ -66,6 +66,9 @@ mirai {
 }
 
 tasks {
+    compileKotlin {
+        kotlinOptions.freeCompilerArgs += "-Xunrestricted-builder-inference"
+    }
     test {
         useJUnitPlatform()
     }
