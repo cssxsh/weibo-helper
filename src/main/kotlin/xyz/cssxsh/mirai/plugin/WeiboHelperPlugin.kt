@@ -37,6 +37,8 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboDetailCommand.register()
         WeiboHotCommand.register()
 
+        logger.info { "图片缓存位置 ${ImageCache.absolutePath}" }
+
         if (WeiboHelperSettings.quiet.isNotEmpty()) {
             logger.warning { "关闭链接监听的群号, 作废，请通过权限系统设置 /perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group" }
         }
