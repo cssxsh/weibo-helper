@@ -13,7 +13,7 @@ import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.2.3") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.2.4") {
         name("weibo-helper")
         author("cssxsh")
     }
