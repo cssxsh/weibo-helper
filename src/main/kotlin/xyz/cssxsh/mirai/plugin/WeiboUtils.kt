@@ -254,27 +254,19 @@ internal fun File.clean(following: Boolean, num: Int = 0) {
     listFiles { file -> file != Emoticons }.orEmpty().forEach { dir ->
         val avatar = dir.resolve("avatar.ico").exists()
         if (following.not() && avatar) return@forEach
-        val images = dir.listFiles { file ->
-            (file.extension in ImageExtensions.values) && file.lastModified() < last
-        }.orEmpty()
-        // XXX
+        val images = dir.listFiles { file -> file.extension in ImageExtensions.values }.orEmpty()
         if (num > 0 && images.size > num) return@forEach
-        images.forEach { file ->
-            runCatching {
-                check(file.delete())
-            }.onFailure {
-                logger.info { "${file.absolutePath} 删除失败" }
-            }
-        }
-        if (avatar.not()) dir.apply { listFiles()?.forEach { it.delete() } }.delete()
+        images.all { file ->
+            file.lastModified() < last && file.delete()
+        } && dir.apply { listFiles()?.forEach { it.delete() } }.delete()
     }
 }
 
 internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScope {
-    if (ImageExpire.isNegative.not()) return@supervisorScope
+    if (ImageExpire.isNegative) return@supervisorScope
     while (isActive) {
-        delay(interval)
         ImageCache.clean(following = ImageClearFollowing)
+        delay(interval)
     }
 }
 

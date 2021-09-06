@@ -50,13 +50,12 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboListener.start()
 
         globalEventChannel().subscribeOnce<BotOnlineEvent> {
+            clear = launch {
+                clear()
+            }
             WeiboUserCommand.subscriber.start()
             WeiboGroupCommand.subscriber.start()
             WeiboHotCommand.subscriber.start()
-        }
-
-        clear = launch {
-            clear()
         }
     }
 
