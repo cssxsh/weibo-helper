@@ -143,8 +143,8 @@ internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = super
     }
 }
 
-internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<File>> {
-    if (pictures.isEmpty()) return emptyList()
+internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorScope {
+    if (pictures.isEmpty()) return@supervisorScope emptyList()
     val user = requireNotNull(user) { "没有用户信息" }
     val cache = ImageCache.resolve("${user.id}").apply {
         if (resolve("desktop.ini").exists().not()) {
@@ -154,9 +154,10 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
         }
     }
     val last = created.toEpochSecond() * 1_000
-    return pictures.mapIndexed { index, pid ->
+
+    pictures.mapIndexed { index, pid ->
         // XXX PictureCount
-        runCatching {
+        async {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
                     writeBytes(runCatching {
@@ -171,8 +172,6 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false): List<Result<Fi
                     setLastModified(last)
                 }
             }
-        }.onFailure {
-            logger.warning { "微博图片下载失败: $pid, $it" }
         }
     }
 }
@@ -217,9 +216,9 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     }
 
     if (PictureCount == -1 || pictures.size <= PictureCount) {
-        getImages().forEachIndexed { index, result ->
-            result.mapCatching {
-                add(it.uploadAsImage(contact))
+        getImages().forEachIndexed { index, deferred ->
+            deferred.runCatching {
+                add(await().uploadAsImage(contact))
             }.onFailure {
                 logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $it")
                 appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $it")

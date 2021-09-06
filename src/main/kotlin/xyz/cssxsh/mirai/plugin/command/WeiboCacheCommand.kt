@@ -28,7 +28,7 @@ object WeiboCacheCommand : CompositeCommand(
             months.forEach { month ->
                 runCatching {
                     info.getRecord(month, interval).onEach { blog ->
-                        if (blog.reposts >= reposts) blog.getImages(flush = false)
+                        if (blog.reposts >= reposts) blog.getImages(flush = false).awaitAll()
                     }
                 }.onSuccess { record ->
                     count += record.size
@@ -68,7 +68,7 @@ object WeiboCacheCommand : CompositeCommand(
             months.forEach { month ->
                 runCatching {
                     info.getRecord(month, interval).onEach { blog ->
-                        if (blog.reposts >= reposts) blog.getImages(flush = false)
+                        if (blog.reposts >= reposts) blog.getImages(flush = false).awaitAll()
                     }
                 }.onSuccess { record ->
                     count += record.size
