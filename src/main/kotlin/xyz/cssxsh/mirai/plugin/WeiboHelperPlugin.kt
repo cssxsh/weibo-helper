@@ -36,6 +36,7 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboLoginCommand.register()
         WeiboDetailCommand.register()
         WeiboHotCommand.register()
+        WeiboFollowCommand.register()
 
         logger.info { "图片缓存位置 ${ImageCache.absolutePath}" }
 

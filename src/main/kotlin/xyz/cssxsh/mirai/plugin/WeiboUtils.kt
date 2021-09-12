@@ -15,6 +15,7 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import net.sf.image4j.codec.ico.*
 import org.apache.commons.text.*
@@ -95,14 +96,14 @@ internal val HistoryExpire get() = WeiboHelperSettings.history
 
 typealias BuildMessage = suspend (contact: Contact) -> Message
 
-internal fun File.desktop(user: UserBaseInfo) {
-    mkdirs()
-    resolve("desktop.ini").apply { if (isHidden) delete() }.writeText(buildString {
+internal fun UserBaseInfo.desktop(dir: File) {
+    dir.mkdirs()
+    dir.resolve("desktop.ini").apply { if (isHidden) dir.delete() }.writeText(buildString {
         appendLine("[.ShellClassInfo]")
-        appendLine("LocalizedResourceName=${if (user.following) '$' else '#'}${user.id}@${user.screen}")
-        if (user.following) {
+        appendLine("LocalizedResourceName=${if (following) '$' else '#'}${id}@${screen}")
+        if (following) {
             runCatching {
-                ICOEncoder.write(ImageIO.read(URL(user.avatarLarge)), resolve("avatar.ico"))
+                ICOEncoder.write(ImageIO.read(URL(avatarLarge)), dir.resolve("avatar.ico"))
             }.onFailure {
                 logger.warning("头像下载失败", it)
             }
@@ -115,7 +116,7 @@ internal fun File.desktop(user: UserBaseInfo) {
     }, ChineseCharset)
 
     if (System.getProperty("os.name").lowercase().startsWith("windows")) {
-        Runtime.getRuntime().exec("attrib $absolutePath +s")
+        Runtime.getRuntime().exec("attrib ${dir.absolutePath} +s")
     }
 }
 
@@ -151,9 +152,9 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
     val cache = ImageCache.resolve("${user.id}").apply {
         mkdirs()
         if (resolve("desktop.ini").exists().not()) {
-            desktop(user)
+            user.desktop(this)
         } else if (user.following && resolve("avatar.ico").exists().not()) {
-            desktop(user)
+            user.desktop(this)
         }
     }
     val last = created.toEpochSecond() * 1_000
@@ -251,6 +252,11 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
     }
 }
 
+internal suspend fun UserInfo.toMessage(contact: Contact) = buildMessageChain {
+    append(client.download(avatarLarge).toExternalResource().use { it.uploadAsImage(contact) })
+    appendLine("已关注 @${screen}#${id}")
+}
+
 internal fun File.clean(following: Boolean, num: Int = 0) {
     logger.info { "微博图片清理开始" }
     val last = System.currentTimeMillis() - ImageExpire.toMillis()
@@ -277,7 +283,7 @@ internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScop
 internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
     ImageCache.resolve("$id").apply {
         if (resolve("desktop.ini").exists().not()) {
-            desktop(this@getRecord)
+            desktop(this)
         }
     }.resolve("$month.json").run {
         if (exists() && month != YearMonth.now()) {

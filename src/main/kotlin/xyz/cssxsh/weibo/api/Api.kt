@@ -32,6 +32,7 @@ const val FEED_FRIENDS_TIMELINE = "https://weibo.com/ajax/feed/friendstimeline"
 const val FEED_GROUPS_TIMELINE = "https://weibo.com/ajax/feed/groupstimeline"
 const val FEED_HOT_TIMELINE = "https://weibo.com/ajax/feed/hottimeline"
 
+// FRIENDSHIPS
 const val FRIENDSHIPS = "https://weibo.com/ajax/friendships/friends?page=1&uid=3603567912"
 const val ss = "https://weibo.com/ajax/friendships/friends?uid=3603567912&relate=fans&count=20&fansSortType=fansCount"
 const val FRIENDSHIPS_CREATE = "https://weibo.com/ajax/friendships/create"
