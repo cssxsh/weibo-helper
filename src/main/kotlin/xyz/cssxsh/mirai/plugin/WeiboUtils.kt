@@ -164,9 +164,10 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
                     writeBytes(runCatching {
-                        client.download(image(pid))
-                    }.recoverCatching {
+                        // 下载速度更快
                         client.download(download(pid))
+                    }.recoverCatching {
+                        client.download(image(pid))
                     }.recoverCatching {
                         client.download(image(pid).replace("large", "mw2000"))
                     }.onSuccess {

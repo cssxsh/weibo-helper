@@ -67,12 +67,12 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
     return WeiboClient.Json.decodeFromString(text)
 }
 
-suspend inline fun WeiboClient.download(url: String): ByteArray = useHttpClient { client ->
+suspend inline fun WeiboClient.download(url: String, min: Long = 1024): ByteArray = useHttpClient { client ->
     client.get<HttpResponse>(url) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
     }.also { response ->
-        val length = response.contentLength() ?: return@also
-        if (length < 1024) {
+        val length = response.contentLength() ?: 0
+        if (length < min) {
             throw ClientRequestException(response, response.readText())
         }
     }.receive()
@@ -94,23 +94,23 @@ internal fun id(mid: String): Long {
         mid.substring(5..8).decodeBase62()
 }
 
-private val ImageServer = listOf("wx1", "wx2", "wx3", "wx4")
+val ImageServer = listOf("wx1.sinaimg.cn", "wx2.sinaimg.cn", "wx3.sinaimg.cn", "wx4.sinaimg.cn")
 
-internal val ImageExtensions = mapOf(
+val ImageExtensions = mapOf(
     ContentType.Image.JPEG to "jpg",
     ContentType.Image.GIF to "gif",
     ContentType.Image.PNG to "png",
 )
 
-internal fun user(pid: String): Long = with(pid.substring(0..7)) {
+fun user(pid: String): Long = with(pid.substring(0..7)) {
     if (startsWith("00")) decodeBase62() else toLong(16)
 }
 
-internal fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
+fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 
-internal fun image(pid: String) = "https://${ImageServer.random()}.sinaimg.cn/large/${pid}.${extension(pid)}"
+fun image(pid: String, server: String = ImageServer.random()) = "https://${server}/large/${pid}.${extension(pid)}"
 
-internal fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
+fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
 
 val MicroBlog.link get() = "https://weibo.com/${user?.id ?: "detail"}/${mid}"
 
