@@ -41,6 +41,8 @@ internal val client: WeiboClient by lazy {
                 super.info = value
             }
 
+        override val timeout: Long get() = WeiboHelperSettings.timeout
+
         override val client: HttpClient = super.client.config {
             install(HttpCookies) {
                 val delegate = super.storage
@@ -147,6 +149,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
     if (pictures.isEmpty()) return@supervisorScope emptyList()
     val user = requireNotNull(user) { "没有用户信息" }
     val cache = ImageCache.resolve("${user.id}").apply {
+        mkdirs()
         if (resolve("desktop.ini").exists().not()) {
             desktop(user)
         } else if (user.following && resolve("avatar.ico").exists().not()) {

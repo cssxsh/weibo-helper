@@ -45,4 +45,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
 
     @ValueDescription("历史记录保留时间，单位天，默认 7d")
     val history by value(7L)
+
+    @ValueDescription("Http 超时时间")
+    val timeout by value(60_000L)
 }
