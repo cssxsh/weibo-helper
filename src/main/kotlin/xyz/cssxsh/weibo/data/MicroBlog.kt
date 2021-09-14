@@ -43,7 +43,11 @@ data class MicroBlog(
     @SerialName("user")
     val user: MicroBlogUser? = null,
     @SerialName("url_struct")
-    val urls: List<UrlStruct> = emptyList()
+    val urls: List<UrlStruct> = emptyList(),
+    @SerialName("title")
+    val top: TopTitle? = null,
+    @SerialName("screen_name_suffix_new")
+    val suffix: List<ScreenSuffix>? = null
 )
 
 @Serializable
@@ -56,6 +60,18 @@ data class UrlStruct(
     val title: String,
     @SerialName("url_type")
     val type: String
+)
+
+@Serializable
+data class TopTitle(
+    @SerialName("text")
+    val text: String
+)
+
+@Serializable
+data class ScreenSuffix(
+    @SerialName("text")
+    val content: String
 )
 
 @Serializable
