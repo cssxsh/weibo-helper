@@ -129,13 +129,14 @@ internal suspend fun Emoticon.file(): File {
     }
 }
 
-internal suspend fun MicroBlog.getContent(links: List<UrlStruct> = urls) = supervisorScope {
+internal suspend fun MicroBlog.getContent() = supervisorScope {
     var content = raw
+    var links = urls
     if (isLongText) {
         runCatching {
-            content = requireNotNull(client.getLongText(id).content) { "长文本为空 id: $id" }
-        }.recoverCatching {
-            content = requireNotNull(client.getLongText(mid).content) { "长文本为空 mid: $mid" }
+            val data = client.getLongText(mid)
+            content = requireNotNull(data.content) { "长文本为空 mid: $mid" }
+            links = data.urls
         }.onFailure {
             logger.warning { "获取微博[${id}]长文本失败 $it" }
         }

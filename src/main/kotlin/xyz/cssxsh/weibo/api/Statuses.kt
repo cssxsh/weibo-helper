@@ -54,7 +54,7 @@ suspend fun WeiboClient.getUserHot(uid: Long, page: Int): UserBlog = temp(PROFIL
     parameter("feature", FeatureType.HOT)
 }
 
-suspend fun WeiboClient.getMicroBlog(mid: Long) = getMicroBlog(mid.toString())
+suspend fun WeiboClient.getMicroBlog(id: Long) = getMicroBlog(id.toString())
 
 suspend fun WeiboClient.getMicroBlog(mid: String): MicroBlog = json(STATUSES_SHOW) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")
@@ -62,7 +62,7 @@ suspend fun WeiboClient.getMicroBlog(mid: String): MicroBlog = json(STATUSES_SHO
     parameter("id", mid)
 }
 
-suspend fun WeiboClient.getLongText(mid: Long) = getLongText(mid.toString())
+suspend fun WeiboClient.getLongText(id: Long) = getLongText(id.toString())
 
 suspend fun WeiboClient.getLongText(mid: String): LongTextContent = temp(STATUSES_LONGTEXT) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")

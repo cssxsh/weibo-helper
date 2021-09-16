@@ -102,6 +102,8 @@ data class MicroBlogUser(
 data class LongTextContent(
     @SerialName("longTextContent")
     val content: String? = null,
+    @SerialName("url_struct")
+    val urls: List<UrlStruct> = emptyList()
 )
 
 @Serializable
