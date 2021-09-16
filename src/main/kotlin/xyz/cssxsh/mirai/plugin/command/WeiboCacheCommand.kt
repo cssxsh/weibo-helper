@@ -20,7 +20,6 @@ object WeiboCacheCommand : CompositeCommand(
     suspend fun CommandSenderOnMessage<*>.user(uid: Long, second: Int = 10, reposts: Int = 100) = sendMessage {
         val interval = second * 1000L
         val info = client.getUserInfo(uid).user
-        ImageCache.resolve("${info.id}").desktop(info)
         val history = client.getUserHistory(uid)
         val months = history.flatMap { (year, months) -> months.map { YearMonth.of(year, it)!! } }.sortedDescending()
         launch {
@@ -58,7 +57,6 @@ object WeiboCacheCommand : CompositeCommand(
             }
         }
         members.collect { info ->
-            ImageCache.resolve("${info.id}").desktop(info)
             val history = client.getUserHistory(info.id)
             val months = history.flatMap { (year, months) ->
                 months.map { YearMonth.of(year, it)!! }

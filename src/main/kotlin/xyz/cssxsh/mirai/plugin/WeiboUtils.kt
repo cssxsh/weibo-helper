@@ -96,8 +96,13 @@ internal val HistoryExpire get() = WeiboHelperSettings.history
 
 typealias BuildMessage = suspend (contact: Contact) -> Message
 
-internal fun UserBaseInfo.desktop(dir: File) {
+internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache.resolve("$id")): File {
     dir.mkdirs()
+    if (!(flush
+            || dir.resolve("desktop.ini").exists()
+            || (following && dir.resolve("avatar.ico").exists()))
+    ) return dir
+
     dir.resolve("desktop.ini").apply { if (isHidden) dir.delete() }.writeText(buildString {
         appendLine("[.ShellClassInfo]")
         appendLine("LocalizedResourceName=${if (following) '$' else '#'}${id}@${screen}")
@@ -118,6 +123,8 @@ internal fun UserBaseInfo.desktop(dir: File) {
     if (System.getProperty("os.name").lowercase().startsWith("windows")) {
         Runtime.getRuntime().exec("attrib ${dir.absolutePath} +s")
     }
+
+    return dir
 }
 
 internal suspend fun Emoticon.file(): File {
@@ -150,14 +157,7 @@ internal suspend fun MicroBlog.getContent() = supervisorScope {
 internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorScope {
     if (pictures.isEmpty()) return@supervisorScope emptyList()
     val user = requireNotNull(user) { "没有用户信息" }
-    val cache = ImageCache.resolve("${user.id}").apply {
-        mkdirs()
-        if (resolve("desktop.ini").exists().not()) {
-            user.desktop(this)
-        } else if (user.following && resolve("avatar.ico").exists().not()) {
-            user.desktop(this)
-        }
-    }
+    val cache = user.desktop()
     val last = created.toEpochSecond() * 1_000
 
     pictures.mapIndexed { index, pid ->
@@ -284,11 +284,7 @@ internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScop
 
 @OptIn(ExperimentalSerializationApi::class)
 internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
-    ImageCache.resolve("$id").apply {
-        if (resolve("desktop.ini").exists().not()) {
-            desktop(this)
-        }
-    }.resolve("$month.json").run {
+    desktop(true).resolve("$month.json").run {
         if (exists() && month != YearMonth.now()) {
             WeiboClient.Json.decodeFromString(readText())
         } else {
