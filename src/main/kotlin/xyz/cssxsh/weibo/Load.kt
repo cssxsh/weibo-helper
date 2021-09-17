@@ -71,9 +71,10 @@ suspend inline fun WeiboClient.download(url: String, min: Long = 1024): ByteArra
     client.get<HttpResponse>(url) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
     }.also { response ->
-        val length = response.contentLength() ?: 0
+        // 部分 response 没有 ContentLength, 直接返回，例如验证码
+        val length = response.contentLength() ?: return@also
         if (length < min) {
-            throw ClientRequestException(response, response.readText())
+            throw ClientRequestException(response, response.receive())
         }
     }.receive()
 }
