@@ -22,7 +22,7 @@ private suspend inline fun <reified T> WeiboClient.data(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit = {}
 ): T {
-    return callback<LoginData>(url, block).run {
+    return with(callback<LoginData>(url, block)) {
         check(code == SUCCESS_CODE) { toString() }
         WeiboClient.Json.decodeFromJsonElement(data)
     }

@@ -12,8 +12,7 @@ import net.mamoe.mirai.utils.*
 import xyz.cssxsh.weibo.api.*
 
 @OptIn(ConsoleExperimentalApi::class)
-internal object WeiboListener
-    : CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
+internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
 
     /**
      * 1. https://m.weibo.cn/status/JFzsgd0CX

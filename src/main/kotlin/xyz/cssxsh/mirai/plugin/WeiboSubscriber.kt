@@ -130,7 +130,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     fun add(id: K, name: String, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
-            (info ?: WeiboTaskInfo(name = name)).run {
+            with(info ?: WeiboTaskInfo(name = name)) {
                 copy(contacts = contacts + subject.delegate)
             }
         }

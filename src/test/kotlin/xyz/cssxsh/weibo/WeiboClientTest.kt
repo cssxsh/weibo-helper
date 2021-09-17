@@ -1,10 +1,11 @@
 package xyz.cssxsh.weibo
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import net.mamoe.yamlkt.Yaml
+import kotlinx.coroutines.*
+import kotlinx.serialization.*
+import net.mamoe.yamlkt.*
+import org.junit.jupiter.api.*
 import xyz.cssxsh.weibo.data.*
-import java.io.File
+import java.io.*
 
 internal abstract class WeiboClientTest {
 
@@ -13,7 +14,7 @@ internal abstract class WeiboClientTest {
         6787924129L
     )
 
-    val client by lazy { WeiboClient(status) }
+    val client by lazy { WeiboClient().apply { load(status) } }
 
     val test = File("./test/")
 
@@ -46,4 +47,9 @@ internal abstract class WeiboClientTest {
         set(value) {
             yaml.writeText(Yaml.encodeToString<LoginStatus>(value))
         }
+
+    @AfterEach
+    fun save(): Unit = runBlocking {
+        status = client.status()
+    }
 }

@@ -15,7 +15,6 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
-import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import net.sf.image4j.codec.ico.*
 import org.apache.commons.text.*
@@ -98,7 +97,7 @@ typealias BuildMessage = suspend (contact: Contact) -> Message
 
 internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache.resolve("$id")): File {
     dir.mkdirs()
-    if (!(flush
+    if ((!flush
             || dir.resolve("desktop.ini").exists()
             || (following && dir.resolve("avatar.ico").exists()))
     ) return dir
@@ -118,7 +117,7 @@ internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache
         appendLine("Mode=")
         appendLine("Vid=")
         appendLine("FolderType=Pictures")
-    }, ChineseCharset)
+    }, Charsets.GBK)
 
     if (System.getProperty("os.name").lowercase().startsWith("windows")) {
         Runtime.getRuntime().exec("attrib ${dir.absolutePath} +s")
@@ -256,7 +255,7 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
 }
 
 internal suspend fun UserInfo.toMessage(contact: Contact) = buildMessageChain {
-    append(client.download(avatarLarge).toExternalResource().use { it.uploadAsImage(contact) })
+    append(client.download(avatarLarge).inputStream().uploadAsImage(contact))
     appendLine("已关注 @${screen}#${id}")
 }
 
@@ -284,7 +283,7 @@ internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScop
 
 @OptIn(ExperimentalSerializationApi::class)
 internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
-    desktop(true).resolve("$month.json").run {
+    with(desktop(true).resolve("$month.json")) {
         if (exists() && month != YearMonth.now()) {
             WeiboClient.Json.decodeFromString(readText())
         } else {

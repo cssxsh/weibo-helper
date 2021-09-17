@@ -1,9 +1,8 @@
 package xyz.cssxsh.weibo
 
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.*
+import org.junit.jupiter.api.*
 import xyz.cssxsh.weibo.api.*
 
 internal class LoginKtTest: WeiboClientTest() {
@@ -22,7 +21,6 @@ internal class LoginKtTest: WeiboClientTest() {
         qrcode.writeBytes(channel.receive())
         Runtime.getRuntime().exec("cmd /c ${qrcode.absolutePath}")
         job.join()
-        status = client.status()
         println(client.status().info)
     }
 

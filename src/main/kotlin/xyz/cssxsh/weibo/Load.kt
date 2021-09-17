@@ -78,7 +78,12 @@ suspend inline fun WeiboClient.download(url: String, min: Long = 1024): ByteArra
     }.receive()
 }
 
-internal val ChineseCharset = Charset.forName("GBK")
+/**
+ * 国标码
+ * Chinese Internal Code Specification
+ */
+@Suppress("unused")
+internal val Charsets.GBK get() = Charset.forName("GBK")
 
 internal const val EncodeChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 

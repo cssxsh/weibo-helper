@@ -55,15 +55,11 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
         install(HttpCookies) {
             storage = this@WeiboClient.storage
         }
-        install(HttpPlainText) {
-            responseCharsetFallback = ChineseCharset
+        Charsets {
+            responseCharsetFallback = Charsets.GBK
         }
         BrowserUserAgent()
-        ContentEncoding {
-            gzip()
-            deflate()
-            identity()
-        }
+        ContentEncoding()
         defaultRequest {
             header("x-xsrf-token", xsrf?.value)
         }

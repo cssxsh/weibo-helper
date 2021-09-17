@@ -1,23 +1,36 @@
 package xyz.cssxsh.weibo
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
+import xyz.cssxsh.weibo.data.*
 import java.io.File
 
 internal class ProfileKtTest : WeiboClientTest() {
 
     @BeforeEach
     fun flush(): Unit = runBlocking { client.restore() }
+
+    private val dir = test.resolve("emoticon")
+
+    @Test
+    fun emoticon(): Unit = runBlocking {
+        client.getEmoticon().emoticon.let { map ->
+            (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
+                it.phrase
+            }
+        }.forEach { (_, emoticon) ->
+            dir.resolve(emoticon.category.ifBlank { "其他" })
+                .resolve("${emoticon.phrase}.${emoticon.url.substringAfterLast('.')}").runCatching {
+                parentFile.mkdirs()
+                writeBytes(client.download(emoticon.url))
+                delay(1_000L)
+            }
+        }
+    }
 
     @Test
     fun getUserInfo(): Unit = runBlocking {
@@ -63,8 +76,8 @@ internal class ProfileKtTest : WeiboClientTest() {
         val gid = 4056713441256071
         val members = flow {
             var page = 1
-            while (isActive) {
-                runCatching {
+            while (currentCoroutineContext().isActive) {
+                runCatching<UserGroupMembers> {
                     client.getGroupMembers(gid = gid, page = page++)
                 }.onSuccess {
                     if (it.users.isEmpty()) return@flow
@@ -100,9 +113,7 @@ internal class ProfileKtTest : WeiboClientTest() {
     fun group(): Unit = runBlocking {
         client.getUserInfo()
         ImageCache.listFiles().orEmpty().filter { cache ->
-            cache.resolve("avatar.ico").exists().not() && cache.resolve("desktop.ini").run {
-                "SHELL32" in readText()
-            }
+            cache.resolve("avatar.ico").exists().not() && cache.resolve("desktop.ini").readText().contains("SHELL32")
         }.map {
             it.name.toLong()
         }.onEach {
@@ -117,8 +128,8 @@ internal class ProfileKtTest : WeiboClientTest() {
                 delay(3 * 1000L)
             }.mapCatching { info ->
                 client.setGroup(user = info.id, group = 4056713441256071)
-                val cache = ImageCache.resolve("${info.id}").apply { mkdirs() }
-                cache.desktop(user = info)
+                val cache = ImageCache.resolve("${info.id}")
+                info.desktop(flush = true, dir = cache)
                 client.getGroupList(info.id)
             }.onFailure {
                 println(it.message)
