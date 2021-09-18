@@ -3,10 +3,20 @@ plugins {
     kotlin("plugin.serialization") version Versions.kotlin
 
     id("net.mamoe.mirai-console") version  Versions.mirai
+    id("net.mamoe.maven-central-publish") version "0.6.1"
 }
 
-group = "xyz.cssxsh.mirai.plugin"
+group = "xyz.cssxsh"
 version = "1.2.7"
+
+mavenCentralPublish {
+    useCentralS01()
+    singleDevGithubProject("cssxsh", "weibo-helper")
+    licenseFromGitHubProject("AGPL-3.0", "master")
+    publication {
+        artifact(tasks.getByName("buildPlugin"))
+    }
+}
 
 repositories {
     clear()
