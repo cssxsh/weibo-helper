@@ -15,6 +15,7 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
+import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import net.sf.image4j.codec.ico.*
 import org.apache.commons.text.*
@@ -255,7 +256,7 @@ internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPr
 }
 
 internal suspend fun UserInfo.toMessage(contact: Contact) = buildMessageChain {
-    append(client.download(avatarLarge).inputStream().uploadAsImage(contact))
+    append(client.download(avatarLarge).toExternalResource().use { it.uploadAsImage(contact) })
     appendLine("已关注 @${screen}#${id}")
 }
 
