@@ -70,7 +70,7 @@ data class TopTitle(
 
 @Serializable
 data class ScreenSuffix(
-    @SerialName("text")
+    @SerialName("content")
     val content: String
 )
 
