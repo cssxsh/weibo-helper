@@ -182,7 +182,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
     }
 }
 
-private suspend fun MessageChainBuilder.emoticon(content: String, contact: Contact) {
+private suspend fun emoticon(content: String, contact: Contact) = buildMessageChain {
     var pos = 0
     while (pos < content.length) {
         val start = content.indexOf('[', pos).takeIf { it != -1 } ?: break
@@ -211,19 +211,19 @@ private suspend fun MessageChainBuilder.emoticon(content: String, contact: Conta
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}#${uid}")
     top?.run { appendLine("标题: $text") }
-    suffix?.joinToString(" ") { it.content }?.let { appendLine(it) }
     appendLine("时间: $created")
     appendLine("链接: $link")
+    suffix?.joinToString(" ") { it.content }?.let { appendLine(it) }
 
     val content = getContent()
 
     if (Emoticons.isEmpty()) {
         appendLine(content)
     } else {
-        emoticon(content, contact)
+        add(emoticon(content, contact))
     }
 
-    if (PictureCount == -1 || pictures.size <= PictureCount) {
+    if (PictureCount < 0 || pictures.size <= PictureCount) {
         getImages().forEachIndexed { index, deferred ->
             deferred.runCatching {
                 add(await().uploadAsImage(contact))
