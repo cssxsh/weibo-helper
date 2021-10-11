@@ -170,8 +170,6 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
                         client.download(download(pid))
                     }.recoverCatching {
                         client.download(image(pid))
-                    }.recoverCatching {
-                        client.download(image(pid).replace("large", "mw2000"))
                     }.onSuccess {
                         logger.verbose { "[${name}]下载完成, 大小${it.size / 1024}KB" }
                     }.getOrThrow())
