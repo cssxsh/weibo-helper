@@ -86,13 +86,18 @@ class WeiboEnumSerializer<E, T>(private val values: Array<E>) : KSerializer<E> w
     }
 }
 
+@Suppress("FunctionName")
+inline fun <reified E, T> WeiboEnumSerializer(): WeiboEnumSerializer<E, T> where E : Enum<E>, E : WeiboValue<T> {
+    return WeiboEnumSerializer(enumValues())
+}
+
 @Serializable(with = PictureType.Companion::class)
 enum class PictureType(override val value: String) : WeiboValue<String> {
     PICTURE(value = "pic"),
     GIF(value = "gif"),
     LIVE_PHOTO(value = "livephoto");
 
-    companion object : KSerializer<PictureType> by WeiboEnumSerializer(values())
+    companion object : KSerializer<PictureType> by WeiboEnumSerializer()
 }
 
 @Serializable(with = GenderType.Companion::class)
@@ -101,7 +106,7 @@ enum class GenderType(override val value: String) : WeiboValue<String> {
     FEMALE(value = "f"),
     NONE(value = "n");
 
-    companion object : KSerializer<GenderType> by WeiboEnumSerializer(values())
+    companion object : KSerializer<GenderType> by WeiboEnumSerializer()
 }
 
 @Serializable(with = UserGroupType.Companion::class)
@@ -114,7 +119,7 @@ enum class UserGroupType(override val value: Int) : WeiboValue<Int> {
     FILTER(value = 20),
     SYSTEM(value = 8888);
 
-    companion object : KSerializer<UserGroupType> by WeiboEnumSerializer(values())
+    companion object : KSerializer<UserGroupType> by WeiboEnumSerializer()
 }
 
 /**
@@ -138,5 +143,15 @@ enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
     SENIOR(value = 220),
     DECEASED(value = 400);
 
-    companion object : KSerializer<VerifiedType> by WeiboEnumSerializer(values())
+    companion object : KSerializer<VerifiedType> by WeiboEnumSerializer()
+}
+
+@Serializable(with = ObjectType.Companion::class)
+enum class ObjectType(override val value: String) : WeiboValue<String> {
+    VIDEO(value = "video"),
+    ARTICLE(value = "article"),
+    INTERACT_VOTE(value = "hudongvote"),
+    WEBPAGE(value = "webpage");
+
+    companion object : KSerializer<ObjectType> by WeiboEnumSerializer()
 }

@@ -83,7 +83,7 @@ data class MicroBlogUser(
     @SerialName("following")
     override val following: Boolean = false,
     @SerialName("follow_me")
-    val followMe: Boolean = false,
+    val followed: Boolean = false,
     @SerialName("id")
     override val id: Long = 0,
     @SerialName("profile_image_url")

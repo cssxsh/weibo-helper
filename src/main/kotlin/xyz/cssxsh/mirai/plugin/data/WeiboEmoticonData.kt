@@ -15,7 +15,9 @@ object WeiboEmoticonData : AutoSavePluginData("WeiboEmoticonData") {
     @ValueDescription("表情数据")
     val emoticons: MutableMap<String, Emoticon> by value {
         if (isEmpty()) {
-            default().forEach { put(it.phrase, it) }
+            for (item in default()) {
+                put(item.phrase, item)
+            }
         }
     }
 }

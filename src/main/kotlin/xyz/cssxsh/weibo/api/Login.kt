@@ -62,7 +62,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
                     delay(CheckDelay)
                 }
                 else -> {
-                    throw IllegalStateException(json.msg)
+                    throw IllegalStateException(json.message)
                 }
             }
         }

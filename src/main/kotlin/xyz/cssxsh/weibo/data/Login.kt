@@ -8,7 +8,7 @@ data class LoginData(
     @SerialName("data")
     val `data`: JsonElement,
     @SerialName("msg")
-    val msg: String,
+    val message: String,
     @SerialName("retcode")
     val code: Int
 )

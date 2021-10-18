@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
+import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
@@ -18,6 +19,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     abstract val load: suspend (id: K) -> List<MicroBlog>
 
     protected open val filter: WeiboFilter get() = WeiboHelperSettings
+
+    private val forward get() = WeiboHelperSettings.forward
 
     protected abstract val tasks: MutableMap<K, WeiboTaskInfo>
 
@@ -89,10 +92,29 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             runCatching {
                 val histories = history.values.flatMap { listOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
-                val list = load(id).filter { predicate(it, id, histories) }.onEach { blog ->
-                    if (blog.created > tasks.getValue(id).last) {
-                        sendMessageToTaskContacts(id) { contact ->
-                            blog.toMessage(contact)
+                val list = load(id).filter { predicate(it, id, histories) }
+
+                if (forward) {
+                    sendMessageToTaskContacts(id) { contact ->
+                        buildForwardMessage(contact) {
+                            displayStrategy = object : ForwardMessage.DisplayStrategy {
+                                override fun generateTitle(forward: RawForwardMessage): String =
+                                    "${type}-${id}有新微博"
+
+                                override fun generateSummary(forward: RawForwardMessage): String =
+                                    "查看${list.size}条微博转发"
+                            }
+                            for (blog in list) {
+                                contact.bot says blog.toMessage(contact)
+                            }
+                        }
+                    }
+                } else {
+                    for (blog in list) {
+                        if (blog.created > tasks.getValue(id).last) {
+                            sendMessageToTaskContacts(id) { contact ->
+                                blog.toMessage(contact)
+                            }
                         }
                     }
                 }

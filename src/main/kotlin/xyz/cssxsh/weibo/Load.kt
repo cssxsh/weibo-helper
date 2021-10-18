@@ -114,7 +114,7 @@ fun user(pid: String): Long = with(pid.substring(0..7)) {
 
 fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 
-fun image(pid: String, server: String = ImageServer.random()) = "https://${server}/large/${pid}.${extension(pid)}"
+fun image(pid: String, server: String = ImageServer.random()) = "https://${server}/mw2000/${pid}.${extension(pid)}"
 
 fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
 
