@@ -290,14 +290,13 @@ internal suspend fun UserInfo.toMessage(contact: Contact) = buildMessageChain {
 internal fun File.clean(following: Boolean, num: Int = 0) {
     logger.info { "微博图片清理开始" }
     val last = System.currentTimeMillis() - ImageExpire.toMillis()
-    listFiles { file -> file != Emoticons }.orEmpty().forEach { dir ->
+    for (dir in listFiles().orEmpty()) {
         val avatar = dir.resolve("avatar.ico").exists()
-        if (following.not() && avatar) return@forEach
+        if (following.not() && avatar) continue
         val images = dir.listFiles { file -> file.extension in ImageExtensions.values }.orEmpty()
-        if (num > 0 && images.size > num) return@forEach
-        images.all { file ->
-            file.lastModified() < last && file.delete()
-        } && dir.apply { listFiles()?.forEach { it.delete() } }.delete()
+        if (num > 0 && images.size > num) continue
+        images.all { file -> file.lastModified() < last && file.delete() }
+            && dir.apply { for (file in listFiles().orEmpty()) file.delete() }.delete()
     }
 }
 
