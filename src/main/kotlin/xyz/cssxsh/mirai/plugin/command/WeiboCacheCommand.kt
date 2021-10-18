@@ -22,7 +22,7 @@ object WeiboCacheCommand : CompositeCommand(
         val months = history.flatMap { (year, months) -> months.map { YearMonth.of(year, it)!! } }.sortedDescending()
         launch {
             var count = 0
-            months.forEach { month ->
+            for (month in months) {
                 runCatching {
                     info.getRecord(month, interval).onEach { blog ->
                         if (blog.reposts >= reposts) blog.getImages(flush = false).awaitAll()
@@ -33,7 +33,7 @@ object WeiboCacheCommand : CompositeCommand(
                     logger.warning("对@${info.screen}的${month}缓存下载失败", it)
                 }
             }
-            sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statusesCount}")
+            sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statuses}")
         }
         "对@${info.screen}的{${months.first()}~${months.last()}}缓存任务开始".toPlainText()
     }
@@ -61,7 +61,7 @@ object WeiboCacheCommand : CompositeCommand(
             }.sortedDescending()
             var count = 0
             sendMessage("对@${info.screen}的{${months.first()}~${months.last()}}缓存任务开始")
-            months.forEach { month ->
+            for (month in months) {
                 runCatching {
                     info.getRecord(month, interval).onEach { blog ->
                         if (blog.reposts >= reposts) blog.getImages(flush = false).awaitAll()
@@ -72,7 +72,7 @@ object WeiboCacheCommand : CompositeCommand(
                     logger.warning("对@${info.screen}的${month}缓存下载失败", it)
                 }
             }
-            sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statusesCount}")
+            sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statuses}")
         }
         "对Group($gid)的缓存文件夹图标已设置".toPlainText()
     }

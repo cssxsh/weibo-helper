@@ -243,10 +243,10 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
 private val GroupPredicate = { group: UserGroup -> group.type != UserGroupType.SYSTEM }
 
 internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
-    groups.forEach { group ->
+    for (group in groups) {
         group.list.filter(predicate).takeIf { it.isNotEmpty() }?.let { list ->
             appendLine("===${group.title}===")
-            list.forEach { item ->
+            for (item in list) {
                 appendLine("${item.title} -> ${item.gid}")
             }
         }
@@ -387,14 +387,25 @@ val Contact.delegate get() = if (this is Group) id * -1 else id
  * 查找Contact
  */
 fun findContact(delegate: Long): Contact? {
-    Bot.instances.forEach { bot ->
+    for (bot in Bot.instances) {
         if (delegate < 0) {
-            bot.getGroup(delegate * -1)?.let { return@findContact it }
+            for (group in bot.groups) {
+                if (group.id == delegate * -1) return group
+            }
         } else {
-            bot.getFriend(delegate)?.let { return@findContact it }
-            bot.getStranger(delegate)?.let { return@findContact it }
-            bot.groups.forEach { group ->
-                group.getMember(delegate)?.let { return@findContact it }
+            for (friend in bot.friends) {
+                if (friend.id == delegate) return friend
+            }
+            for (stranger in bot.strangers) {
+                if (stranger.id == delegate) return stranger
+            }
+            for (friend in bot.friends) {
+                if (friend.id == delegate) return friend
+            }
+            for (group in bot.groups) {
+                for (member in group.members) {
+                    if (member.id == delegate) return member
+                }
             }
         }
     }

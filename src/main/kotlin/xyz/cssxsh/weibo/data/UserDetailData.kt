@@ -68,15 +68,15 @@ data class UserInfo(
     @SerialName("description")
     val description: String,
     @SerialName("favourites_count")
-    val favouritesCount: Int = 0,
+    val favourites: Int = 0,
     @SerialName("followers_count")
-    val followersCount: Int = 0,
+    val followers: Int = 0,
     @SerialName("following")
     override val following: Boolean = false,
     @SerialName("follow_me")
-    val followMe: Boolean = false,
+    val followed: Boolean = false,
     @SerialName("friends_count")
-    val friendsCount: Int = 0,
+    val friends: Int = 0,
     @SerialName("gender")
     val gender: GenderType = GenderType.NONE,
     @SerialName("id")
@@ -85,13 +85,13 @@ data class UserInfo(
     @Serializable(LocaleSerializer::class)
     val lang: Locale = Locale.CHINA,
     @SerialName("like")
-    val like: Boolean = false,
+    val liking: Boolean = false,
     @SerialName("like_me")
-    val likeMe: Boolean = false,
+    val liked: Boolean = false,
     @SerialName("location")
     val location: String,
     @SerialName("bi_followers_count")
-    val mutualFollowersCount: Int = 0,
+    val mutualFollowers: Int = 0,
     @SerialName("profile_image_url")
     val profileImageUrl: String,
     @SerialName("profile_url")
@@ -101,7 +101,7 @@ data class UserInfo(
     @SerialName("special_follow")
     val specialFollow: Boolean = false,
     @SerialName("statuses_count")
-    val statusesCount: Int = 0,
+    val statuses: Int = 0,
     @SerialName("url")
     val url: String,
     @SerialName("verified")
