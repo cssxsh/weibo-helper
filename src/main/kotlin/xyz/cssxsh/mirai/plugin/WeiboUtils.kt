@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.features.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.*
 import net.mamoe.mirai.console.command.*
@@ -17,6 +18,7 @@ import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
+import net.mamoe.mirai.utils.RemoteFile.Companion.sendFile
 import net.sf.image4j.codec.ico.*
 import org.apache.commons.text.*
 import xyz.cssxsh.mirai.plugin.data.*
@@ -91,6 +93,8 @@ internal val LoginContact by lazy {
 internal val Emoticons by WeiboEmoticonData::emoticons
 
 internal val EmoticonCache get() = ImageCache.resolve("emoticon")
+
+internal val VideoCache get() = ImageCache.resolve("video")
 
 internal val HistoryExpire get() = WeiboHelperSettings.history
 
@@ -180,6 +184,19 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
     }
 }
 
+internal suspend fun MicroBlog.getVideo(flush: Boolean = false) = supervisorScope {
+    val media = requireNotNull(page?.media) { "MicroBlog(${mid}) Not Found Video" }
+    val title = media.titles.firstOrNull()?.title ?: media.title
+    val video = media.playbacks.first().info
+
+    VideoCache.resolve("${id}-${title}.mp4").apply {
+        if (flush || exists().not()) {
+            parentFile.mkdirs()
+            client.download(video = video).collect(::appendBytes)
+        }
+    }
+}
+
 private suspend fun emoticon(content: String, contact: Contact) = buildMessageChain {
     var pos = 0
     while (pos < content.length) {
@@ -213,6 +230,18 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     appendLine("链接: $link")
     suffix?.joinToString(" ") { it.content }?.let { appendLine(it) }
 
+    // FIXME: Send Video
+    if (hasVideo) {
+        supervisorScope {
+            launch {
+                val file = getVideo()
+                if (contact is FileSupported) {
+                    contact.sendFile(file.name, file)
+                }
+            }
+        }
+    }
+
     val content = getContent()
 
     if (Emoticons.isEmpty()) {
@@ -222,7 +251,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     }
 
     if (PictureCount < 0 || pictures.size <= PictureCount) {
-        getImages().forEachIndexed { index, deferred ->
+        for ((index, deferred) in getImages().withIndex()) {
             deferred.runCatching {
                 add(await().uploadAsImage(contact))
             }.onFailure {

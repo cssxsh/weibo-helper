@@ -5,6 +5,7 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.api.*
@@ -67,7 +68,7 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
     return WeiboClient.Json.decodeFromString(text)
 }
 
-suspend inline fun WeiboClient.download(url: String, min: Long = 1024): ByteArray = useHttpClient { client ->
+suspend fun WeiboClient.download(url: String, min: Long = 1024): ByteArray = useHttpClient { client ->
     client.get<HttpResponse>(url) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
     }.also { response ->
@@ -77,6 +78,17 @@ suspend inline fun WeiboClient.download(url: String, min: Long = 1024): ByteArra
             throw ClientRequestException(response, response.receive())
         }
     }.receive()
+}
+
+suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<ByteArray> {
+    for (offset in 0 until video.size step video.buffer) {
+        val limit = minOf(offset + video.buffer, video.size) - 1
+        emit(useHttpClient { client ->
+            client.get(video.url) {
+                header(HttpHeaders.Range, "bytes=${offset}-${limit}")
+            }
+        })
+    }
 }
 
 /**

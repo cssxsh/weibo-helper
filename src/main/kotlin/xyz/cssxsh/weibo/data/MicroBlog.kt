@@ -6,6 +6,8 @@ import java.time.*
 
 val MicroBlog.isLongText get() = (continueTag != null)
 
+val MicroBlog.hasVideo get() = (page?.form == ObjectType.VIDEO)
+
 @Serializable
 data class MicroBlog(
     /**
@@ -47,7 +49,9 @@ data class MicroBlog(
     @SerialName("title")
     val top: TopTitle? = null,
     @SerialName("screen_name_suffix_new")
-    val suffix: List<ScreenSuffix>? = null
+    val suffix: List<ScreenSuffix>? = null,
+    @SerialName("page_info")
+    val page: PageInfo? = null
 )
 
 @Serializable
