@@ -148,6 +148,7 @@ enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
 
 @Serializable(with = ObjectType.Companion::class)
 enum class ObjectType(override val value: String) : WeiboValue<String> {
+    NONE(value = ""),
     VIDEO(value = "video"),
     ARTICLE(value = "article"),
     INTERACT_VOTE(value = "hudongvote"),
