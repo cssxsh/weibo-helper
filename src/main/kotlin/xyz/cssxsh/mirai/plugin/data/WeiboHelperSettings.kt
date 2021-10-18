@@ -50,5 +50,5 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     val timeout by value(60_000L)
 
     @ValueDescription("以转发消息的方式发送订阅微博")
-    val forward: Boolean by value(true)
+    val forward: Boolean by value(false)
 }
