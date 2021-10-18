@@ -1,6 +1,7 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
+import kotlinx.serialization.*
 import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
 import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
 import net.mamoe.mirai.console.util.*
@@ -35,6 +36,12 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
                 runCatching {
                     message.quote() + client.getMicroBlog(mid = result.value).toMessage(contact = subject)
                 }.onFailure {
+                    if (it is SerializationException) {
+                        logger.warning { "构建WEIBO(${result.value})序列化时失败, $it" }
+                        LoginContact?.sendMessage("构建WEIBO(${result.value})任务序列化时失败, $it")
+                        return@onFailure
+                    }
+
                     logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, it)
                     runCatching {
                         client.restore()

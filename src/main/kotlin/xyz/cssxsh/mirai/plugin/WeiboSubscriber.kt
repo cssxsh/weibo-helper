@@ -1,6 +1,7 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
+import kotlinx.serialization.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
@@ -130,6 +131,12 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             }.onSuccess {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }.onFailure {
+                if (it is SerializationException) {
+                    logger.warning { "$type(${id})监听任务序列化时失败, $it" }
+                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $it")
+                    return@onFailure
+                }
+
                 if (client.info.uid != 0L) {
                     logger.warning { "$type(${id})监听任务执行失败, ${it}，尝试重新加载Cookie" }
                     runCatching {

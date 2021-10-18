@@ -150,8 +150,13 @@ enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
 enum class ObjectType(override val value: String) : WeiboValue<String> {
     NONE(value = ""),
     VIDEO(value = "video"),
+    AUDIO(value = "audio"),
     ARTICLE(value = "article"),
     INTERACT_VOTE(value = "hudongvote"),
+    USER(value = "user"),
+    STOCK(value = "stock"),
+    Q_A(value = "wenda"),
+    FANGLE(value = "fangle"),
     WEBPAGE(value = "webpage");
 
     companion object : KSerializer<ObjectType> by WeiboEnumSerializer()
