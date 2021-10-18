@@ -29,7 +29,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     private fun infos(id: K) = tasks[id]?.contacts.orEmpty()
 
     fun start(): Unit = synchronized(taskJobs) {
-        tasks.forEach { (id, _) ->
+        for ((id, _) in tasks) {
             taskJobs[id] = listener(id)
         }
     }
@@ -173,15 +173,13 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         }
     }
 
-    fun detail(subject: Contact): String {
-        return buildString {
-            appendLine("# 订阅列表")
-            appendLine("|     NAME     |     ID     |     LAST     |")
-            appendLine("|--------------|------------|--------------|")
-            tasks.forEach { (id, info) ->
-                if (subject.delegate !in info.contacts) return@forEach
-                appendLine("| ${info.name} | $id | ${info.last} |")
-            }
+    fun detail(subject: Contact): String = buildString {
+        appendLine("# 订阅列表")
+        appendLine("|     NAME     |     ID     |     LAST     |")
+        appendLine("|--------------|------------|--------------|")
+        for ((id, info) in tasks) {
+            if (subject.delegate !in info.contacts) continue
+            appendLine("| ${info.name} | $id | ${info.last} |")
         }
     }
 }
