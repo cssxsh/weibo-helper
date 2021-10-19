@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "xyz.cssxsh"
-version = "1.3.2"
+version = "1.3.3"
 
 mavenCentralPublish {
     useCentralS01()
@@ -30,10 +30,10 @@ repositories {
 kotlin {
     sourceSets {
         all {
-            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlin.RequiresOptIn")
 //            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
 //            languageSettings.useExperimentalAnnotation("io.ktor.util.KtorExperimentalAPI")
-            languageSettings.useExperimentalAnnotation("kotlinx.serialization.ExperimentalSerializationApi")
+            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
 //            languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
 //            languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.util.ConsoleExperimentalApi")
         }
