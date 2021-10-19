@@ -154,6 +154,7 @@ enum class ObjectType(override val value: String) : WeiboValue<String> {
     ARTICLE(value = "article"),
     INTERACT_VOTE(value = "hudongvote"),
     USER(value = "user"),
+    GROUP(value = "group"),
     STOCK(value = "stock"),
     Q_A(value = "wenda"),
     FANGLE(value = "fangle"),
