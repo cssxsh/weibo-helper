@@ -21,7 +21,7 @@ data class PageInfo(
     @Serializable
     data class MediaInfo(
         @SerialName("author_info")
-        val author: UserInfo,
+        val author: UserInfo? = null,
         @SerialName("duration")
         val duration: Int,
         @SerialName("h5_url")
@@ -33,9 +33,9 @@ data class PageInfo(
         @SerialName("next_title")
         val title: String,
         @SerialName("online_users_number")
-        val online: Int,
+        val online: Int = 0,
         @SerialName("playback_list")
-        val playbacks: List<PlayBack>,
+        val playbacks: List<PlayBack> = emptyList(),
         @SerialName("titles")
         val titles: List<Title> = emptyList(),
         @SerialName("video_publish_time")
