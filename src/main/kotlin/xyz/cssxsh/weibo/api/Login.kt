@@ -34,7 +34,7 @@ private fun location(html: String): String? {
         .takeIf { it.startsWith("http") }
 }
 
-suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginResult {
+suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginResult {
     // Set Cookie
     download(PASSPORT_VISITOR)
 
@@ -44,7 +44,7 @@ suspend fun WeiboClient.qrcode(send: suspend (image: ByteArray) -> Unit): LoginR
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    send(download(code.image))
+    send(code.image)
 
     val token: LoginToken = supervisorScope {
         while (isActive) {

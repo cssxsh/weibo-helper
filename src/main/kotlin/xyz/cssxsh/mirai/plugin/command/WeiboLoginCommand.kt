@@ -6,6 +6,7 @@ import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.weibo.api.*
+import xyz.cssxsh.weibo.*
 
 object WeiboLoginCommand : SimpleCommand(
     owner = WeiboHelperPlugin,
@@ -15,8 +16,27 @@ object WeiboLoginCommand : SimpleCommand(
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage { contact ->
         runCatching {
-            client.qrcode { image ->
-                sendMessage(image.toExternalResource().use { it.uploadAsImage(contact) } + "请使用微博客户端扫码")
+            client.qrcode { qrcode ->
+                val image = runCatching {
+                    client.download(qrcode).toExternalResource().use { it.uploadAsImage(contact) }
+                }.getOrElse {
+                    "$qrcode ".toPlainText()
+                }
+
+                sendMessage(image + "请使用微博客户端扫码")
+            }
+        }.onFailure {
+            logger.warning(it)
+        }.mapCatching {
+            "@${it.info.display}#${it.info.uid} 登陆成功".toPlainText()
+        }.getOrThrow()
+    }
+
+    @Handler
+    suspend fun ConsoleCommandSender.hendle() {
+        runCatching {
+            client.qrcode { qrcode ->
+                sendMessage("$qrcode 请使用微博客户端扫码")
             }
         }.onFailure {
             logger.warning(it)
