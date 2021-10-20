@@ -20,7 +20,7 @@ data class SetResult(
     val result: Boolean
 )
 
-@Serializer(OffsetDateTime::class)
+@Serializer(forClass = OffsetDateTime::class)
 object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
     private val formatter: DateTimeFormatter =
@@ -35,7 +35,7 @@ object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
 }
 
-@Serializer(Locale::class)
+@Serializer(forClass = Locale::class)
 object LocaleSerializer : KSerializer<Locale> {
 
     override val descriptor: SerialDescriptor =
@@ -46,7 +46,7 @@ object LocaleSerializer : KSerializer<Locale> {
     override fun serialize(encoder: Encoder, value: Locale) = encoder.encodeString(value.language)
 }
 
-@Serializer(Boolean::class)
+@Serializer(forClass = Boolean::class)
 object NumberToBooleanSerializer : KSerializer<Boolean> {
 
     override val descriptor: SerialDescriptor =
@@ -152,6 +152,8 @@ enum class ObjectType(override val value: String) : WeiboValue<String> {
     VIDEO(value = "video"),
     AUDIO(value = "audio"),
     ARTICLE(value = "article"),
+    MOVIE(value = "movie"),
+    TOPIC(value = "topic"),
     INTERACT_VOTE(value = "hudongvote"),
     USER(value = "user"),
     GROUP(value = "group"),
