@@ -11,7 +11,7 @@ data class PageInfo(
     @SerialName("page_id")
     val id: String,
     @SerialName("page_pic")
-    val picture: String,
+    val picture: String? = null,
     @SerialName("page_title")
     val title: String,
     @SerialName("type")
