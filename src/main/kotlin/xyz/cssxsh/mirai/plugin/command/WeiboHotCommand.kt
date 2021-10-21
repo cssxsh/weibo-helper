@@ -10,7 +10,7 @@ import xyz.cssxsh.weibo.data.*
 object WeiboHotCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "whot", "微博热搜",
-    description = "微博分组指令",
+    description = "微博热搜指令",
 ) {
     internal val subscriber = object : WeiboSubscriber<String>(primaryName) {
         override val load: suspend (String) -> List<MicroBlog> = { keyword ->
