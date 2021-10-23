@@ -275,11 +275,12 @@ private val GroupPredicate = { group: UserGroup -> group.type != UserGroupType.S
 
 internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
     for (group in groups) {
-        group.list.filter(predicate).takeIf { it.isNotEmpty() }?.let { list ->
+        val list = group.list.filter(predicate)
+        if (list.isNotEmpty()) {
             appendLine("===${group.title}===")
-            for (item in list) {
-                appendLine("${item.title} -> ${item.gid}")
-            }
+        }
+        for (item in list) {
+            appendLine("${item.title} -> ${item.gid}")
         }
     }
 }
