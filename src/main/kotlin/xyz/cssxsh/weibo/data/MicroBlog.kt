@@ -47,7 +47,7 @@ data class MicroBlog(
     @SerialName("url_struct")
     val urls: List<UrlStruct> = emptyList(),
     @SerialName("title")
-    val top: TopTitle? = null,
+    val title: TopTitle? = null,
     @SerialName("screen_name_suffix_new")
     val suffix: List<ScreenSuffix>? = null,
     @SerialName("page_info")

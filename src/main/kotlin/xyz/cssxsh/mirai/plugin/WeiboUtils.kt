@@ -225,10 +225,10 @@ private suspend fun emoticon(content: String, contact: Contact) = buildMessageCh
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}#${uid}")
-    top?.run { appendLine("标题: $text") }
+    title?.run { appendLine("标题: $text") }
     appendLine("时间: $created")
     appendLine("链接: $link")
-    suffix?.joinToString(" ") { it.content }?.let { appendLine(it) }
+    suffix?.run { appendLine(joinToString(" ") { it.content }) }
 
     // FIXME: Send Video
     if (hasVideo) {
@@ -237,6 +237,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                 val file = getVideo()
                 if (contact is FileSupported) {
                     contact.sendFile(file.name, file)
+                } else {
+                    logger.warning { "$contact 无法发送文件" }
                 }
             }
         }
