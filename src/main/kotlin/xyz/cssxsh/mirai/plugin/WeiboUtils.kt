@@ -96,6 +96,8 @@ internal val EmoticonCache get() = ImageCache.resolve("emoticon")
 
 internal val VideoCache get() = ImageCache.resolve("video")
 
+internal val CoverCache get() = ImageCache.resolve("cover")
+
 internal val HistoryExpire get() = WeiboHelperSettings.history
 
 typealias BuildMessage = suspend (contact: Contact) -> Message
@@ -197,6 +199,17 @@ internal suspend fun MicroBlog.getVideo(flush: Boolean = false) = supervisorScop
     }
 }
 
+internal suspend fun MicroBlog.getCover(flush: Boolean = false) = supervisorScope {
+    val url = page?.picture ?: return@supervisorScope null
+
+    CoverCache.resolve(url.substringAfterLast("/")).apply {
+        if (flush || exists().not()) {
+            parentFile.mkdirs()
+            writeBytes(client.download(url = url))
+        }
+    }
+}
+
 private suspend fun emoticon(content: String, contact: Contact) = buildMessageChain {
     var pos = 0
     while (pos < content.length) {
@@ -263,6 +276,13 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         }
     } else if (pictures.size > PictureCount) {
         appendLine("图片过多，已省略")
+    }
+
+    getCover()?.runCatching {
+        add(uploadAsImage(contact))
+    }?.onFailure {
+        logger.warning("获取微博[${id}]封面失败, $it")
+        appendLine("获取微博[${id}]封面失败, $it")
     }
 
     retweeted?.let { blog ->
