@@ -56,7 +56,11 @@ suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestB
 }
 
 suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
-    val text = text(url, block)
+    val text = useHttpClient { client ->
+        client.config {
+            followRedirects = false
+        }.get<String>(url, block)
+    }
     val temp = WeiboClient.Json.decodeFromString<TempData>(text)
     require(temp.ok) {
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
