@@ -104,9 +104,9 @@ typealias BuildMessage = suspend (contact: Contact) -> Message
 
 internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache.resolve("$id")): File {
     dir.mkdirs()
-    if ((!flush
+    if (!flush
             || dir.resolve("desktop.ini").exists()
-            || (following && dir.resolve("avatar.ico").exists()))
+            || (following && dir.resolve("avatar.ico").exists())
     ) return dir
 
     dir.resolve("desktop.ini").apply { if (isHidden) dir.delete() }.writeText(buildString {
