@@ -36,7 +36,7 @@ object WeiboUserCommand : CompositeCommand(
     }
 
     @SubCommand("detail", "详情")
-    suspend fun CommandSender.detail(subject: Contact = subject()) = sendMessage(
-        subscriber.detail(subject = subject)
-    )
+    suspend fun CommandSender.detail(subject: Contact = subject()) {
+        sendMessage(subscriber.detail(subject = subject))
+    }
 }
