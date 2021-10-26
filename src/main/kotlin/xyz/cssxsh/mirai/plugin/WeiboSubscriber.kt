@@ -41,12 +41,12 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     }
 
     private suspend fun sendMessageToTaskContacts(id: K, build: BuildMessage) = infos(id).forEach { delegate ->
-        runCatching {
+        try {
             requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
                 contact.sendMessage(build(contact))
             }
-        }.onFailure {
-            logger.warning({ "对[${delegate}]构建消息失败" }, it)
+        } catch (e: Throwable) {
+            logger.warning({ "对[${delegate}]构建消息失败" }, e)
         }
     }
 

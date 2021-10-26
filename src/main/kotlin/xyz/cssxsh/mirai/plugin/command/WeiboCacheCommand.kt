@@ -86,10 +86,10 @@ object WeiboCacheCommand : CompositeCommand(
     @SubCommand
     suspend fun CommandSenderOnMessage<*>.emoticon() = sendMessage {
         Emoticons.values.onEach { emoticon ->
-            runCatching {
+            try {
                 emoticon.file()
-            }.onFailure {
-                logger.warning { "表情${emoticon.phrase} 下载失败 ${emoticon.url} $it" }
+            } catch (e: Throwable) {
+                logger.warning { "表情${emoticon.phrase} 下载失败 ${emoticon.url} $e" }
             }
         }.joinToString { info ->
             "${info.category.ifBlank { "默认" }}/${info.phrase}"

@@ -17,18 +17,20 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
     private lateinit var map: Map<Long, MicroBlog>
 
     init {
-        runCatching {
-            map = WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" })
-        }.onFailure {
+        map = try {
+            WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" })
+        } catch (e: Throwable) {
             logger.warning { "${file.absolutePath} 读取失败" }
-            map = emptyMap()
+            emptyMap()
         }
         subscriber.launch(SupervisorJob()) {
             while (isActive) {
                 delay(IntervalSlow.toMillis())
                 synchronized(file) {
-                    runCatching {
+                    try {
                         file.writeText(WeiboClient.Json.encodeToString(map))
+                    } catch (e: Throwable) {
+                        logger.warning { "${file.absolutePath} 保存失败" }
                     }
                 }
             }

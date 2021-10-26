@@ -44,10 +44,10 @@ suspend inline fun <reified T> WeiboClient.temp(url: String, crossinline block: 
 
 suspend inline fun <reified T> WeiboClient.callback(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
     val json = text(url, block).substringAfter('(').substringBefore(')')
-    return runCatching {
-        WeiboClient.Json.decodeFromString<T>(json)
-    }.getOrElse {
-        throw IllegalArgumentException(json, it)
+    return try {
+        WeiboClient.Json.decodeFromString(json)
+    } catch (e: Throwable) {
+        throw IllegalArgumentException(json, e)
     }
 }
 

@@ -113,10 +113,10 @@ internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache
         appendLine("[.ShellClassInfo]")
         appendLine("LocalizedResourceName=${if (following) '$' else '#'}${id}@${screen}")
         if (following) {
-            runCatching {
+            try {
                 ICOEncoder.write(ImageIO.read(URL(avatarLarge)), dir.resolve("avatar.ico"))
-            }.onFailure {
-                logger.warning("头像下载失败", it)
+            } catch (e: Throwable) {
+                logger.warning("头像下载失败", e)
             }
             appendLine("IconResource=avatar.ico")
         }
@@ -146,12 +146,12 @@ internal suspend fun MicroBlog.getContent() = supervisorScope {
     var content = raw
     var links = urls
     if (isLongText) {
-        runCatching {
+        try {
             val data = client.getLongText(mid)
             content = requireNotNull(data.content) { "长文本为空 mid: $mid" }
             links = data.urls
-        }.onFailure {
-            logger.warning { "获取微博[${id}]长文本失败 $it" }
+        } catch (e: Throwable) {
+            logger.warning { "获取微博[${id}]长文本失败 $e" }
         }
     }
     links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
@@ -337,9 +337,9 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
         if (exists() && month != YearMonth.now()) {
             WeiboClient.Json.decodeFromString(readText())
         } else {
-            val blogs = runCatching {
+            val blogs = try {
                 WeiboClient.Json.decodeFromString<List<MicroBlog>>(readText()).associateBy { it.id }.toMutableMap()
-            }.getOrElse {
+            } catch (e: Throwable) {
                 mutableMapOf()
             }
             var page = 1

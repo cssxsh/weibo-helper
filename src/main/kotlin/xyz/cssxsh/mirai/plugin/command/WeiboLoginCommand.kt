@@ -17,9 +17,9 @@ object WeiboLoginCommand : SimpleCommand(
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage { contact ->
         runCatching {
             client.qrcode { qrcode ->
-                val image = runCatching {
+                val image = try {
                     client.download(qrcode).toExternalResource().use { it.uploadAsImage(contact) }
-                }.getOrElse {
+                } catch (e: Throwable) {
                     "$qrcode ".toPlainText()
                 }
 
