@@ -14,7 +14,7 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
     ReadWriteProperty<Any?, Map<Long, MicroBlog>> {
     private val file = data.resolve(subscriber.type).resolve("$id.json").apply { parentFile.mkdirs() }
 
-    private lateinit var map: Map<Long, MicroBlog>
+    private var map: Map<Long, MicroBlog>
 
     init {
         map = try {

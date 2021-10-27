@@ -27,7 +27,7 @@ data class PageInfo(
         @SerialName("h5_url")
         val url: String,
         @SerialName("media_id")
-        val id: Long,
+        val id: String,
         @SerialName("name")
         val name: String,
         @SerialName("next_title")
