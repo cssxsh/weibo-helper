@@ -7,7 +7,7 @@ data class PageInfo(
     @SerialName("media_info")
     val media: MediaInfo? = null,
     @SerialName("object_type")
-    val form: ObjectType = ObjectType.NONE,
+    val form: String = "",
     @SerialName("page_id")
     val id: String,
     @SerialName("page_pic")

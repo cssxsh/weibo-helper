@@ -145,22 +145,3 @@ enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
 
     companion object : KSerializer<VerifiedType> by WeiboEnumSerializer()
 }
-
-@Serializable(with = ObjectType.Companion::class)
-enum class ObjectType(override val value: String) : WeiboValue<String> {
-    NONE(value = ""),
-    VIDEO(value = "video"),
-    AUDIO(value = "audio"),
-    ARTICLE(value = "article"),
-    MOVIE(value = "movie"),
-    TOPIC(value = "topic"),
-    INTERACT_VOTE(value = "hudongvote"),
-    USER(value = "user"),
-    GROUP(value = "group"),
-    STOCK(value = "stock"),
-    Q_A(value = "wenda"),
-    FANGLE(value = "fangle"),
-    WEBPAGE(value = "webpage");
-
-    companion object : KSerializer<ObjectType> by WeiboEnumSerializer()
-}

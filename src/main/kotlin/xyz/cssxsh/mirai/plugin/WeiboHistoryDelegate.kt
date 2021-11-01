@@ -40,7 +40,7 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
     override fun getValue(thisRef: Any?, property: KProperty<*>): Map<Long, MicroBlog> = synchronized(file) { map }
 
     override fun setValue(thisRef: Any?, property: KProperty<*>, value: Map<Long, MicroBlog>) = synchronized(file) {
-        map = if (value.size <= PAGE_SIZE) {
+        map = if (value.size <= PAGE_SIZE * 2) {
             value
         } else {
             val expire = OffsetDateTime.now().minusDays(HistoryExpire)

@@ -6,7 +6,7 @@ import java.time.*
 
 val MicroBlog.isLongText get() = (continueTag != null)
 
-val MicroBlog.hasVideo get() = (page?.form == ObjectType.VIDEO)
+val MicroBlog.hasVideo get() = (page?.form == "video")
 
 @Serializable
 data class MicroBlog(
