@@ -105,8 +105,8 @@ typealias BuildMessage = suspend (contact: Contact) -> Message
 internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache.resolve("$id")): File {
     dir.mkdirs()
     if (!flush
-            || dir.resolve("desktop.ini").exists()
-            || (following && dir.resolve("avatar.ico").exists())
+        || dir.resolve("desktop.ini").exists()
+        || (following && dir.resolve("avatar.ico").exists())
     ) return dir
 
     dir.resolve("desktop.ini").apply { if (isHidden) dir.delete() }.writeText(buildString {
@@ -167,7 +167,6 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
     val last = created.toEpochSecond() * 1_000
 
     pictures.mapIndexed { index, pid ->
-        // XXX PictureCount
         async {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
                 if (flush || !exists()) {
@@ -323,7 +322,7 @@ internal fun File.clean(following: Boolean, num: Int = 0) {
     }
 }
 
-internal suspend fun clear(interval: Long = 1 * 60 * 60 * 1000) = supervisorScope {
+internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
     if (ImageExpire.isNegative) return@supervisorScope
     while (isActive) {
         ImageCache.clean(following = ImageClearFollowing)
