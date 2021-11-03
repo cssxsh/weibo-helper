@@ -34,6 +34,19 @@ private fun location(html: String): String? {
         .takeIf { it.startsWith("http") }
 }
 
+private suspend fun WeiboClient.login(sso: String): LoginResult {
+    val result = callback<LoginResult>(sso) {
+        header(HttpHeaders.Host, url.host)
+        header(HttpHeaders.Referrer, INDEX_PAGE)
+        parameter("action", "login")
+        parameter("callback", "STK_${System.currentTimeMillis()}")
+    }
+
+    info = result.info
+
+    return result
+}
+
 suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginResult {
     // Set Cookie
     download(PASSPORT_VISITOR)
@@ -80,18 +93,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    val sso = flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) }
-
-    val result = callback<LoginResult>(sso) {
-        header(HttpHeaders.Host, url.host)
-        header(HttpHeaders.Referrer, INDEX_PAGE)
-        parameter("action", "login")
-        parameter("callback", "STK_${System.currentTimeMillis()}")
-    }
-
-    info = result.info
-
-    return result
+    return login(flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) })
 }
 
 suspend fun WeiboClient.restore(): LoginResult {
@@ -128,9 +130,7 @@ suspend fun WeiboClient.restore(): LoginResult {
         parameter("r", INDEX_PAGE)
     }
 
-    val url = flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) }
-
-    return callback<LoginResult>(url) {}.also { info = it.info }
+    return login(flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) })
 }
 
 suspend fun WeiboClient.incarnate(): Int {
