@@ -2,6 +2,8 @@ package xyz.cssxsh.mirai.plugin.command
 
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.contact.*
+import net.mamoe.mirai.utils.info
+import net.mamoe.mirai.utils.warning
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
@@ -25,14 +27,20 @@ object WeiboGroupCommand : CompositeCommand(
     suspend fun CommandSender.list() = sendMessage(client.getFeedGroups().toMessage())
 
     @SubCommand("add", "task", "订阅")
-    suspend fun CommandSender.task(gid: Long, subject: Contact = subject()) {
-        val group = client.getFeedGroups().getGroup(id = gid)
-        subscriber.add(id = gid, name = group.title, subject = subject)
-        sendMessage("对${group.title}#${gid}的监听任务, 添加完成")
+    suspend fun CommandSender.task(id: String, subject: Contact = subject()) {
+        val group = client.getFeedGroups().getGroup(id = id)
+        subscriber.add(id = group.gid, name = group.title, subject = subject)
+        sendMessage("对${group.title}#${group.gid}的监听任务, 添加完成")
     }
 
     @SubCommand("stop", "停止")
-    suspend fun CommandSender.stop(gid: Long, subject: Contact = subject()) {
+    suspend fun CommandSender.stop(id: String, subject: Contact = subject()) {
+        val gid = try {
+            client.getFeedGroups().getGroup(id = id).gid
+        } catch (e: Throwable) {
+            logger.warning { "查询群组失败, $e" }
+            id.toLong()
+        }
         subscriber.remove(id = gid, subject = subject)
         sendMessage("对Group(${gid})的监听任务, 取消完成")
     }

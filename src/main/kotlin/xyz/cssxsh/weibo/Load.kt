@@ -140,4 +140,12 @@ val MicroBlog.username get() = user?.screen ?: "[未知用户]"
 
 val MicroBlog.uid get() = user?.id ?: 0
 
-fun UserGroupData.getGroup(id: Long) = groups.flatMap { it.list }.first { it.gid == id }
+fun UserGroupData.getGroup(id: String): UserGroup {
+    for (category in groups) {
+        for (group in category.list) {
+            if (group.gid == id.toLongOrNull()) return group
+            if (group.title == id) return group
+        }
+    }
+    throw NoSuchElementException("Group: $id")
+}
