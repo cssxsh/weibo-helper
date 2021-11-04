@@ -26,7 +26,7 @@ object WeiboUserCommand : CompositeCommand(
     suspend fun CommandSender.task(uid: Long, subject: Contact = subject()) {
         val user = client.getUserInfo(uid = uid).user
         subscriber.add(id = user.id, name = user.screen, subject = subject)
-        sendMessage("对@${user.screen}#${uid}的监听任务, 添加完成")
+        sendMessage("对@${user.screen}#${user.id}的监听任务, 添加完成")
     }
 
     @SubCommand("stop", "停止")
