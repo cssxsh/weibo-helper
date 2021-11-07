@@ -68,7 +68,7 @@ internal fun AbstractJvmPlugin.registerPermission(name: String, description: Str
     return PermissionService.INSTANCE.register(permissionId(name), description, parentPermission)
 }
 
-internal val data by WeiboHelperPlugin::dataFolder
+internal val DataFolder by WeiboHelperPlugin::dataFolder
 
 internal val ImageCache get() = File(WeiboHelperSettings.cache)
 

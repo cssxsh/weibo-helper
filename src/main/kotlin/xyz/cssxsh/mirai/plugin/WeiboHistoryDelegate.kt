@@ -12,7 +12,7 @@ import kotlin.reflect.*
 
 class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber<K>) :
     ReadWriteProperty<Any?, Map<Long, MicroBlog>> {
-    private val file = data.resolve(subscriber.type).resolve("$id.json").apply { parentFile.mkdirs() }
+    private val file = DataFolder.resolve(subscriber.type).resolve("$id.json").apply { parentFile.mkdirs() }
 
     private var map: Map<Long, MicroBlog>
 
