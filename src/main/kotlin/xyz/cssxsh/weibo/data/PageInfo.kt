@@ -57,7 +57,7 @@ data class PageInfo(
             @SerialName("quality_label")
             val quality: String,
             @SerialName("size")
-            val size: Int = 0,
+            val size: Long = 0,
             @SerialName("tcp_receive_buffer")
             val buffer: Int,
             @SerialName("type")
