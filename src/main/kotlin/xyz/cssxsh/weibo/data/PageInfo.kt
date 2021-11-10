@@ -59,7 +59,7 @@ data class PageInfo(
             @SerialName("size")
             val size: Long = 0,
             @SerialName("tcp_receive_buffer")
-            val buffer: Int,
+            val buffer: Long,
             @SerialName("type")
             val type: Int,
             @SerialName("url")
