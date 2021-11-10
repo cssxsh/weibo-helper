@@ -169,12 +169,12 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
     pictures.mapIndexed { index, pid ->
         async {
             cache.resolve("${id}-${index}-${pid}.${extension(pid)}").apply {
-                if (flush || !exists()) {
+                if (flush || exists().not()) {
                     writeBytes(runCatching {
                         // 下载速度更快
-                        client.download(download(pid))
+                        client.download(download(pid) + "#$index")
                     }.recoverCatching {
-                        client.download(image(pid))
+                        client.download(image(pid) + "#$index")
                     }.onSuccess {
                         logger.verbose { "[${name}]下载完成, 大小${it.size / 1024}KB" }
                     }.getOrThrow())
