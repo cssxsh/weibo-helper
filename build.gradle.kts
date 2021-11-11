@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "xyz.cssxsh"
-version = "1.3.12"
+version = "1.3.13"
 
 mavenCentralPublish {
     useCentralS01()
@@ -31,14 +31,6 @@ kotlin {
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
-//            languageSettings.useExperimentalAnnotation("kotlin.ExperimentalStdlibApi")
-//            languageSettings.useExperimentalAnnotation("io.ktor.util.KtorExperimentalAPI")
-            languageSettings.optIn("kotlinx.serialization.ExperimentalSerializationApi")
-//            languageSettings.useExperimentalAnnotation("kotlinx.serialization.InternalSerializationApi")
-//            languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.util.ConsoleExperimentalApi")
-        }
-        test {
-//            languageSettings.useExperimentalAnnotation("net.mamoe.mirai.console.ConsoleFrontEndImplementation")
         }
     }
 }
@@ -52,9 +44,7 @@ dependencies {
     implementation("org.apache.commons:commons-text:1.9")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
-    testImplementation(kotlin("test-junit"))
-    testImplementation(junit("api", Versions.junit))
-    testRuntimeOnly(junit("engine", Versions.junit))
+    testImplementation(kotlin("test", "1.5.31"))
 }
 
 mirai {

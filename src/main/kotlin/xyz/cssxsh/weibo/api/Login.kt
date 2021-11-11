@@ -8,20 +8,17 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 import java.lang.*
 
-private const val SUCCESS_CODE = 20000000
+const val SUCCESS_CODE = 20000000
 
-private const val NO_USE_CODE = 50114001
+const val NO_USE_CODE = 50114001
 
-private const val USED_CODE = 50114002
+const val USED_CODE = 50114002
 
-private const val QRCODE_SIZE = 180
+const val QRCODE_SIZE = 180
 
-private const val CheckDelay = 3 * 1000L
+const val CheckDelay = 3 * 1000L
 
-private suspend inline fun <reified T> WeiboClient.data(
-    url: String,
-    crossinline block: HttpRequestBuilder.() -> Unit = {}
-): T {
+suspend inline fun <reified T> WeiboClient.data(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
     return with(callback<LoginData>(url, block)) {
         check(code == SUCCESS_CODE) { toString() }
         WeiboClient.Json.decodeFromJsonElement(data)

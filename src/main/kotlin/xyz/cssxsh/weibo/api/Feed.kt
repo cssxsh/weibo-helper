@@ -73,7 +73,7 @@ suspend fun WeiboClient.getHotTimeline(
     max: Long? = null,
     extend: List<String> = listOf("discover", "new_feed"),
     count: Int = PAGE_SIZE,
-    refresh: Boolean = false,
+    refresh: Boolean = false
 ): TimelineData = json(FEED_HOT_TIMELINE) {
     header(HttpHeaders.Referrer, "https://weibo.com/hot/list/$gid")
 

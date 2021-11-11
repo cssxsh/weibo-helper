@@ -10,6 +10,7 @@ import java.time.*
 import kotlin.properties.*
 import kotlin.reflect.*
 
+@OptIn(ExperimentalSerializationApi::class)
 class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber<K>) :
     ReadWriteProperty<Any?, Map<Long, MicroBlog>> {
     private val file = DataFolder.resolve(subscriber.type).resolve("$id.json").apply { parentFile.mkdirs() }

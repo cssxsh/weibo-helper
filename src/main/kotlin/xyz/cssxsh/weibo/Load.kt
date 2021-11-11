@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package xyz.cssxsh.weibo
 
 import io.ktor.client.call.*
@@ -100,7 +102,8 @@ suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<Byte
  * Chinese Internal Code Specification
  */
 @Suppress("unused")
-internal val Charsets.GBK get() = Charset.forName("GBK")
+internal val Charsets.GBK
+    get() = Charset.forName("GBK")
 
 internal const val EncodeChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 

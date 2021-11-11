@@ -7,6 +7,7 @@ import xyz.cssxsh.weibo.data.*
 
 object WeiboEmoticonData : AutoSavePluginData("WeiboEmoticonData") {
 
+    @OptIn(ExperimentalSerializationApi::class)
     internal fun default() = this::class.java.getResourceAsStream("Emoticons.json").use {
         val text = requireNotNull(it) { "找不到Emoticons初始化文件" }.reader().readText()
         WeiboClient.Json.decodeFromString<List<Emoticon>>(text)
