@@ -28,7 +28,7 @@ object WeiboGroupCommand : CompositeCommand(
 
     @SubCommand("add", "task", "订阅")
     suspend fun CommandSender.task(id: String, subject: Contact = subject()) {
-        val group = client.getFeedGroups().getGroup(id = id)
+        val group = client.getFeedGroups()[id]
         subscriber.add(id = group.gid, name = group.title, subject = subject)
         sendMessage("对${group.title}#${group.gid}的监听任务, 添加完成")
     }
@@ -36,7 +36,7 @@ object WeiboGroupCommand : CompositeCommand(
     @SubCommand("stop", "停止")
     suspend fun CommandSender.stop(id: String, subject: Contact = subject()) {
         val gid = try {
-            client.getFeedGroups().getGroup(id = id).gid
+            client.getFeedGroups()[id].gid
         } catch (e: Throwable) {
             logger.warning { "查询群组失败, $e" }
             id.toLong()

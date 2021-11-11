@@ -140,7 +140,7 @@ val MicroBlog.username get() = user?.screen ?: "[未知用户]"
 
 val MicroBlog.uid get() = user?.id ?: 0
 
-fun UserGroupData.getGroup(id: String): UserGroup {
+operator fun UserGroupData.get(id: String): UserGroup {
     for (category in groups) {
         for (group in category.list) {
             if (group.gid == id.toLongOrNull()) return group
