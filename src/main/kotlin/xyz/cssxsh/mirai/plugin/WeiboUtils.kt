@@ -270,11 +270,11 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
 
     if (PictureCount < 0 || pictures.size <= PictureCount) {
         for ((index, deferred) in getImages().withIndex()) {
-            deferred.runCatching {
-                add(await().uploadAsImage(contact))
-            }.onFailure {
-                logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $it")
-                appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $it")
+            try {
+                add(deferred.await().uploadAsImage(contact))
+            } catch (e: Throwable) {
+                logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
             }
         }
     } else if (pictures.size > PictureCount) {
