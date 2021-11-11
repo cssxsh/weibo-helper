@@ -91,7 +91,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         var history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
-            runCatching {
+            try {
                 val histories = history.values.flatMap { listOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
                 val list = load(id).filter { predicate(it, id, histories) }
 
@@ -128,22 +128,18 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                         info?.copy(last = blog.created)
                     }
                 }
-            }.onSuccess {
-                logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
-            }.onFailure {
-                if (it is SerializationException) {
-                    logger.warning { "$type(${id})监听任务序列化时失败, $it" }
-                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $it")
-                    return@onFailure
+            } catch (e: Throwable) {
+                if (e is SerializationException) {
+                    logger.warning({ "$type(${id})监听任务序列化时失败" }, e)
+                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $e")
+                    continue
                 }
 
                 if (client.info.uid != 0L) {
-                    logger.warning { "$type(${id})监听任务执行失败, ${it}，尝试重新加载Cookie" }
-                    runCatching {
+                    logger.warning { "$type(${id})监听任务执行失败, ${e}，尝试重新加载Cookie" }
+                    try {
                         client.restore()
-                    }.onSuccess {
-                        logger.info { "登陆成功, $it" }
-                    }.onFailure { cause ->
+                    } catch (cause: Throwable) {
                         if ("login" in cause.message.orEmpty()) {
                             logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
                             LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
@@ -151,8 +147,10 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                     }
                 } else {
                     LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
-                    logger.warning { "$type(${id})监听任务执行失败, $it" }
+                    logger.warning { "$type(${id})监听任务执行失败, $e" }
                 }
+            } finally {
+                logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }
         }
     }
