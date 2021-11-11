@@ -8,6 +8,8 @@ val MicroBlog.isLongText get() = (continueTag != null)
 
 val MicroBlog.hasVideo get() = (page?.form == "video")
 
+val MicroBlog.hasPage get() = (page != null)
+
 @Serializable
 data class MicroBlog(
     /**

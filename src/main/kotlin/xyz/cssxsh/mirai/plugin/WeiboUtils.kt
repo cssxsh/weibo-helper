@@ -199,7 +199,7 @@ internal suspend fun MicroBlog.getVideo(flush: Boolean = false) = supervisorScop
 }
 
 internal suspend fun MicroBlog.getCover(flush: Boolean = false) = supervisorScope {
-    val url = page?.picture ?: return@supervisorScope null
+    val url = requireNotNull(page?.picture) { "MicroBlog(${mid}) Not Found Cover" }
 
     CoverCache.resolve(url.substringAfterLast("/")).apply {
         if (flush || exists().not()) {
@@ -246,11 +246,15 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     if (hasVideo) {
         supervisorScope {
             launch {
-                val file = getVideo()
-                if (contact is FileSupported) {
-                    contact.sendFile(file.name, file)
-                } else {
-                    logger.warning { "$contact 无法发送文件" }
+                try {
+                    val file = getVideo()
+                    if (contact is FileSupported) {
+                        contact.sendFile(file.name, file)
+                    } else {
+                        logger.warning { "$contact 无法发送文件" }
+                    }
+                } catch (e: Throwable) {
+                    logger.warning { "$contact 无法发送文件, $e" }
                 }
             }
         }
@@ -277,11 +281,13 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         appendLine("图片过多，已省略")
     }
 
-    getCover()?.runCatching {
-        add(uploadAsImage(contact))
-    }?.onFailure {
-        logger.warning("获取微博[${id}]封面失败, $it")
-        appendLine("获取微博[${id}]封面失败, $it")
+    if (hasPage) {
+        try {
+            add(getCover().uploadAsImage(contact))
+        } catch (e: Throwable) {
+            logger.warning("获取微博[${id}]封面失败, $e")
+            appendLine("获取微博[${id}]封面失败, $e")
+        }
     }
 
     retweeted?.let { blog ->
