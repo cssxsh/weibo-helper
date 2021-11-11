@@ -5,6 +5,7 @@ import kotlinx.serialization.*
 import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
 import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
 import net.mamoe.mirai.console.util.*
+import net.mamoe.mirai.console.util.ContactUtils.render
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.*
@@ -32,7 +33,7 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
             WEIBO_REGEX findingReply replier@{ result ->
                 if (subject is Group && QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null
 
-                logger.info { "[${sender}] 匹配WEIBO(${result.value})" }
+                logger.info { "${sender.render()} 匹配WEIBO(${result.value})" }
                 runCatching {
                     message.quote() + client.getMicroBlog(mid = result.value).toMessage(contact = subject)
                 }.onFailure {
