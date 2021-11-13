@@ -108,7 +108,7 @@ data class UserInfo(
     val verified: Boolean = false,
     @SerialName("verified_type")
     val verifiedType: VerifiedType = VerifiedType.NONE,
-): UserBaseInfo
+) : UserBaseInfo
 
 @Serializable
 data class UserTab(

@@ -17,7 +17,7 @@ data class WeiboTaskInfo(
     val contacts: Set<Long> = emptySet()
 )
 
-object OffsetDateTimeSerializer: KSerializer<OffsetDateTime> {
+object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
 
     private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
