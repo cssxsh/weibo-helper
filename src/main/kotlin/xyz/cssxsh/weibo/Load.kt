@@ -58,13 +58,14 @@ suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestB
 }
 
 suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
-    val text = useHttpClient { client ->
-        client.config {
-            followRedirects = false
-        }.get<String>(url, block)
+    val text = useHttpClient<String> { client ->
+        client.config { followRedirects = false }.get(url, block)
+    }
+    check(text.startsWith("{")) {
+        text.substring(0, minOf(ErrorMessageLength, text.length))
     }
     val temp = WeiboClient.Json.decodeFromString<TempData>(text)
-    require(temp.ok) {
+    check(temp.ok) {
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {

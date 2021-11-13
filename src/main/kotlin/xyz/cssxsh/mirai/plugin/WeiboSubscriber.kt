@@ -128,15 +128,15 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                         info?.copy(last = blog.created)
                     }
                 }
-            } catch (e: Throwable) {
-                if (e is SerializationException) {
-                    logger.warning({ "$type(${id})监听任务序列化时失败" }, e)
-                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $e")
+            } catch (exception: Throwable) {
+                if (exception is SerializationException) {
+                    logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
+                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
                     continue
                 }
 
-                if (client.info.uid != 0L) {
-                    logger.warning { "$type(${id})监听任务执行失败, ${e}，尝试重新加载Cookie" }
+                if ("<html>" in exception.message.orEmpty()) {
+                    logger.warning { "$type(${id})监听任务执行失败, ${exception}，尝试重新加载Cookie" }
                     try {
                         client.restore()
                     } catch (cause: Throwable) {
@@ -147,7 +147,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                     }
                 } else {
                     LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
-                    logger.warning { "$type(${id})监听任务执行失败, $e" }
+                    logger.warning { "$type(${id})监听任务执行失败, $exception" }
                 }
             } finally {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
