@@ -1,5 +1,6 @@
 package xyz.cssxsh.mirai.plugin.command
 
+import kotlinx.coroutines.*
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
@@ -15,16 +16,18 @@ object WeiboLoginCommand : SimpleCommand(
 ) {
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage { contact ->
-        runCatching {
-            client.qrcode { qrcode ->
-                logger.info("qrcode: $qrcode")
-                val image = try {
-                    client.download(qrcode).toExternalResource().use { it.uploadAsImage(contact) }
-                } catch (e: Throwable) {
-                    "$qrcode ".toPlainText()
-                }
+        client.runCatching {
+            qrcode { url ->
+                logger.info("qrcode: $url")
+                launch {
+                    val image = try {
+                        client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
+                    } catch (e: Throwable) {
+                        "$url ".toPlainText()
+                    }
 
-                sendMessage(image + "请使用微博客户端扫码")
+                    sendMessage(image + "请使用微博客户端扫码")
+                }
             }
         }.onFailure {
             logger.warning(it)
@@ -35,9 +38,11 @@ object WeiboLoginCommand : SimpleCommand(
 
     @Handler
     suspend fun ConsoleCommandSender.hendle() {
-        runCatching {
-            client.qrcode { qrcode ->
-                sendMessage("$qrcode 请使用微博客户端扫码")
+        client.runCatching {
+            qrcode { url ->
+                launch {
+                    sendMessage("$url 请使用微博客户端扫码")
+                }
             }
         }.onFailure {
             logger.warning(it)
