@@ -99,6 +99,7 @@
 * `pictures` 显示图片数，超过则回复`图片过多`，-1 表示全部显示
 * `history` 历史记录保留时间，单位天，默认 7d
 * `timeout` Http 超时时间，单位毫秒，默认 60_000 ms
+* `forward` 以转发消息的方式发送订阅微博
 
 ### quiet.group
 
