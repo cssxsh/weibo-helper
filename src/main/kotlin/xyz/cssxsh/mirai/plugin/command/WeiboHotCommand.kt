@@ -11,7 +11,8 @@ object WeiboHotCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "whot", "微博热搜",
     description = "微博热搜指令",
-) {
+), WeiboHelperCommand {
+
     internal val subscriber = object : WeiboSubscriber<String>(primaryName) {
         override val load: suspend (String) -> List<MicroBlog> = { keyword ->
             client.search(keyword = keyword, type = ChannelType.HOT).cards.mapNotNull { it.blog }

@@ -13,7 +13,8 @@ object WeiboLoginCommand : SimpleCommand(
     owner = WeiboHelperPlugin,
     "wlogin", "微博登录",
     description = "微博登录指令",
-) {
+), WeiboHelperCommand {
+
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage { contact ->
         client.runCatching {

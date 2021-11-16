@@ -30,13 +30,9 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboStatusData.reload()
         WeiboEmoticonData.reload()
 
-        WeiboUserCommand.register()
-        WeiboGroupCommand.register()
-        WeiboCacheCommand.register()
-        WeiboLoginCommand.register()
-        WeiboDetailCommand.register()
-        WeiboHotCommand.register()
-        WeiboFollowCommand.register()
+        for (command in WeiboHelperCommand) {
+            command.register()
+        }
 
         logger.info { "图片缓存位置 ${ImageCache.absolutePath}" }
 
@@ -54,23 +50,17 @@ object WeiboHelperPlugin : KotlinPlugin(
             clear = launch {
                 clear()
             }
-            WeiboUserCommand.subscriber.start()
-            WeiboGroupCommand.subscriber.start()
-            WeiboHotCommand.subscriber.start()
+
+            WeiboSubscriber.start()
         }
     }
 
     override fun onDisable() {
-        WeiboUserCommand.unregister()
-        WeiboGroupCommand.unregister()
-        WeiboCacheCommand.unregister()
-        WeiboLoginCommand.unregister()
-        WeiboDetailCommand.unregister()
-        WeiboHotCommand.unregister()
+        for (command in WeiboHelperCommand) {
+            command.unregister()
+        }
 
-        WeiboUserCommand.subscriber.stop()
-        WeiboGroupCommand.subscriber.stop()
-        WeiboHotCommand.subscriber.stop()
+        WeiboSubscriber.stop()
 
         WeiboListener.stop()
 

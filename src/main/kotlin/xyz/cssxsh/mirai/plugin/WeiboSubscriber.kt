@@ -17,6 +17,26 @@ import java.time.*
 abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
 
+    companion object {
+        private val all = mutableListOf<WeiboSubscriber<*>>()
+
+        fun start() {
+            for (subscriber in all) {
+                subscriber.start()
+            }
+        }
+
+        fun stop() {
+            for (subscriber in all) {
+                subscriber.start()
+            }
+        }
+    }
+
+    init {
+        let(all::add)
+    }
+
     abstract val load: suspend (id: K) -> List<MicroBlog>
 
     protected open val filter: WeiboFilter get() = WeiboHelperSettings
