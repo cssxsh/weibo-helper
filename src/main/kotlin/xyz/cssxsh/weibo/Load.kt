@@ -31,8 +31,13 @@ data class TempData(
 
 const val ErrorMessageLength = 32
 
+suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestBuilder.() -> Unit): String {
+    return useHttpClient { client -> client.get(url, block) }
+}
+
 suspend inline fun <reified T> WeiboClient.temp(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
     val text = text(url, block)
+    check(text.startsWith("{")) { text.substring(0, minOf(ErrorMessageLength, text.length)) }
     val temp = WeiboClient.Json.decodeFromString<TempData>(text)
     val data = requireNotNull(temp.data) {
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
@@ -53,17 +58,9 @@ suspend inline fun <reified T> WeiboClient.callback(url: String, crossinline blo
     }
 }
 
-suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestBuilder.() -> Unit): String {
-    return useHttpClient { client -> client.get(url, block) }
-}
-
 suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
-    val text = useHttpClient<String> { client ->
-        client.config { followRedirects = false }.get(url, block)
-    }
-    check(text.startsWith("{")) {
-        text.substring(0, minOf(ErrorMessageLength, text.length))
-    }
+    val text = text(url, block)
+    check(text.startsWith("{")) { text.substring(0, minOf(ErrorMessageLength, text.length)) }
     val temp = WeiboClient.Json.decodeFromString<TempData>(text)
     check(temp.ok) {
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
