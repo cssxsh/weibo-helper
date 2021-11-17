@@ -24,7 +24,7 @@ data class UserTypeGroup(
     @SerialName("group")
     val list: List<UserGroup>,
     @SerialName("group_type")
-    val type: Int,// XXX
+    val type: Int,
     @SerialName("priority")
     @Serializable(NumberToBooleanSerializer::class)
     val priority: Boolean = false,
