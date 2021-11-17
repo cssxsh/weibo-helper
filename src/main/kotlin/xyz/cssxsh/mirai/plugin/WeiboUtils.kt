@@ -30,8 +30,34 @@ import java.net.*
 import java.time.*
 import javax.imageio.*
 
+internal const val LOGGER_PROPERTY = "xyz.cssxsh.mirai.plugin.logger"
+
+internal const val WEIBO_CACHE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.cache"
+
+internal const val WEIBO_EXPIRE_IMGAE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.expire.image"
+
+internal const val WEIBO_EXPIRE_HISTORY_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.expire.history"
+
+internal const val WEIBO_CLEAN_FOLLOWING_PROPERTY = "xyz.cssxsh.mirai.plugin.clean.following"
+
+internal const val WEIBO_INTERVAL_FAST_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.interval.fast"
+
+internal const val WEIBO_INTERVAL_SLOW_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.interval.slow"
+
+internal const val WEIBO_CONTACT_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.contact"
+
+internal const val WEIBO_PICTURES_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.pictures"
+
+internal const val WEIBO_FORWARD_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.forward"
+
+internal const val WEIBO_FILTER_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.filter"
+
+/**
+ * @see [LOGGER_PROPERTY]
+ * @see [WeiboHelperPlugin.logger]
+ */
 internal val logger by lazy {
-    val open = System.getProperty("xyz.cssxsh.mirai.plugin.logger", "${true}").toBoolean()
+    val open = System.getProperty(LOGGER_PROPERTY, "${true}").toBoolean()
     if (open) WeiboHelperPlugin.logger else SilentLogger
 }
 
@@ -70,22 +96,63 @@ internal fun AbstractJvmPlugin.registerPermission(name: String, description: Str
 
 internal val DataFolder by WeiboHelperPlugin::dataFolder
 
-internal val ImageCache get() = File(WeiboHelperSettings.cache)
+/**
+ * @see [WEIBO_CACHE_PROPERTY]
+ * @see [WeiboHelperSettings.cache]
+ */
+internal val ImageCache by lazy {
+    File(System.getProperty(WEIBO_CACHE_PROPERTY, WeiboHelperSettings.cache))
+}
 
-internal val ImageExpire get() = Duration.ofHours(WeiboHelperSettings.expire.toLong())
+/**
+ * @see [WEIBO_EXPIRE_IMGAE_PROPERTY]
+ * @see [WeiboHelperSettings.expire]
+ */
+internal val ImageExpire by lazy {
+    Duration.ofHours(System.getProperty(WEIBO_EXPIRE_IMGAE_PROPERTY)?.toLong() ?: WeiboHelperSettings.expire.toLong())
+}
 
-internal val ImageClearFollowing get() = WeiboHelperSettings.following
+/**
+ * @see [WEIBO_CLEAN_FOLLOWING_PROPERTY]
+ * @see [WeiboHelperSettings.following]
+ */
+internal val ImageClearFollowing by lazy {
+    System.getProperty(WEIBO_CLEAN_FOLLOWING_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.following
+}
 
-internal val IntervalFast get() = Duration.ofMinutes(WeiboHelperSettings.fast.toLong())
+/**
+ * @see [WEIBO_INTERVAL_FAST_PROPERTY]
+ * @see [WeiboHelperSettings.fast]
+ */
+internal val IntervalFast by lazy {
+    Duration.ofMinutes(System.getProperty(WEIBO_INTERVAL_FAST_PROPERTY)?.toLong() ?: WeiboHelperSettings.fast.toLong())
+}
 
-internal val IntervalSlow get() = Duration.ofMinutes(WeiboHelperSettings.slow.toLong())
+/**
+ * @see [WEIBO_INTERVAL_SLOW_PROPERTY]
+ * @see [WeiboHelperSettings.slow]
+ */
+internal val IntervalSlow by lazy {
+    Duration.ofMinutes(System.getProperty(WEIBO_INTERVAL_SLOW_PROPERTY)?.toLong() ?: WeiboHelperSettings.slow.toLong())
+}
 
-internal val PictureCount by WeiboHelperSettings::pictures
+/**
+ * @see [WEIBO_PICTURES_PROPERTY]
+ * @see [WeiboHelperSettings.pictures]
+ */
+internal val PictureCount by lazy {
+    System.getProperty(WEIBO_PICTURES_PROPERTY)?.toInt() ?: WeiboHelperSettings.pictures
+}
 
+/**
+ * @see [WEIBO_CONTACT_PROPERTY]
+ * @see [WeiboHelperSettings.contact]
+ */
 @OptIn(ConsoleExperimentalApi::class)
 internal val LoginContact by lazy {
+    val id = System.getProperty(WEIBO_CONTACT_PROPERTY)?.toLong() ?: WeiboHelperSettings.contact
     for (bot in Bot.instances) {
-        return@lazy bot.getContactOrNull(WeiboHelperSettings.contact) ?: continue
+        return@lazy bot.getContactOrNull(id) ?: continue
     }
     return@lazy null
 }
@@ -98,7 +165,30 @@ internal val VideoCache get() = ImageCache.resolve("video")
 
 internal val CoverCache get() = ImageCache.resolve("cover")
 
-internal val HistoryExpire get() = WeiboHelperSettings.history
+/**
+ * @see [WEIBO_EXPIRE_HISTORY_PROPERTY]
+ * @see [WeiboHelperSettings.history]
+ */
+internal val HistoryExpire by lazy {
+    System.getProperty(WEIBO_EXPIRE_HISTORY_PROPERTY)?.toLong() ?: WeiboHelperSettings.history
+}
+
+/**
+ * @see [WEIBO_FORWARD_PROPERTY]
+ * @see [WeiboHelperSettings.forward]
+ */
+internal val UseForwardMessage by lazy {
+    System.getProperty(WEIBO_FORWARD_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.forward
+}
+
+/**
+ * @see [WEIBO_FORWARD_PROPERTY]
+ * @see [WeiboHelperSettings]
+ * TODO: WEIBO_FORWARD_PROPERTY
+ */
+internal val WeiboRecordFilter by lazy {
+    WeiboHelperSettings
+}
 
 typealias BuildMessage = suspend (contact: Contact) -> Message
 
@@ -296,9 +386,9 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     }
 }
 
-private val GroupPredicate = { group: UserGroup -> group.type != UserGroupType.SYSTEM }
+private val NoDefault = { group: UserGroup -> group.type != UserGroupType.SYSTEM }
 
-internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = GroupPredicate) = buildMessageChain {
+internal fun UserGroupData.toMessage(predicate: (UserGroup) -> Boolean = NoDefault) = buildMessageChain {
     for (group in groups) {
         val list = group.list.filter(predicate)
         if (list.isNotEmpty()) {

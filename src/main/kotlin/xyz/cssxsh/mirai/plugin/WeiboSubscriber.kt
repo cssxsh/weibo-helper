@@ -41,7 +41,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     protected open val filter: WeiboFilter get() = WeiboHelperSettings
 
-    private val forward get() = WeiboHelperSettings.forward
+    private val forward get() = UseForwardMessage
 
     protected abstract val tasks: MutableMap<K, WeiboTaskInfo>
 
