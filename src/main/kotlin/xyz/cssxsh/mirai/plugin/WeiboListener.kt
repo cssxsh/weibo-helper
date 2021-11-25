@@ -36,23 +36,21 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
                 logger.info { "${sender.render()} 匹配WEIBO(${result.value})" }
                 try {
                     message.quote() + client.getMicroBlog(mid = result.value).toMessage(contact = subject)
+                } catch (throwable: SerializationException) {
+                    logger.warning { "构建WEIBO(${result.value})序列化时失败, $throwable" }
+                    LoginContact?.sendMessage("构建WEIBO(${result.value})任务序列化时失败, $throwable")
+                    throwable.message
                 } catch (throwable: Throwable) {
-                    if (throwable is SerializationException) {
-                        logger.warning { "构建WEIBO(${result.value})序列化时失败, $throwable" }
-                        LoginContact?.sendMessage("构建WEIBO(${result.value})任务序列化时失败, $throwable")
-                    } else {
-                        logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, throwable)
-                        client.runCatching {
-                            restore()
-                        }.onSuccess { info ->
-                            logger.info { "登录成功, $info" }
-                        }.onFailure { cause ->
-                            if ("login" in cause.message.orEmpty()) {
-                                LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
-                            }
+                    logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, throwable)
+                    try {
+                        client.restore()
+                        null
+                    } catch (cause: Throwable) {
+                        if ("login" in cause.message.orEmpty()) {
+                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
                         }
-                        throwable.message
-                    }
+                        cause.message
+                    } ?: throwable.message
                 }
             }
         }

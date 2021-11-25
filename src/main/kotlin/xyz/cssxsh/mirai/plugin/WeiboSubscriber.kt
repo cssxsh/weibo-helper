@@ -148,13 +148,11 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                         info?.copy(last = blog.created)
                     }
                 }
+            } catch (exception: SerializationException) {
+                logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
+                LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
+                continue
             } catch (exception: Throwable) {
-                if (exception is SerializationException) {
-                    logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
-                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
-                    continue
-                }
-
                 if ("<html>" in exception.message.orEmpty()) {
                     logger.warning { "$type(${id})监听任务执行失败, ${exception}，尝试重新加载Cookie" }
                     try {
