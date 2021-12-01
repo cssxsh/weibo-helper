@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "xyz.cssxsh"
-version = "1.3.14"
+version = "1.3.15"
 
 mavenCentralPublish {
     useCentralS01()
@@ -19,9 +19,8 @@ mavenCentralPublish {
 }
 
 repositories {
-    clear()
     mavenLocal()
-    maven(url = "https://maven.aliyun.com/repository/public")
+    maven(url = "https://maven.aliyun.com/repository/central")
     mavenCentral()
     maven(url = "https://maven.aliyun.com/repository/gradle-plugin")
     gradlePluginPortal()

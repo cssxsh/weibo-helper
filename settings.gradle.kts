@@ -1,9 +1,8 @@
 pluginManagement {
     repositories {
         mavenLocal()
-        maven(url = "https://maven.aliyun.com/repository/public")
+        maven(url = "https://maven.aliyun.com/repository/central")
         mavenCentral()
-        jcenter()
         maven(url = "https://maven.aliyun.com/repository/gradle-plugin")
         gradlePluginPortal()
     }

@@ -338,11 +338,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
             launch {
                 try {
                     val file = getVideo()
-                    if (contact is FileSupported) {
-                        contact.sendFile(file.name, file)
-                    } else {
-                        logger.warning { "$contact 无法发送文件" }
-                    }
+                    contact as FileSupported
+                    file.toExternalResource().use { contact.files.uploadNewFile(file.name, it) }
                 } catch (e: Throwable) {
                     logger.warning { "$contact 无法发送文件, $e" }
                 }
