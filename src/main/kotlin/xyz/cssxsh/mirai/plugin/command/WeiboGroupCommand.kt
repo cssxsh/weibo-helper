@@ -2,8 +2,7 @@ package xyz.cssxsh.mirai.plugin.command
 
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.contact.*
-import net.mamoe.mirai.utils.info
-import net.mamoe.mirai.utils.warning
+import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.plugin.*
 import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.api.*
@@ -40,7 +39,7 @@ object WeiboGroupCommand : CompositeCommand(
             client.getFeedGroups()[id].gid
         } catch (e: Throwable) {
             logger.warning { "查询群组失败, $e" }
-            id.toLong()
+            return
         }
         subscriber.remove(id = gid, subject = subject)
         sendMessage("对Group(${gid})的监听任务, 取消完成")
