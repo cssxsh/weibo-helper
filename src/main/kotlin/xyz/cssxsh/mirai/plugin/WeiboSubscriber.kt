@@ -153,19 +153,11 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
                 continue
             } catch (exception: Throwable) {
-                if ("<html>" in exception.message.orEmpty()) {
-                    logger.warning { "$type(${id})监听任务执行失败, ${exception}，尝试重新加载Cookie" }
-                    try {
-                        client.restore()
-                    } catch (cause: Throwable) {
-                        if ("login" in cause.message.orEmpty()) {
-                            logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
-                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
-                        }
-                    }
-                } else {
+                try {
+                    client.restore()
+                } catch (cause: Throwable) {
+                    logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
                     LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
-                    logger.warning { "$type(${id})监听任务执行失败, $exception" }
                 }
             } finally {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }

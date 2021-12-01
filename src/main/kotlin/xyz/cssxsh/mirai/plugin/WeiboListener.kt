@@ -46,9 +46,7 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
                         client.restore()
                         null
                     } catch (cause: Throwable) {
-                        if ("login" in cause.message.orEmpty()) {
-                            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
-                        }
+                        LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
                         cause.message
                     } ?: throwable.message
                 }
