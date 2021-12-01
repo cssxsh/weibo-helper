@@ -50,7 +50,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
         install(HttpTimeout) {
             socketTimeoutMillis = timeout
             connectTimeoutMillis = timeout
-            requestTimeoutMillis = timeout
+            requestTimeoutMillis = null
         }
         install(HttpCookies) {
             storage = this@WeiboClient.storage
