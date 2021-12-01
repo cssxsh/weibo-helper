@@ -80,15 +80,16 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
         }
     }
 
-    protected open val max = 20
+    protected open val max = 32
 
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = supervisorScope {
         var count = 0
         while (isActive) {
             try {
                 return@supervisorScope block(client)
-            } catch (e: Throwable) {
-                if (++count > max || ignore(e).not()) throw e
+            } catch (cause: Throwable) {
+                if (cause !is HttpRequestTimeoutException) ++count
+                if (count > max || ignore(cause).not()) throw cause
             }
         }
         throw CancellationException(null)
