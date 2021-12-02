@@ -49,7 +49,9 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     download(PASSPORT_VISITOR)
 
     val code = data<LoginQrcode>(SSO_QRCODE_IMAGE) {
-        parameter("entry", "weibo")
+        header(HttpHeaders.Host, url.host)
+        header(HttpHeaders.Referrer, INDEX_PAGE)
+        parameter("entry", "sinawap")
         parameter("size", QRCODE_SIZE)
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
@@ -59,7 +61,9 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     val token: LoginToken = supervisorScope {
         while (isActive) {
             val json = callback<LoginData>(SSO_QRCODE_CHECK) {
-                parameter("entry", "weibo")
+                header(HttpHeaders.Host, url.host)
+                header(HttpHeaders.Referrer, INDEX_PAGE)
+                parameter("entry", "sinawap")
                 parameter("qrid", code.id)
                 parameter("callback", "STK_${System.currentTimeMillis()}")
             }
@@ -80,6 +84,8 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     }
 
     val flush = callback<LoginFlush>(SSO_LOGIN) {
+        header(HttpHeaders.Host, url.host)
+        header(HttpHeaders.Referrer, INDEX_PAGE)
         parameter("entry", "weibo")
         parameter("returntype", "TEXT")
         parameter("crossdomain", 1)
@@ -112,6 +118,8 @@ suspend fun WeiboClient.restore(): LoginResult {
     }
 
     val html = text(SSO_LOGIN) {
+        header(HttpHeaders.Host, url.host)
+        header(HttpHeaders.Referrer, INDEX_PAGE)
         parameter("entry", "sso")
         parameter("returntype", "META")
         parameter("gateway", 1)
