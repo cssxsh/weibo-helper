@@ -39,7 +39,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     abstract val load: suspend (id: K) -> List<MicroBlog>
 
-    protected open val filter: WeiboFilter get() = WeiboHelperSettings
+    protected open val filter: WeiboFilter get() = WeiboRecordFilter
 
     private val forward get() = UseForwardMessage
 

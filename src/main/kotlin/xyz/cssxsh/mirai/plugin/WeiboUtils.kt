@@ -18,7 +18,6 @@ import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
-import net.mamoe.mirai.utils.RemoteFile.Companion.sendFile
 import net.sf.image4j.codec.ico.*
 import org.apache.commons.text.*
 import xyz.cssxsh.mirai.plugin.data.*
