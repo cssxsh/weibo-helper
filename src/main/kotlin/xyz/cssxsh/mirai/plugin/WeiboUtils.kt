@@ -425,14 +425,17 @@ internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
 internal suspend fun restore(interval: Long = 3600_000) = supervisorScope {
     val expires = Instant.ofEpochSecond(client.wbpsess?.expires?.timestamp ?: 0)
     while (isActive) {
-        if (expires >= Instant.now().plusSeconds(interval)) continue
-        try {
-            client.restore()
-        } catch (cause: Throwable) {
-            logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
-            LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
+        if (expires < Instant.now().plusSeconds(interval)) {
+            try {
+                val result = client.restore()
+                logger.info { "WEIBO登陆状态已刷新 ${result}" }
+            } catch (cause: Throwable) {
+                logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
+                LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
+            }
+        } else {
+            delay(interval)
         }
-        delay(interval)
     }
 }
 
