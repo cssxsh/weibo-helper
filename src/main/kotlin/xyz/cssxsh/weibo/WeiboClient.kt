@@ -44,6 +44,8 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
 
     internal val srf get() = storage.container["SRF"]
 
+    internal val wbpsess get() = storage.container["WBPSESS"]
+
     protected open val timeout: Long = 30_000 // attr(open) ok ?
 
     protected open val client = HttpClient(OkHttp) {

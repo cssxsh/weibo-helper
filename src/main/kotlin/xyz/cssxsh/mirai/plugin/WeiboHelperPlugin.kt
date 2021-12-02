@@ -18,7 +18,9 @@ object WeiboHelperPlugin : KotlinPlugin(
         author("cssxsh")
     }
 ) {
-    private lateinit var clear: Job
+    private var clear: Job? = null
+
+    private var restore: Job? = null
 
     @OptIn(ConsoleExperimentalApi::class)
     private fun <T : PluginConfig> T.save() = loader.configStorage.store(this@WeiboHelperPlugin, this)
@@ -47,8 +49,11 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboListener.start()
 
         globalEventChannel().subscribeOnce<BotOnlineEvent> {
-            clear = launch {
+            clear = this@WeiboHelperPlugin.launch {
                 clear()
+            }
+            restore = this@WeiboHelperPlugin.launch {
+                restore()
             }
 
             WeiboSubscriber.start()
@@ -64,6 +69,8 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         WeiboListener.stop()
 
-        clear.cancel()
+        clear?.cancel()
+
+        restore?.cancel()
     }
 }
