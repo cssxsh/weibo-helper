@@ -231,7 +231,7 @@ internal suspend fun Emoticon.file(): File {
     }
 }
 
-internal suspend fun MicroBlog.getContent() = supervisorScope {
+internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope {
     var content = raw
     var links = urls
     if (isLongText) {
@@ -244,7 +244,7 @@ internal suspend fun MicroBlog.getContent() = supervisorScope {
         }
     }
     links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
-        if (struct.long.isBlank()) return@fold acc
+        if (struct.long.isBlank() && !url) return@fold acc
         acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
     }
 }
@@ -324,11 +324,11 @@ private suspend fun emoticon(content: String, contact: Contact) = buildMessageCh
     appendLine(content.substring(pos))
 }
 
-internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
+internal suspend fun MicroBlog.toMessage(contact: Contact, url: Boolean = true): MessageChain = buildMessageChain {
     appendLine("@${username}#${uid}")
     title?.run { appendLine("标题: $text") }
     appendLine("时间: $created")
-    appendLine("链接: $link")
+    appendLine(if (url) "链接: $link" else "MID: mid")
     suffix?.run { appendLine(joinToString(" ") { it.content }) }
 
     // FIXME: Send Video
@@ -346,7 +346,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         }
     }
 
-    val content = getContent()
+    val content = getContent(url = url)
 
     if (Emoticons.isEmpty()) {
         appendLine(content)
