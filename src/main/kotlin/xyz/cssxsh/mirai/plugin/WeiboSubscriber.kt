@@ -28,7 +28,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
         fun stop() {
             for (subscriber in all) {
-                subscriber.start()
+                subscriber.stop()
             }
         }
     }
