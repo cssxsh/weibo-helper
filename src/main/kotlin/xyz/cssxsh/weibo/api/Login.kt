@@ -48,7 +48,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     // Set Cookie
     download(PASSPORT_VISITOR)
 
-    val code = data<LoginQrcode>(SSO_QRCODE_IMAGE) {
+    val qrcode = data<LoginQrcode>(SSO_QRCODE_IMAGE) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, INDEX_PAGE)
         parameter("entry", "sinawap")
@@ -56,7 +56,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    send(code.image.replace("""^//""".toRegex(), "https://"))
+    send(Url(qrcode.image).copy(protocol = URLProtocol.HTTPS).toString())
 
     val token: LoginToken = supervisorScope {
         while (isActive) {
@@ -64,7 +64,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
                 header(HttpHeaders.Host, url.host)
                 header(HttpHeaders.Referrer, INDEX_PAGE)
                 parameter("entry", "sinawap")
-                parameter("qrid", code.id)
+                parameter("qrid", qrcode.id)
                 parameter("callback", "STK_${System.currentTimeMillis()}")
             }
             // println(json)
