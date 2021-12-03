@@ -344,6 +344,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     appendLine("时间: $created")
     appendLine(if (ShowUrl) "链接: $link" else "MID: $mid")
     suffix?.run { appendLine(joinToString(" ") { it.content }) }
+    appendLine("\uD83D\uDCAC: $comments \uD83D\uDD01: $reposts \uD83D\uDC4D\uD83C\uDFFB: $attitudes")
 
     // FIXME: Send Video
     if (hasVideo) {
