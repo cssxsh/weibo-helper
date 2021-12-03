@@ -105,7 +105,11 @@ internal val Charsets.GBK
 
 internal const val EncodeChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-internal fun String.decodeBase62() = fold(0L) { acc, char -> acc * 62 + EncodeChars.indexOf(char) }
+internal fun String.decodeBase62() = fold(0L) { acc, char ->
+    val index = EncodeChars.indexOf(char)
+    check(index != -1) { "$char no 62" }
+    acc * 62 + index
+}
 
 internal const val WEIBO_EPOCH = 515483463L
 
