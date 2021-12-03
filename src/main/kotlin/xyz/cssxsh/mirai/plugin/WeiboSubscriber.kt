@@ -156,8 +156,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 try {
                     client.restore()
                 } catch (cause: Throwable) {
-                    logger.warning { "WEIBO登陆状态失效，需要重新登陆" }
-                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin ")
+                    logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
+                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
                 }
             } finally {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
