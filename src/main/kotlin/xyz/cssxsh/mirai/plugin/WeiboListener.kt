@@ -24,7 +24,7 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
      * 5. https://weibo.com/detail/4585001998353993
      * 6. https://m.weibo.cn/detail/4585001998353993
      */
-    private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+|[A-Z][0-9A-z]{8}""".toRegex()
+    private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+""".toRegex()
 
     private val QuietGroup = WeiboHelperPlugin.registerPermission("quiet.group", "关闭链接监听")
 
