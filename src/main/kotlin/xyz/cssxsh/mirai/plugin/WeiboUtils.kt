@@ -258,7 +258,7 @@ internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope
         if (url) {
             acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
         } else {
-            acc.replace(struct.short, struct.title)
+            acc.replace(struct.short, "[${struct.title}]")
         }
     }
 }
