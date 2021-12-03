@@ -253,13 +253,13 @@ internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope
             logger.warning { "获取微博[${id}]长文本失败 $e" }
         }
     }
-    if (url) {
-        links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
-            if (struct.long.isBlank()) return@fold acc
+    links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
+        if (struct.long.isBlank()) return@fold acc
+        if (url) {
             acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
+        } else {
+            acc.replace(struct.short, struct.title)
         }
-    } else {
-        content.orEmpty()
     }
 }
 
