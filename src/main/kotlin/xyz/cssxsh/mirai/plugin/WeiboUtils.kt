@@ -49,6 +49,8 @@ internal const val WEIBO_PICTURES_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.pict
 
 internal const val WEIBO_FORWARD_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.forward"
 
+internal const val WEIBO_URL_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.url"
+
 internal const val WEIBO_FILTER_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.filter"
 
 /**
@@ -181,11 +183,19 @@ internal val UseForwardMessage by lazy {
 }
 
 /**
- * @see [WEIBO_FORWARD_PROPERTY]
+ * @see [WEIBO_URL_PROPERTY]
+ * @see [WeiboHelperSettings.showUrl]
+ */
+internal val ShowUrl by lazy {
+    System.getProperty(WEIBO_URL_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.showUrl
+}
+
+/**
+ * @see [WEIBO_FILTER_PROPERTY]
  * @see [WeiboHelperSettings]
  * TODO: WEIBO_FORWARD_PROPERTY
  */
-internal val WeiboRecordFilter by lazy {
+internal val WeiboRecordFilter: WeiboFilter by lazy {
     WeiboHelperSettings
 }
 
@@ -243,9 +253,13 @@ internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope
             logger.warning { "获取微博[${id}]长文本失败 $e" }
         }
     }
-    links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
-        if (struct.long.isBlank() && !url) return@fold acc
-        acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
+    if (url) {
+        links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
+            if (struct.long.isBlank()) return@fold acc
+            acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
+        }
+    } else {
+        content.orEmpty()
     }
 }
 
@@ -324,11 +338,11 @@ private suspend fun emoticon(content: String, contact: Contact) = buildMessageCh
     appendLine(content.substring(pos))
 }
 
-internal suspend fun MicroBlog.toMessage(contact: Contact, url: Boolean = true): MessageChain = buildMessageChain {
+internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
     appendLine("@${username}#${uid}")
     title?.run { appendLine("标题: $text") }
     appendLine("时间: $created")
-    appendLine(if (url) "链接: $link" else "MID: mid")
+    appendLine(if (ShowUrl) "链接: $link" else "MID: $mid")
     suffix?.run { appendLine(joinToString(" ") { it.content }) }
 
     // FIXME: Send Video
@@ -346,7 +360,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact, url: Boolean = true):
         }
     }
 
-    val content = getContent(url = url)
+    val content = getContent(url = ShowUrl)
 
     if (Emoticons.isEmpty()) {
         appendLine(content)
@@ -423,8 +437,8 @@ internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
 }
 
 internal suspend fun restore(interval: Long = 3600_000) = supervisorScope {
-    val expires = Instant.ofEpochSecond(client.wbpsess?.expires?.timestamp ?: 0)
     while (isActive) {
+        val expires = Instant.ofEpochSecond(client.wbpsess?.expires?.timestamp ?: 0)
         if (expires < Instant.now().plusSeconds(interval)) {
             try {
                 val result = client.restore()

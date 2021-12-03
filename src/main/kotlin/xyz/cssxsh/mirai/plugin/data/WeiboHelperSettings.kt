@@ -51,4 +51,8 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
 
     @ValueDescription("以转发消息的方式发送订阅微博")
     val forward: Boolean by value(false)
+
+    @ValueName("show_url")
+    @ValueDescription("是否显示url")
+    val showUrl: Boolean by value(true)
 }
