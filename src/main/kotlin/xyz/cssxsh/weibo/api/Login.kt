@@ -130,6 +130,8 @@ suspend fun WeiboClient.restore(): LoginResult {
     check(location(html)!!.startsWith(CROSS_DOMAIN)) { "跳转异常" }
 
     val flush = callback<LoginCrossFlush>(CROSS_DOMAIN) {
+        header(HttpHeaders.Host, url.host)
+        header(HttpHeaders.Referrer, INDEX_PAGE)
         parameter("action", "login")
         parameter("entry", "sso")
         parameter("r", INDEX_PAGE)
@@ -159,7 +161,7 @@ suspend fun WeiboClient.incarnate(): Int {
         parameter("_rand", System.currentTimeMillis())
     }
 
-    load(LoginStatus().copy(cookies = cookies.map { (name, value) ->
+    load(LoginStatus(cookies = cookies.map { (name, value) ->
         "${name.uppercase()}=${value}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW"
     }))
 
