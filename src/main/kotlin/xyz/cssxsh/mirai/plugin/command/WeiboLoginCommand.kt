@@ -22,7 +22,9 @@ object WeiboLoginCommand : SimpleCommand(
                 logger.info("qrcode: $url")
                 launch {
                     val image = try {
-                        client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
+                        withTimeout(60_000) {
+                            client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
+                        }
                     } catch (e: Throwable) {
                         "$url ".toPlainText()
                     }
