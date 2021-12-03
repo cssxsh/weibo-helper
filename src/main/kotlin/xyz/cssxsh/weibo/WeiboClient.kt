@@ -29,7 +29,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
 
     fun status() = LoginStatus(info, cookies)
 
-    fun load(status: LoginStatus) = runBlocking {
+    fun load(status: LoginStatus) = runBlocking(coroutineContext) {
         info = status.info
         storage.mutex.withLock {
             storage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
