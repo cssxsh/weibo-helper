@@ -54,6 +54,8 @@ data class PageInfo(
             val height: Int,
             @SerialName("mime")
             val mime: String,
+            @SerialName("bitrate")
+            val bitrate: Int = 0,
             @SerialName("quality_label")
             val quality: String,
             @SerialName("size")
@@ -66,7 +68,10 @@ data class PageInfo(
             val url: String = "",
             @SerialName("width")
             val width: Int
-        )
+        ) : Comparable<PlayInfo> {
+
+            override fun compareTo(other: PlayInfo): Int = bitrate.compareTo(other.bitrate)
+        }
     }
 
     @Serializable
