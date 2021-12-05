@@ -315,7 +315,8 @@ internal suspend fun MicroBlog.getCover(flush: Boolean = false) = supervisorScop
 private suspend fun emoticon(content: String, contact: Contact) = buildMessageChain {
     var pos = 0
     while (pos < content.length) {
-        val start = content.indexOf('[', pos).takeIf { it != -1 } ?: break
+        val start = content.indexOf('[', pos)
+        if (start < 0) break
         val emoticon = Emoticons.values.find { content.startsWith(it.phrase, start) }
 
         if (emoticon == null) {
@@ -439,8 +440,8 @@ internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
 
 internal suspend fun restore(interval: Long = 3600_000) = supervisorScope {
     while (isActive) {
-        val expires = Instant.ofEpochSecond(client.wbpsess?.expires?.timestamp ?: 0)
-        if (expires < Instant.now().plusSeconds(interval)) {
+        val expires = client.wbpsess?.expires?.timestamp ?: 0
+        if (expires < System.currentTimeMillis() + interval) {
             try {
                 val result = client.restore()
                 logger.info { "WEIBO登陆状态已刷新 $result" }
@@ -482,10 +483,8 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
                     logger.warning({ "@${screen}#${id}的${month}第${page}页加载失败" }, it)
                 }.getOrNull()?.size ?: Int.MAX_VALUE) >= 16
             }
-            blogs.values.toList().also {
-                if (it.isNotEmpty()) {
-                    writeText(WeiboClient.Json.encodeToString(it))
-                }
+            if (blogs.isNotEmpty()) {
+                writeText(WeiboClient.Json.encodeToString(blogs.values.toList()))
             }
         }
     }
@@ -512,11 +511,10 @@ internal suspend fun WeiboClient.init() = supervisorScope {
             logger.warning { "模拟游客失败, ${it.message}" }
         }
     }.isSuccess && runCatching {
-        getEmoticon().emoticon.let { map ->
-            (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
-                it.phrase
-            }.let {
-                Emoticons.putAll(it)
+        val emoticon = getEmoticon().emoticon
+        for (map in (emoticon.brand.values + emoticon.usual + emoticon.more)) {
+            for ((_, list) in map) {
+                Emoticons.putAll(list.associateBy { it.phrase })
             }
         }
     }.onSuccess {
