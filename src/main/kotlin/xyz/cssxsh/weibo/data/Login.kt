@@ -50,9 +50,9 @@ data class LoginResult(
 @Serializable
 data class LoginUserInfo(
     @SerialName("displayname")
-    val display: String,
+    val display: String = "",
     @SerialName("uniqueid")
-    val uid: Long
+    val uid: Long = 0
 )
 
 @Serializable
@@ -78,7 +78,7 @@ data class LoginCrossFlush(
 @Serializable
 data class LoginStatus(
     @SerialName("info")
-    val info: LoginUserInfo = LoginUserInfo("", 0),
+    val info: LoginUserInfo = LoginUserInfo(),
     @SerialName("cookies")
     val cookies: List<String> = emptyList(),
 )

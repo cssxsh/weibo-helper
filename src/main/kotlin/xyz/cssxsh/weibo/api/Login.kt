@@ -31,10 +31,11 @@ private fun location(html: String): String? {
         .takeIf { it.startsWith("http") }
 }
 
-private suspend fun WeiboClient.login(sso: String): LoginResult {
-    val result = callback<LoginResult>(sso) {
+private suspend fun WeiboClient.login(urls: List<String>): LoginResult {
+    val result = callback<LoginResult>(urls.first { it.startsWith(WEIBO_SSO_LOGIN) }) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, INDEX_PAGE)
+
         parameter("action", "login")
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
@@ -51,6 +52,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     val qrcode = data<LoginQrcode>(SSO_QRCODE_IMAGE) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, INDEX_PAGE)
+
         parameter("entry", "sinawap")
         parameter("size", QRCODE_SIZE)
         parameter("callback", "STK_${System.currentTimeMillis()}")
@@ -63,6 +65,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
             val json = callback<LoginData>(SSO_QRCODE_CHECK) {
                 header(HttpHeaders.Host, url.host)
                 header(HttpHeaders.Referrer, INDEX_PAGE)
+
                 parameter("entry", "sinawap")
                 parameter("qrid", qrcode.id)
                 parameter("callback", "STK_${System.currentTimeMillis()}")
@@ -86,6 +89,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     val flush = callback<LoginFlush>(SSO_LOGIN) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, INDEX_PAGE)
+
         parameter("entry", "weibo")
         parameter("returntype", "TEXT")
         parameter("crossdomain", 1)
@@ -96,7 +100,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    return login(flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) })
+    return login(urls = flush.urls)
 }
 
 suspend fun WeiboClient.restore(): LoginResult {
@@ -109,6 +113,7 @@ suspend fun WeiboClient.restore(): LoginResult {
     checkNotNull(srf) { "SRF Cookie 为空" }
 
     val token = data<LoginToken>(PASSPORT_VISITOR) {
+        header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
 
         parameter("a", "restore")
@@ -120,6 +125,7 @@ suspend fun WeiboClient.restore(): LoginResult {
     val html = text(SSO_LOGIN) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, INDEX_PAGE)
+
         parameter("entry", "sso")
         parameter("returntype", "META")
         parameter("gateway", 1)
@@ -127,21 +133,25 @@ suspend fun WeiboClient.restore(): LoginResult {
         parameter("savestate", token.state)
     }
 
-    check(location(html)!!.startsWith(CROSS_DOMAIN)) { "跳转异常" }
+    check(location(html).orEmpty().startsWith(CROSS_DOMAIN)) { "跳转异常" }
 
     val flush = callback<LoginCrossFlush>(CROSS_DOMAIN) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, INDEX_PAGE)
+
         parameter("action", "login")
         parameter("entry", "sso")
         parameter("r", INDEX_PAGE)
     }
 
-    return login(flush.urls.first { it.startsWith(WEIBO_SSO_LOGIN) })
+    return login(urls = flush.urls)
 }
 
 suspend fun WeiboClient.incarnate(): Int {
     val visitor = data<LoginVisitor>(PASSPORT_GEN_VISITOR) {
+        header(HttpHeaders.Host, url.host)
+        header(HttpHeaders.Referrer, PASSPORT_VISITOR)
+
         parameter("cb", "restore_back")
         parameter("from", "weibo")
         parameter("_rand", System.currentTimeMillis())
@@ -149,6 +159,7 @@ suspend fun WeiboClient.incarnate(): Int {
 
     val recover = if (visitor.new) 3 else 2
     val cookies = data<Map<String, String>>(PASSPORT_VISITOR) {
+        header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)
 
         parameter("a", "incarnate")
@@ -161,7 +172,7 @@ suspend fun WeiboClient.incarnate(): Int {
         parameter("_rand", System.currentTimeMillis())
     }
 
-    load(LoginStatus(cookies = cookies.map { (name, value) ->
+    load(status = LoginStatus(cookies = cookies.map { (name, value) ->
         "${name.uppercase()}=${value}; Domain=.weibo.com; Path=/; HttpOnly; \$x-enc=RAW"
     }))
 

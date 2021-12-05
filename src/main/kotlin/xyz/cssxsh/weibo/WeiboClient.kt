@@ -16,7 +16,6 @@ import xyz.cssxsh.weibo.data.*
 import java.io.IOException
 import kotlin.coroutines.*
 import kotlin.coroutines.cancellation.*
-import kotlin.properties.*
 
 @OptIn(KtorExperimentalAPI::class)
 open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {
@@ -38,7 +37,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
 
     protected val storage = AcceptAllCookiesStorage()
 
-    internal open var info: LoginUserInfo by Delegates.notNull()
+    internal open var info: LoginUserInfo = LoginUserInfo("", 0)
 
     internal val xsrf get() = storage.container["XSRF-TOKEN"]
 
