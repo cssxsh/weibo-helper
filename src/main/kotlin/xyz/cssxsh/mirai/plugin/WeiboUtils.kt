@@ -483,9 +483,11 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
                     logger.warning({ "@${screen}#${id}的${month}第${page}页加载失败" }, it)
                 }.getOrNull()?.size ?: Int.MAX_VALUE) >= 16
             }
-            if (blogs.isNotEmpty()) {
-                writeText(WeiboClient.Json.encodeToString(blogs.values.toList()))
+            val list = blogs.values.toList()
+            if (list.isNotEmpty()) {
+                writeText(WeiboClient.Json.encodeToString(list))
             }
+            list
         }
     }
 }
