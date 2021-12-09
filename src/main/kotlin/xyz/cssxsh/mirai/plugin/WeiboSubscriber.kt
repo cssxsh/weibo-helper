@@ -51,7 +51,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     fun start(): Unit = synchronized(taskJobs) {
         for ((id, _) in tasks) {
-            taskJobs[id] = listener(id)
+            taskJobs[id] = listen(id)
         }
     }
 
@@ -106,7 +106,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         true
     }
 
-    private fun listener(id: K): Job = launch(SupervisorJob()) {
+    private fun listen(id: K): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         var history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
         while (isActive && infos(id).isNotEmpty()) {
@@ -150,14 +150,22 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 }
             } catch (exception: SerializationException) {
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
-                LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
+                try {
+                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
+                } catch (_: Throwable) {
+                    //
+                }
                 continue
             } catch (exception: Throwable) {
                 try {
                     client.restore()
                 } catch (cause: Throwable) {
                     logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
-                    LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
+                    try {
+                        LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
+                    } catch (_: Throwable) {
+                        //
+                    }
                 }
             } finally {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
@@ -172,7 +180,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             }
         }
         taskJobs.compute(id) { _, job ->
-            job?.takeIf { it.isActive } ?: listener(id)
+            job?.takeIf { it.isActive } ?: listen(id)
         }
     }
 
@@ -190,11 +198,11 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     fun detail(subject: Contact): String = buildString {
         appendLine("# 订阅列表")
-        appendLine("|     NAME     |     ID     |     LAST     |")
-        appendLine("|--------------|------------|--------------|")
+        appendLine("| NAME | ID | LAST | ACTIVE |")
+        appendLine("|------|----|------|--------|")
         for ((id, info) in tasks) {
             if (subject.delegate !in info.contacts) continue
-            appendLine("| ${info.name} | $id | ${info.last} |")
+            appendLine("| ${info.name} | $id | ${info.last} | ${taskJobs[id]?.isActive} |")
         }
     }
 }
