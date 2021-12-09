@@ -183,7 +183,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             } catch (exception: SerializationException) {
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
                 try {
-                    LoginContact?.sendMessage("$type(${id})监听任务序列化时失败, $exception")
+                    sendLoginMessage("$type(${id})监听任务序列化时失败, $exception")
                 } catch (_: Throwable) {
                     //
                 }
@@ -194,7 +194,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 } catch (cause: Throwable) {
                     logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
                     try {
-                        LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
+                        sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
                     } catch (_: Throwable) {
                         //
                     }

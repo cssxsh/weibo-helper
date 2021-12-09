@@ -38,7 +38,7 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
                     message.quote() + client.getMicroBlog(mid = result.value).toMessage(contact = subject)
                 } catch (throwable: SerializationException) {
                     logger.warning({ "构建WEIBO(${result.value})序列化时失败" }, throwable)
-                    LoginContact?.sendMessage("构建WEIBO(${result.value})任务序列化时失败, $throwable")
+                    sendLoginMessage("构建WEIBO(${result.value})任务序列化时失败, $throwable")
                     throwable.message
                 } catch (throwable: Throwable) {
                     logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, throwable)
@@ -47,7 +47,7 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
                         null
                     } catch (cause: Throwable) {
                         logger.warning({ "WEIBO登陆状态失效，需要重新登陆, $cause" }, cause)
-                        LoginContact?.sendMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
+                        sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
                         cause.message
                     } ?: throwable.message
                 }
