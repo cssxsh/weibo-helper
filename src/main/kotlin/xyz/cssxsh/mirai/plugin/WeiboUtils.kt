@@ -33,7 +33,7 @@ internal const val LOGGER_PROPERTY = "xyz.cssxsh.mirai.plugin.logger"
 
 internal const val WEIBO_CACHE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.cache"
 
-internal const val WEIBO_EXPIRE_IMGAE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.expire.image"
+internal const val WEIBO_EXPIRE_IMAGE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.expire.image"
 
 internal const val WEIBO_EXPIRE_HISTORY_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.expire.history"
 
@@ -163,20 +163,21 @@ internal fun sendLoginMessage(message: String) {
         WeiboHelperPlugin
     } catch (_: Throwable) {
         MainScope()
-    }.launch {
+    }.launch(SupervisorJob()) {
         while (isActive) {
             try {
                 LoginContact.sendMessage(message)
                 break
             } catch (cause: Throwable) {
                 logger.warning { "向 LoginContact 发送消息失败 $cause" }
+                delay(60_000L)
                 continue
             }
         }
     }
 }
 
-internal val Emoticons by WeiboEmoticonData::emoticons
+internal val Emoticons get() = WeiboEmoticonData.emoticons
 
 internal val EmoticonCache get() = ImageCache.resolve("emoticon")
 

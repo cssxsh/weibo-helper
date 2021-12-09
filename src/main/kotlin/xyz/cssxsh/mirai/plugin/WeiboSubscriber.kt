@@ -152,22 +152,14 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 }
             } catch (exception: SerializationException) {
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
-                try {
-                    sendLoginMessage("$type(${id})监听任务序列化时失败, $exception")
-                } catch (_: Throwable) {
-                    //
-                }
+                sendLoginMessage("$type(${id})监听任务序列化时失败, $exception")
                 continue
             } catch (exception: Throwable) {
                 try {
                     client.restore()
                 } catch (cause: Throwable) {
                     logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
-                    try {
-                        sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
-                    } catch (_: Throwable) {
-                        //
-                    }
+                    sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
                 }
             } finally {
                 logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
