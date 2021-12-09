@@ -1,17 +1,47 @@
 package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
-import kotlinx.serialization.*
-import net.mamoe.mirai.console.util.*
+import kotlinx.serialization.SerializationException
+import net.mamoe.mirai.console.util.ConsoleExperimentalApi
 import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
-import net.mamoe.mirai.contact.*
-import net.mamoe.mirai.message.data.*
-import net.mamoe.mirai.utils.*
-import xyz.cssxsh.mirai.plugin.data.*
-import xyz.cssxsh.weibo.data.*
-import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.api.*
-import java.time.*
+import net.mamoe.mirai.contact.Contact
+import net.mamoe.mirai.message.data.ForwardMessage
+import net.mamoe.mirai.message.data.RawForwardMessage
+import net.mamoe.mirai.message.data.buildForwardMessage
+import net.mamoe.mirai.utils.info
+import net.mamoe.mirai.utils.verbose
+import net.mamoe.mirai.utils.warning
+import xyz.cssxsh.mirai.plugin.data.WeiboTaskInfo
+import xyz.cssxsh.weibo.api.restore
+import xyz.cssxsh.weibo.data.MicroBlog
+import xyz.cssxsh.weibo.uid
+import xyz.cssxsh.weibo.username
+import java.time.Duration
+import java.time.LocalTime
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableMap
+import kotlin.collections.MutableSet
+import kotlin.collections.any
+import kotlin.collections.associateBy
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.contains
+import kotlin.collections.filter
+import kotlin.collections.flatMap
+import kotlin.collections.getValue
+import kotlin.collections.isNotEmpty
+import kotlin.collections.iterator
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.maxByOrNull
+import kotlin.collections.minus
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.orEmpty
+import kotlin.collections.plus
+import kotlin.collections.set
+import kotlin.collections.toMutableSet
 
 @OptIn(ConsoleExperimentalApi::class)
 abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
@@ -60,13 +90,15 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         taskJobs.clear()
     }
 
-    private suspend fun sendMessageToTaskContacts(id: K, build: BuildMessage) = infos(id).forEach { delegate ->
-        try {
-            requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
-                contact.sendMessage(build(contact))
+    private suspend fun sendMessageToTaskContacts(id: K, build: BuildMessage) {
+        for (delegate in infos(id)) {
+            try {
+                requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
+                    contact.sendMessage(build(contact))
+                }
+            } catch (e: Throwable) {
+                logger.warning({ "对[${delegate}]构建消息失败" }, e)
             }
-        } catch (e: Throwable) {
-            logger.warning({ "对[${delegate}]构建消息失败" }, e)
         }
     }
 
