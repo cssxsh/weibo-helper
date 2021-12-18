@@ -15,7 +15,7 @@ object WeiboGroupCommand : CompositeCommand(
     description = "微博分组指令",
 ), WeiboHelperCommand {
 
-    internal val subscriber = object : WeiboSubscriber<Long>(primaryName) {
+    private val subscriber = object : WeiboSubscriber<Long>(primaryName) {
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getGroupsTimeline(gid = id, count = 100).statuses
         }

@@ -10,10 +10,10 @@ import xyz.cssxsh.weibo.data.*
 object WeiboUserCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "wuser", "微博用户",
-    description = "微博好友指令",
+    description = "微博用户指令",
 ), WeiboHelperCommand {
 
-    internal val subscriber = object : WeiboSubscriber<Long>(primaryName) {
+    private val subscriber = object : WeiboSubscriber<Long>(primaryName) {
         override val load: suspend (Long) -> List<MicroBlog> = { id ->
             client.getUserMicroBlogs(uid = id, page = 1).list
         }
