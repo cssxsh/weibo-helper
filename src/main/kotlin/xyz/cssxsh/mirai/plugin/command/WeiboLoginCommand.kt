@@ -50,7 +50,7 @@ object WeiboLoginCommand : SimpleCommand(
         }.onFailure {
             logger.warning(it)
         }.mapCatching {
-            "@${it.info.display}#${it.info.uid} 登陆成功".toPlainText()
+            sendMessage("@${it.info.display}#${it.info.uid} 登陆成功")
         }.getOrThrow()
     }
 }
