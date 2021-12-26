@@ -558,7 +558,7 @@ internal suspend fun <T : CommandSenderOnMessage<*>> T.sendMessage(block: suspen
             "发送消息失败, $cause"
         }
         when {
-            SendLimit.containsMatchIn(cause.message.orEmpty()) -> {
+            SendLimit in cause.message.orEmpty() -> {
                 delay(SendDelay)
                 quoteReply(SendLimit.find(cause.message!!)!!.value)
             }
