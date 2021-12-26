@@ -124,6 +124,8 @@ data class TimelineData(
 
 @Serializable
 data class UserBlog(
+    @SerialName("since_id")
+    val sinceId: String? = null,
     @SerialName("list")
     val list: List<MicroBlog> = emptyList()
 )
