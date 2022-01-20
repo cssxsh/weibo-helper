@@ -6,6 +6,12 @@
 [![Downloads](https://img.shields.io/github/downloads/cssxsh/weibo-helper/total)](https://shields.io/category/downloads)
 [![MiraiForum](https://img.shields.io/badge/post-on%20MiraiForum-yellow)](https://mirai.mamoe.net/topic/212)
 
+**使用前应该查阅的相关文档或项目**
+
+* [User Manual](https://github.com/mamoe/mirai/blob/dev/docs/UserManual.md)
+* [Permission Command](https://github.com/mamoe/mirai/blob/dev/mirai-console/docs/BuiltInCommands.md#permissioncommand)
+* [Chat Command](https://github.com/project-mirai/chat-command)
+
 插件基于PC网页版微博API，使用插件需要[登录](#登录指令)一个微博账号   
 插件初始化时，如果恢复登录状态失败，则会尝试模拟游客
 
@@ -15,7 +21,11 @@
 带括号的`/`前缀是可选的  
 `<...>`中的是指令名，由空格隔开表示或，选择其中任一名称都可执行例如`/微博用户 订阅`  
 `[...]`表示参数，当`[...]`后面带`?`时表示参数可选  
-`{...}`表示连续的多个参数  
+`{...}`表示连续的多个参数
+
+本插件指令权限ID 格式为 `xyz.cssxsh.mirai.plugin.weibo-helper:command.*`, `*` 是指令的第一指令名  
+例如 `/微博用户 订阅` 的权限ID为 `xyz.cssxsh.mirai.plugin.weibo-helper:command.wuser`
+
 `[subject]?`订阅的接收对象，可选参数, 默认填充当前聊天环境
 
 ### 登录指令
