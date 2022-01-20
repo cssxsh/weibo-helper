@@ -45,13 +45,9 @@ internal const val WEIBO_INTERVAL_SLOW_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo
 
 internal const val WEIBO_CONTACT_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.contact"
 
-internal const val WEIBO_PICTURES_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.pictures"
-
 internal const val WEIBO_FORWARD_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.forward"
 
 internal const val WEIBO_URL_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.url"
-
-internal const val WEIBO_FILTER_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.filter"
 
 /**
  * @see [LOGGER_PROPERTY]
@@ -101,7 +97,7 @@ internal val DataFolder by WeiboHelperPlugin::dataFolder
  * @see [WEIBO_CACHE_PROPERTY]
  * @see [WeiboHelperSettings.cache]
  */
-internal val ImageCache by lazy {
+internal val ImageCache: File by lazy {
     File(System.getProperty(WEIBO_CACHE_PROPERTY, WeiboHelperSettings.cache))
 }
 
@@ -117,7 +113,7 @@ internal val ImageExpire by lazy {
  * @see [WEIBO_CLEAN_FOLLOWING_PROPERTY]
  * @see [WeiboHelperSettings.following]
  */
-internal val ImageClearFollowing by lazy {
+internal val ImageClearFollowing: Boolean by lazy {
     System.getProperty(WEIBO_CLEAN_FOLLOWING_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.following
 }
 
@@ -125,7 +121,7 @@ internal val ImageClearFollowing by lazy {
  * @see [WEIBO_INTERVAL_FAST_PROPERTY]
  * @see [WeiboHelperSettings.fast]
  */
-internal val IntervalFast by lazy {
+internal val IntervalFast: Duration by lazy {
     Duration.ofMinutes(System.getProperty(WEIBO_INTERVAL_FAST_PROPERTY)?.toLong() ?: WeiboHelperSettings.fast.toLong())
 }
 
@@ -133,16 +129,8 @@ internal val IntervalFast by lazy {
  * @see [WEIBO_INTERVAL_SLOW_PROPERTY]
  * @see [WeiboHelperSettings.slow]
  */
-internal val IntervalSlow by lazy {
+internal val IntervalSlow: Duration by lazy {
     Duration.ofMinutes(System.getProperty(WEIBO_INTERVAL_SLOW_PROPERTY)?.toLong() ?: WeiboHelperSettings.slow.toLong())
-}
-
-/**
- * @see [WEIBO_PICTURES_PROPERTY]
- * @see [WeiboHelperSettings.pictures]
- */
-internal val PictureCount by lazy {
-    System.getProperty(WEIBO_PICTURES_PROPERTY)?.toInt() ?: WeiboHelperSettings.pictures
 }
 
 /**
@@ -189,7 +177,7 @@ internal val CoverCache get() = ImageCache.resolve("cover")
  * @see [WEIBO_EXPIRE_HISTORY_PROPERTY]
  * @see [WeiboHelperSettings.history]
  */
-internal val HistoryExpire by lazy {
+internal val HistoryExpire: Long by lazy {
     System.getProperty(WEIBO_EXPIRE_HISTORY_PROPERTY)?.toLong() ?: WeiboHelperSettings.history
 }
 
@@ -197,7 +185,7 @@ internal val HistoryExpire by lazy {
  * @see [WEIBO_FORWARD_PROPERTY]
  * @see [WeiboHelperSettings.forward]
  */
-internal val UseForwardMessage by lazy {
+internal val UseForwardMessage: Boolean by lazy {
     System.getProperty(WEIBO_FORWARD_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.forward
 }
 
@@ -205,17 +193,8 @@ internal val UseForwardMessage by lazy {
  * @see [WEIBO_URL_PROPERTY]
  * @see [WeiboHelperSettings.showUrl]
  */
-internal val ShowUrl by lazy {
+internal val ShowUrl: Boolean by lazy {
     System.getProperty(WEIBO_URL_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.showUrl
-}
-
-/**
- * @see [WEIBO_FILTER_PROPERTY]
- * @see [WeiboHelperSettings]
- * TODO: WEIBO_FORWARD_PROPERTY
- */
-internal val WeiboRecordFilter: WeiboFilter by lazy {
-    WeiboHelperSettings
 }
 
 typealias BuildMessage = suspend (contact: Contact) -> Message
@@ -367,7 +346,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     appendLine("\uD83D\uDCAC: $comments \uD83D\uDD01: $reposts \uD83D\uDC4D\uD83C\uDFFB: $attitudes")
 
     // FIXME: Send Video
-    if (hasVideo) {
+    if (WeiboHelperSettings.video && hasVideo) {
         supervisorScope {
             launch {
                 try {
@@ -383,26 +362,55 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
 
     val content = getContent(url = ShowUrl)
 
-    if (Emoticons.isEmpty()) {
-        appendLine(content)
-    } else {
+    if (WeiboHelperSettings.emoticon && Emoticons.isNotEmpty()) {
         add(emoticon(content, contact))
+    } else {
+        appendLine(content)
     }
 
-    if (PictureCount < 0 || pictures.size <= PictureCount) {
-        for ((index, deferred) in getImages().withIndex()) {
-            try {
-                add(deferred.await().uploadAsImage(contact))
-            } catch (e: Throwable) {
-                logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
-                appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+    when (val picture = WeiboHelperSettings.picture) {
+        is WeiboPicture.None -> Unit
+        is WeiboPicture.All -> {
+            for ((index, deferred) in getImages().withIndex()) {
+                try {
+                    add(deferred.await().uploadAsImage(contact))
+                } catch (e: Throwable) {
+                    logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                    appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                }
             }
         }
-    } else if (pictures.size > PictureCount) {
-        appendLine("图片过多，已省略")
+        is WeiboPicture.Limit -> {
+            for ((index, deferred) in getImages().withIndex()) {
+                if (picture.total <= index) {
+                    appendLine("超过${picture.total}, 剩余图片省略")
+                    break
+                }
+                try {
+                    add(deferred.await().uploadAsImage(contact))
+                } catch (e: Throwable) {
+                    logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                    appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                }
+            }
+        }
+        is WeiboPicture.Top -> {
+            if (picture.total < pictures.size) {
+                for ((index, deferred) in getImages().withIndex()) {
+                    try {
+                        add(deferred.await().uploadAsImage(contact))
+                    } catch (e: Throwable) {
+                        logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                        appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                    }
+                }
+            } else {
+                appendLine("超过${picture.total}, 图片省略")
+            }
+        }
     }
 
-    if (hasPage) {
+    if (WeiboHelperSettings.cover && hasPage) {
         try {
             add(getCover().uploadAsImage(contact))
         } catch (e: Throwable) {
@@ -439,10 +447,10 @@ internal suspend fun UserInfo.toMessage(contact: Contact) = buildMessageChain {
 internal fun File.clean(following: Boolean, num: Int = 0) {
     logger.info { "微博图片清理开始" }
     val last = System.currentTimeMillis() - ImageExpire.toMillis()
-    for (dir in listFiles().orEmpty()) {
+    for (dir in listFiles() ?: return) {
         val avatar = dir.resolve("avatar.ico").exists()
         if (following.not() && avatar) continue
-        val images = dir.listFiles { file -> file.extension in ImageExtensions.values }.orEmpty()
+        val images = dir.listFiles { file -> file.extension in ImageExtensions.values } ?: continue
         if (num > 0 && images.size > num) continue
         images.all { file -> file.lastModified() < last && file.delete() }
             && dir.apply { for (file in listFiles().orEmpty()) file.delete() }.delete()

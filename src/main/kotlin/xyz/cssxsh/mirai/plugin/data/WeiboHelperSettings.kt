@@ -1,6 +1,8 @@
 package xyz.cssxsh.mirai.plugin.data
 
 import net.mamoe.mirai.console.data.*
+import net.mamoe.mirai.console.data.SerializableValue.Companion.serializableValueWith
+import net.mamoe.mirai.console.internal.data.*
 import xyz.cssxsh.mirai.plugin.*
 
 object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboFilter {
@@ -37,11 +39,20 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     @ValueDescription("屏蔽URL类型，填入 39 可以屏蔽微博视频")
     override val urls by value(emptySet<Int>())
 
-    @ValueDescription("关闭链接监听的群号, 作废，请通过权限系统设置 /perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group")
-    val quiet by value(emptySet<Long>())
+    @ValueDescription("发送微博视频文件")
+    val video: Boolean by value(true)
 
-    @ValueDescription("显示图片数，超过则回复 图片过多 ，-1 表示全部显示")
-    val pictures by value(-1)
+    @ValueDescription("处理微博表情")
+    val emoticon: Boolean by value(true)
+
+    @ValueDescription("显示图片数设置")
+    @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+    val picture: WeiboPicture by LazyReferenceValueImpl<WeiboPicture>()
+        .serializableValueWith(WeiboPicture.serializer())
+        .apply { value = WeiboPicture.All() }
+
+    @ValueDescription("显示封面设置")
+    val cover: Boolean by value(true)
 
     @ValueDescription("历史记录保留时间，单位天，默认 7d")
     val history by value(7L)

@@ -90,17 +90,28 @@
 * `following` 是否清理收藏的用户的缓存，默认 true
 * `fast` 快速轮询间隔，单位分钟
 * `slow` 慢速轮询间隔，单位分钟
-* `quiet` ~~安静群聊，添加群号~~，作废，改用权限系统设置
 * `contact` 登录状态失效联系人，当微博的登录状态失效时会向这个QQ号发送消息
 * `repost` 微博订阅器，最少转发数过滤器，只对列表订阅生效，默认16
 * `users` 微博订阅器，屏蔽用户
 * `regexes` 微博订阅器，屏蔽的关键词正则表达式
 * `urls` 微博订阅器，屏蔽的URL类型, 屏蔽视频可以尝试填入`39`
-* `pictures` 显示图片数，超过则回复`图片过多`，-1 表示全部显示
+* `video` 发送微博视频文件
+* `emoticon` 处理微博表情
+* `picture` 图片设置
+* `cover` 封面设置
 * `history` 历史记录保留时间，单位天，默认 7d
 * `timeout` Http 超时时间，单位毫秒，默认 60_000 ms
 * `forward` 以转发消息的方式发送订阅微博
 * `show_url` 是否显示url
+
+## 图片设置
+
+有四种设置方案
+
+* `{ type: none, value: {} }` 一张也不显示
+* `{ type: all, value: {} }` 全部显示
+* `{ type: limit, value: { total: 3 } }` 最多显示total张
+* `{ type: top, value: { total: 3 } }` 超过total张一张也不显示
 
 ### quiet.group
 
