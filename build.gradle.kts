@@ -1,8 +1,8 @@
 plugins {
-    kotlin("jvm") version Versions.kotlin
-    kotlin("plugin.serialization") version Versions.kotlin
+    kotlin("jvm") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.0"
 
-    id("net.mamoe.mirai-console") version  Versions.mirai
+    id("net.mamoe.mirai-console") version  "2.10.0-RC2"
     id("net.mamoe.maven-central-publish") version "0.7.1"
 }
 
@@ -36,30 +36,23 @@ kotlin {
 
 dependencies {
     // implementation(ktor("client-serialization", Versions.ktor))
-    implementation(ktor("client-encoding", Versions.ktor)) {
+    implementation("io.ktor:ktor-client-encoding:1.6.5") {
+        exclude(group = "org.jetbrains.kotlin")
+        exclude(group = "org.jetbrains.kotlinx")
+        exclude(group = "org.slf4j")
         exclude(group = "io.ktor", module = "ktor-client-core")
     }
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.9")
+    compileOnly("net.mamoe:mirai-core-utils:${mirai.coreVersion}")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
-    testImplementation(kotlin("test", "1.5.31"))
+    testImplementation(kotlin("test", "1.6.0"))
 }
 
 mirai {
     configureShadow {
-        exclude {
-            it.path.startsWith("kotlin")
-        }
-        exclude {
-            it.path.startsWith("org/intellij")
-        }
-        exclude {
-            it.path.startsWith("org/jetbrains")
-        }
-        exclude {
-            it.path.startsWith("org/slf4j")
-        }
+        exclude("module-info.class")
     }
 }
 

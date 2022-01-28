@@ -2,8 +2,6 @@ package xyz.cssxsh.mirai.plugin
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
-import net.mamoe.mirai.console.util.*
-import net.mamoe.mirai.console.util.CoroutineScopeUtils.childScope
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
@@ -14,7 +12,6 @@ import xyz.cssxsh.weibo.api.*
 import java.net.UnknownHostException
 import java.time.*
 
-@OptIn(ConsoleExperimentalApi::class)
 abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
 

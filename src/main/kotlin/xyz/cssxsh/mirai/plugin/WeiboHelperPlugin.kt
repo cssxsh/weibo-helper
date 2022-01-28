@@ -3,9 +3,7 @@ package xyz.cssxsh.mirai.plugin
 import kotlinx.coroutines.*
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
-import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.plugin.jvm.*
-import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.event.events.*
 import net.mamoe.mirai.event.*
 import net.mamoe.mirai.utils.*
@@ -21,9 +19,6 @@ object WeiboHelperPlugin : KotlinPlugin(
     private var clear: Job? = null
 
     private var restore: Job? = null
-
-    @OptIn(ConsoleExperimentalApi::class)
-    private fun <T : PluginConfig> T.save() = loader.configStorage.store(this@WeiboHelperPlugin, this)
 
     override fun onEnable() {
         WeiboTaskData.reload()
