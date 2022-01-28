@@ -11,6 +11,7 @@ import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
+import java.net.UnknownHostException
 import java.time.*
 
 @OptIn(ConsoleExperimentalApi::class)
@@ -154,6 +155,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
                 sendLoginMessage("$type(${id})监听任务序列化时失败, $exception")
                 continue
+            } catch (exception: UnknownHostException) {
+                //
             } catch (exception: Throwable) {
                 try {
                     client.restore()
