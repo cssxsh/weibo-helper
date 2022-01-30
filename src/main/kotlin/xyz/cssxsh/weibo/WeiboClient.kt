@@ -7,7 +7,6 @@ import io.ktor.client.features.compression.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
@@ -17,7 +16,6 @@ import java.io.IOException
 import kotlin.coroutines.*
 import kotlin.coroutines.cancellation.*
 
-@OptIn(KtorExperimentalAPI::class)
 open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {
     override val coroutineContext: CoroutineContext
         get() = client.coroutineContext
