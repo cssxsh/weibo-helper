@@ -11,7 +11,7 @@ import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.4.6") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.4.7") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -40,10 +40,10 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboListener.start()
 
         globalEventChannel().subscribeOnce<BotOnlineEvent> {
-            clear = this@WeiboHelperPlugin.launch {
+            clear = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
                 clear()
             }
-            restore = this@WeiboHelperPlugin.launch {
+            restore = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
                 restore()
             }
 

@@ -474,8 +474,8 @@ internal suspend fun restore(interval: Long = 3600_000) = supervisorScope {
                 logger.info { "WEIBO登陆状态已刷新 $result" }
                 continue
             } catch (throwable: SerializationException) {
-                logger.warning({ "构建WEIBO RESTORE 序列化时失败, $throwable" }, throwable)
-                sendLoginMessage("构建WEIBO RESTORE 任务序列化时失败, $throwable")
+                logger.warning({ "WEIBO RESTORE 任务序列化时失败, $throwable" }, throwable)
+                sendLoginMessage("WEIBO RESTORE 任务序列化时失败, $throwable")
             } catch (cause: Throwable) {
                 logger.warning({ "WEIBO登陆状态失效，需要重新登陆, $cause" }, cause)
                 sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
