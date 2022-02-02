@@ -4,7 +4,6 @@ import io.ktor.client.*
 import io.ktor.client.features.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.*
 import net.mamoe.mirai.console.command.*
@@ -102,11 +101,11 @@ internal val ImageCache: File by lazy {
 }
 
 /**
- * @see [WEIBO_EXPIRE_IMGAE_PROPERTY]
+ * @see [WEIBO_EXPIRE_IMAGE_PROPERTY]
  * @see [WeiboHelperSettings.expire]
  */
-internal val ImageExpire by lazy {
-    Duration.ofHours(System.getProperty(WEIBO_EXPIRE_IMGAE_PROPERTY)?.toLong() ?: WeiboHelperSettings.expire.toLong())
+internal val ImageExpire: Duration by lazy {
+    Duration.ofHours(System.getProperty(WEIBO_EXPIRE_IMAGE_PROPERTY)?.toLong() ?: WeiboHelperSettings.expire.toLong())
 }
 
 /**
@@ -157,7 +156,7 @@ internal fun sendLoginMessage(message: String) {
                 LoginContact.sendMessage(message)
                 break
             } catch (cause: Throwable) {
-                logger.warning { "向 LoginContact 发送消息失败 $cause" }
+                logger.warning({ "向 LoginContact 发送消息失败" }, cause)
                 delay(60_000L)
                 continue
             }
@@ -213,7 +212,7 @@ internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache
             try {
                 ICOEncoder.write(ImageIO.read(URL(avatarLarge)), dir.resolve("avatar.ico"))
             } catch (e: Throwable) {
-                logger.warning("头像下载失败", e)
+                logger.warning({ "头像下载失败" }, e)
             }
             appendLine("IconResource=avatar.ico")
         }
@@ -248,7 +247,7 @@ internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope
             content = requireNotNull(data.content) { "长文本为空 mid: $mid" }
             links = data.urls
         } catch (e: Throwable) {
-            logger.warning { "获取微博[${id}]长文本失败 $e" }
+            logger.warning({ "获取微博[${id}]长文本失败" }, e)
         }
     }
     links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
@@ -329,7 +328,7 @@ private suspend fun emoticon(content: String, contact: Contact) = buildMessageCh
             add(content.substring(pos, start))
             add(it)
         }.onFailure {
-            logger.warning("获取微博表情${emoticon.phrase}图片失败, $it")
+            logger.warning({ "获取微博表情${emoticon.phrase}图片失败" }, it)
             add(content.substring(pos, start + emoticon.phrase.length))
         }
         pos = start + emoticon.phrase.length
@@ -354,7 +353,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                     contact as FileSupported
                     file.toExternalResource().use { contact.files.uploadNewFile(file.name, it) }
                 } catch (e: Throwable) {
-                    logger.warning { "$contact 无法发送文件, $e" }
+                    logger.warning({ "$contact 无法发送文件" }, e)
                 }
             }
         }
@@ -375,8 +374,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                 try {
                     add(deferred.await().uploadAsImage(contact))
                 } catch (e: Throwable) {
-                    logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
-                    appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                    logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, e)
+                    appendLine("获取微博[${id}]图片[${pictures[index]}]失败")
                 }
             }
         }
@@ -389,8 +388,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                 try {
                     add(deferred.await().uploadAsImage(contact))
                 } catch (e: Throwable) {
-                    logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
-                    appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                    logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, e)
+                    appendLine("获取微博[${id}]图片[${pictures[index]}]失败")
                 }
             }
         }
@@ -400,8 +399,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                     try {
                         add(deferred.await().uploadAsImage(contact))
                     } catch (e: Throwable) {
-                        logger.warning("获取微博[${id}]图片[${pictures[index]}]失败, $e")
-                        appendLine("获取微博[${id}]图片[${pictures[index]}]失败, $e")
+                        logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, e)
+                        appendLine("获取微博[${id}]图片[${pictures[index]}]失败")
                     }
                 }
             } else {
@@ -414,8 +413,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         try {
             add(getCover().uploadAsImage(contact))
         } catch (e: Throwable) {
-            logger.warning("获取微博[${id}]封面失败, $e")
-            appendLine("获取微博[${id}]封面失败, $e")
+            logger.warning({ "获取微博[${id}]封面失败" }, e)
+            appendLine("获取微博[${id}]封面失败")
         }
     }
 
