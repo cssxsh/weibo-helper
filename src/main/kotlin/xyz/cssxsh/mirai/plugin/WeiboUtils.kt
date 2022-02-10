@@ -11,6 +11,7 @@ import net.mamoe.mirai.console.permission.*
 import net.mamoe.mirai.console.plugin.jvm.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
+import net.mamoe.mirai.console.util.ContactUtils.render
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
@@ -149,17 +150,16 @@ internal fun sendLoginMessage(message: String) {
     try {
         WeiboHelperPlugin
     } catch (_: Throwable) {
-        MainScope()
+        CoroutineScope(Dispatchers.IO)
     }.launch(SupervisorJob()) {
         while (isActive) {
             try {
                 LoginContact.sendMessage(message)
                 break
             } catch (cause: Throwable) {
-                logger.warning({ "向 LoginContact 发送消息失败" }, cause)
-                delay(60_000L)
-                continue
+                logger.warning({ "向 ${LoginContact.render()} 发送消息失败" }, cause)
             }
+            delay(60_000L)
         }
     }
 }
