@@ -112,8 +112,9 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
-                val histories = history.values.flatMap { listOf(it.id, it.retweeted?.id ?: 0) }.toMutableSet()
+                val histories = history.values.flatMapTo(HashSet()) { listOf(it.id, it.retweeted?.id ?: 0) }
                 val list = load(id).filter { predicate(it, id, histories) }
+                if (list.isEmpty()) continue
 
                 if (forward) {
                     sendMessageToTaskContacts(id) { contact ->
