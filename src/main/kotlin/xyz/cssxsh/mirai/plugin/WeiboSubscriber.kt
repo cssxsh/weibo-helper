@@ -156,6 +156,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             } catch (exception: UnknownHostException) {
                 //
             } catch (exception: Throwable) {
+                logger.warning({ "WEIBO登陆状态将刷新" }, exception)
                 try {
                     client.restore()
                 } catch (cause: Throwable) {

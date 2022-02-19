@@ -466,19 +466,17 @@ internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
 
 internal suspend fun restore(interval: Long = 3600_000) = supervisorScope {
     while (isActive) {
-        val expires = client.wbpsess?.expires?.timestamp ?: 0
-        if (expires < System.currentTimeMillis() + interval) {
-            try {
-                val result = client.restore()
-                logger.info { "WEIBO登陆状态已刷新 $result" }
-                continue
-            } catch (throwable: SerializationException) {
-                logger.warning({ "WEIBO RESTORE 任务序列化时失败, $throwable" }, throwable)
-                sendLoginMessage("WEIBO RESTORE 任务序列化时失败, $throwable")
-            } catch (cause: Throwable) {
-                logger.warning({ "WEIBO登陆状态失效，需要重新登陆, $cause" }, cause)
-                sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
-            }
+        if (client.wbpsess != null) continue
+        try {
+            val result = client.restore()
+            logger.info { "WEIBO登陆状态已刷新 $result" }
+            continue
+        } catch (throwable: SerializationException) {
+            logger.warning({ "WEIBO RESTORE 任务序列化时失败, $throwable" }, throwable)
+            sendLoginMessage("WEIBO RESTORE 任务序列化时失败, $throwable")
+        } catch (cause: Throwable) {
+            logger.warning({ "WEIBO登陆状态失效，需要重新登陆, $cause" }, cause)
+            sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin $cause")
         }
         delay(interval)
     }
