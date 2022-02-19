@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.weibo.*
-import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 import java.time.*
 import kotlin.properties.*
@@ -12,40 +11,31 @@ import kotlin.reflect.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber<K>) :
-    ReadWriteProperty<Any?, Map<Long, MicroBlog>> {
+    ReadOnlyProperty<Any?, MutableMap<Long, MicroBlog>> {
     private val file = DataFolder.resolve(subscriber.type).resolve("$id.json").apply { parentFile.mkdirs() }
 
-    private var map: Map<Long, MicroBlog>
+    private var cache: MutableMap<Long, MicroBlog> = HashMap()
 
     init {
-        map = try {
-            WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" })
+        try {
+            cache.putAll(WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" }))
         } catch (e: Throwable) {
             logger.warning { "${file.absolutePath} 读取失败" }
-            emptyMap()
         }
         subscriber.launch(SupervisorJob()) {
             while (isActive) {
                 delay(IntervalSlow.toMillis())
-                synchronized(file) {
-                    try {
-                        file.writeText(WeiboClient.Json.encodeToString(map))
-                    } catch (e: Throwable) {
-                        logger.warning { "${file.absolutePath} 保存失败" }
-                    }
+                try {
+                    val expire = OffsetDateTime.now().minusDays(HistoryExpire)
+                    file.writeText(WeiboClient.Json.encodeToString(cache.filterValues { blog -> blog.created > expire }))
+                } catch (e: Throwable) {
+                    logger.warning({ "${file.absolutePath} 保存失败" }, e)
                 }
             }
         }
     }
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>): Map<Long, MicroBlog> = synchronized(file) { map }
-
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: Map<Long, MicroBlog>) = synchronized(file) {
-        map = if (value.size <= PAGE_SIZE * 100) {
-            value
-        } else {
-            val expire = OffsetDateTime.now().minusDays(HistoryExpire)
-            value.filterValues { blog -> blog.created > expire }
-        }
+    override fun getValue(thisRef: Any?, property: KProperty<*>): MutableMap<Long, MicroBlog> = synchronized(file) {
+        cache
     }
 }

@@ -9,7 +9,7 @@ import xyz.cssxsh.mirai.plugin.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
-import java.net.UnknownHostException
+import java.net.*
 import java.time.*
 
 abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
@@ -108,12 +108,17 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     private fun listen(id: K): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
-        var history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
+        val history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
+        val cache: MutableSet<Long> = HashSet()
+        for ((_, blog) in history) {
+            cache.add(blog.id)
+            cache.add(blog.retweeted?.id ?: continue)
+        }
+
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
-                val histories = history.values.flatMapTo(HashSet()) { listOf(it.id, it.retweeted?.id ?: 0) }
-                val list = load(id).filter { predicate(it, id, histories) }
+                val list = load(id).filter { predicate(it, id, cache) }
                 if (list.isEmpty()) continue
 
                 if (forward) {
@@ -141,7 +146,11 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                     }
                 }
 
-                history = history + list.associateBy { it.id }
+                for (blog in list) {
+                    cache.add(blog.id)
+                    cache.add(blog.retweeted?.id ?: continue)
+                    history[blog.id] = blog
+                }
 
                 list.maxByOrNull { it.created }?.let { blog ->
                     logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }
