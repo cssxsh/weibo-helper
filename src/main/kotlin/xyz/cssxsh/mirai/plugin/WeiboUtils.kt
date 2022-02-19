@@ -272,9 +272,9 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
                 if (flush || exists().not()) {
                     writeBytes(runCatching {
                         // 下载速度更快
-                        client.download(download(pid) + "#$index")
+                        client.download(picture(pid, index))
                     }.recoverCatching {
-                        client.download(image(pid) + "#$index")
+                        client.download(pid, index)
                     }.onSuccess {
                         logger.verbose { "[${name}]下载完成, 大小${it.size / 1024}KB" }
                     }.getOrThrow())

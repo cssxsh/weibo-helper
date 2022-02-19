@@ -84,9 +84,15 @@ suspend fun WeiboClient.download(url: String, min: Long = 1024): ByteArray = use
     }.receive()
 }
 
+suspend fun WeiboClient.download(pid: String, index: Int): ByteArray = useHttpClient { client ->
+    client.get(image(pid = pid, server = ImageServer.random(), index = index)) {
+        header(HttpHeaders.Referrer, INDEX_PAGE)
+    }
+}
+
 suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<ByteArray> {
     for (offset in 0 until video.size step video.buffer) {
-        val limit = minOf(offset + video.buffer, video.size) - 1
+        val limit = (offset + video.buffer).coerceAtMost(video.size) - 1
         emit(useHttpClient { client ->
             client.get(video.url) {
                 header(HttpHeaders.Range, "bytes=${offset}-${limit}")
@@ -135,9 +141,9 @@ fun user(pid: String): Long = with(pid.substring(0..7)) {
 
 fun extension(pid: String) = ImageExtensions.values.first { it.startsWith(pid[21]) }
 
-fun image(pid: String, server: String = ImageServer.random()) = "https://${server}/large/${pid}.${extension(pid)}"
+fun image(pid: String, server: String, index: Int) = "https://${server}/large/${pid}.${extension(pid)}#${index}"
 
-fun download(pid: String) = "https://weibo.com/ajax/common/download?pid=${pid}"
+fun picture(pid: String, index: Int) = "https://weibo.com/ajax/common/download?pid=${pid}#${index}"
 
 val MicroBlog.link get() = "https://weibo.com/${user?.id ?: "detail"}/${mid}"
 
