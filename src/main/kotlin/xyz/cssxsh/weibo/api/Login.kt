@@ -133,7 +133,7 @@ suspend fun WeiboClient.restore(): LoginResult {
         parameter("savestate", token.state)
     }
 
-    check(location(html).orEmpty().startsWith(CROSS_DOMAIN)) { "跳转异常" }
+    check(location(html).orEmpty().startsWith(CROSS_DOMAIN)) { "CROSS DOMAIN 跳转异常" }
 
     val flush = callback<LoginCrossFlush>(CROSS_DOMAIN) {
         header(HttpHeaders.Host, url.host)

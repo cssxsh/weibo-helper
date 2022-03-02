@@ -12,15 +12,16 @@ import kotlin.reflect.*
 @OptIn(ExperimentalSerializationApi::class)
 class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber<K>) :
     ReadOnlyProperty<Any?, MutableMap<Long, MicroBlog>> {
-    private val file = DataFolder.resolve(subscriber.type).resolve("$id.json").apply { parentFile.mkdirs() }
+    private val file = DataFolder.resolve(subscriber.type).resolve("$id.json")
 
     private var cache: MutableMap<Long, MicroBlog> = HashMap()
 
     init {
         try {
+            file.parentFile.mkdirs()
             cache.putAll(WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" }))
         } catch (e: Throwable) {
-            logger.warning { "${file.absolutePath} 读取失败" }
+            logger.warning({ "${file.absolutePath} 读取失败" }, e)
         }
         subscriber.launch(SupervisorJob()) {
             while (isActive) {
