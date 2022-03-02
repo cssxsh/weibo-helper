@@ -18,8 +18,12 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
 
     init {
         try {
-            file.parentFile.mkdirs()
-            cache.putAll(WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" }))
+            if (file.exists()) {
+                cache.putAll(WeiboClient.Json.decodeFromString(file.readText().ifBlank { """{}""" }))
+            } else {
+                file.parentFile.mkdirs()
+                file.writeText("{}")
+            }
         } catch (e: Throwable) {
             logger.warning({ "${file.absolutePath} 读取失败" }, e)
         }
