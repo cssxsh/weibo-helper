@@ -25,11 +25,11 @@ object WeiboLoginCommand : SimpleCommand(
                         withTimeout(60_000) {
                             client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
                         }
-                    } catch (e: Throwable) {
-                        "$url ".toPlainText()
+                    } catch (_: Throwable) {
+                        url.toPlainText()
                     }
 
-                    sendMessage(image + "请使用微博客户端扫码")
+                    sendMessage(image)
                 }
             }
         }.onFailure {
@@ -44,7 +44,7 @@ object WeiboLoginCommand : SimpleCommand(
         client.runCatching {
             qrcode { url ->
                 launch {
-                    sendMessage("$url 请使用微博客户端扫码")
+                    sendMessage(url)
                 }
             }
         }.onFailure {
