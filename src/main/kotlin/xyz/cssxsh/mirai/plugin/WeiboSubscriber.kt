@@ -160,7 +160,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                 }
             } catch (exception: SerializationException) {
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
-                sendLoginMessage("$type(${id})监听任务序列化时失败, $exception")
+                sendLoginMessage("$type(${id})监听任务序列化时失败")
                 continue
             } catch (exception: UnknownHostException) {
                 //
