@@ -337,8 +337,8 @@ private suspend fun emoticon(content: String, contact: Contact) = buildMessageCh
 }
 
 internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = buildMessageChain {
+    title?.run { appendLine(text) }
     appendLine("@${username}#${uid}")
-    title?.run { appendLine("标题: $text") }
     appendLine("时间: $created")
     appendLine(if (ShowUrl) "链接: $link" else "MID: $mid")
     suffix?.run { appendLine(joinToString(" ") { it.content }) }

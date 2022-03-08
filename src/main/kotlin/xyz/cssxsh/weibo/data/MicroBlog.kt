@@ -71,7 +71,7 @@ data class UrlStruct(
 @Serializable
 data class TopTitle(
     @SerialName("text")
-    val text: String
+    var text: String
 )
 
 @Serializable

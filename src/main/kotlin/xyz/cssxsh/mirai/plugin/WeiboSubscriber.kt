@@ -132,12 +132,18 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                                     "查看${list.size}条微博转发"
                             }
                             for (blog in list) {
+                                blog.title?.apply {
+                                    text = text.replace("他", "${tasks.getValue(id).name}#${id}")
+                                }
                                 contact.bot says blog.toMessage(contact)
                             }
                         }
                     }
                 } else {
                     for (blog in list) {
+                        blog.title?.apply {
+                            text = text.replace("他", "${tasks.getValue(id).name}#${id}")
+                        }
                         if (blog.created > tasks.getValue(id).last) {
                             sendMessageToTaskContacts(id) { contact ->
                                 blog.toMessage(contact)
