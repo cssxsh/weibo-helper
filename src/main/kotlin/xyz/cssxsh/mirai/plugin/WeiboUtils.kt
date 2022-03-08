@@ -464,9 +464,15 @@ internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
     }
 }
 
-internal suspend fun restore(interval: Long = 3600_000) = supervisorScope {
+internal suspend fun restore(interval: Long = 600_000) = supervisorScope {
     while (isActive) {
-        if (client.wbpsess != null) continue
+        val timestamp = client.wbpsess?.expires?.timestamp
+        if (timestamp != null) {
+            if (timestamp < System.currentTimeMillis() - interval) {
+                delay(System.currentTimeMillis() - timestamp)
+            }
+            continue
+        }
         try {
             val result = client.restore()
             logger.info { "WEIBO登陆状态已刷新 $result" }
