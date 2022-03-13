@@ -205,7 +205,7 @@ internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache
         || (following && dir.resolve("avatar.ico").exists())
     ) return dir
 
-    dir.resolve("desktop.ini").apply { if (isHidden) dir.delete() }.writeText(buildString {
+    dir.resolve("desktop.ini").apply { if (isHidden) dir.deleteRecursively() }.writeText(buildString {
         appendLine("[.ShellClassInfo]")
         appendLine("LocalizedResourceName=${if (following) '$' else '#'}${id}@${screen}")
         if (following) {
@@ -476,12 +476,13 @@ internal suspend fun restore(interval: Long = 600_000) = supervisorScope {
             logger.info { "WEIBO登陆状态已刷新 $result" }
             continue
         } catch (throwable: SerializationException) {
-            logger.warning({ "WEIBO RESTORE 任务序列化时失败, $throwable" }, throwable)
+            logger.warning({ "WEIBO RESTORE 任务序列化时失败" }, throwable)
             sendLoginMessage("WEIBO RESTORE 任务序列化时失败")
         } catch (cause: Throwable) {
-            logger.warning({ "WEIBO登陆状态失效，需要重新登陆, $cause" }, cause)
+            logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
             sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin")
         }
+        delay(interval)
     }
 }
 
