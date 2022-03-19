@@ -33,6 +33,7 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
                 save()
             }
         }.invokeOnCompletion {
+            logger.info { "WeiboHistory ${file.absolutePath} 已保存 " }
             save()
         }
     }

@@ -79,7 +79,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     protected open val reposts = true
 
-    protected open val predicate: (MicroBlog, K, MutableSet<Long>) -> Boolean = filter@{ blog, id, histories ->
+    protected open val predicate: (MicroBlog, K) -> Boolean = filter@{ blog, id ->
         val source = blog.retweeted ?: blog
         if (reposts && source.reposts < filter.repost) {
             logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
@@ -99,8 +99,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             logger.verbose { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
             return@filter false
         }
-        if (source.id in histories) {
-            logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }
+        if (blog.title != null && "赞过的微博" in blog.title.text) {
+            logger.info { "${type}(${id}) 赞过的微博屏蔽，跳过 ${source.id} ${source.created}" }
             return@filter false
         }
         true
@@ -115,7 +115,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
-                val list = load(id).filter { predicate(it, id, cache) }
+                val list = load(id).filter { predicate(it, id) }
                 if (list.isEmpty()) continue
                 val task = tasks.getValue(id)
 
@@ -130,12 +130,14 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                                     "查看${list.size}条微博转发"
                             }
                             for (blog in list) {
+                                if ((blog.retweeted?.id ?: blog.id) in cache) continue
                                 contact.bot at blog.created.toEpochSecond().toInt() says blog.toMessage(contact)
                             }
                         }
                     }
                 } else {
                     for (blog in list) {
+                        if ((blog.retweeted?.id ?: blog.id) in cache) continue
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
                         }
