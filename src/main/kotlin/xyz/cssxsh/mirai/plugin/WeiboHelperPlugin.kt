@@ -11,7 +11,7 @@ import xyz.cssxsh.mirai.plugin.command.*
 import xyz.cssxsh.mirai.plugin.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.4.13") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.4.14") {
         name("weibo-helper")
         author("cssxsh")
     }
@@ -33,13 +33,9 @@ object WeiboHelperPlugin : KotlinPlugin(
 
         logger.info { "图片缓存位置 ${ImageCache.absolutePath}" }
 
-        runBlocking(coroutineContext) {
-            client.init()
-        }
-
-        WeiboListener.start()
-
         globalEventChannel().subscribeOnce<BotOnlineEvent> {
+            client.init()
+
             clear = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
                 clear()
             }
@@ -47,6 +43,7 @@ object WeiboHelperPlugin : KotlinPlugin(
                 restore()
             }
 
+            WeiboListener.start()
             WeiboSubscriber.start()
         }
     }
