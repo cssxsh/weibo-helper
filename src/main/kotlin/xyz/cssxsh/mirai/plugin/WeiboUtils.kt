@@ -521,8 +521,13 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
 }
 
 internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
-    WeiboClient.DefaultIgnore(throwable).also {
-        if (it) logger.warning { "WeiboClient Ignore $throwable" }
+    when (throwable) {
+        is okhttp3.internal.http2.StreamResetException -> true
+        is IOException -> {
+            logger.warning { "WeiboClient Ignore $throwable" }
+            true
+        }
+        else -> false
     }
 }
 

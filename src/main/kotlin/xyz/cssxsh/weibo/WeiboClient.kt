@@ -72,11 +72,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
             allowStructuredMapKeys = true
         }
 
-        private val IgnoreRegex = """Expected \d+, actual \d+""".toRegex()
-
-        val DefaultIgnore: suspend (Throwable) -> Boolean = {
-            it is IOException || it is HttpRequestTimeoutException || it.message.orEmpty().matches(IgnoreRegex)
-        }
+        val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException }
     }
 
     protected open val max = 32
@@ -87,7 +83,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
             try {
                 return@supervisorScope block(client)
             } catch (cause: Throwable) {
-                if (cause !is HttpRequestTimeoutException) ++count
+                count++
                 if (count > max || ignore(cause).not()) throw cause
             }
         }
