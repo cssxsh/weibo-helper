@@ -30,17 +30,26 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
         subscriber.launch(SupervisorJob()) {
             while (isActive) {
                 delay(IntervalSlow.toMillis())
-                try {
-                    val expire = OffsetDateTime.now().minusDays(HistoryExpire)
-                    file.writeText(WeiboClient.Json.encodeToString(cache.filterValues { blog -> blog.created > expire }))
-                } catch (e: Throwable) {
-                    logger.warning({ "${file.absolutePath} 保存失败" }, e)
-                }
+                save()
             }
+        }.invokeOnCompletion {
+            save()
         }
     }
 
-    override fun getValue(thisRef: Any?, property: KProperty<*>): MutableMap<Long, MicroBlog> = synchronized(file) {
-        cache
+    private fun save() {
+        try {
+            val write = if (cache.size > 8196) {
+                val expire = OffsetDateTime.now().minusDays(HistoryExpire)
+                cache.filterValues { blog -> blog.created > expire }
+            } else {
+                cache
+            }
+            file.writeText(WeiboClient.Json.encodeToString(write))
+        } catch (e: Throwable) {
+            logger.warning({ "WeiboHistory ${file.absolutePath} 保存失败" }, e)
+        }
     }
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>): MutableMap<Long, MicroBlog> = cache
 }

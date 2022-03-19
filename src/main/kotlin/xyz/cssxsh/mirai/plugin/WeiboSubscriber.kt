@@ -99,7 +99,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
             logger.verbose { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
             return@filter false
         }
-        if (histories.add(source.id).not()) {
+        if (source.id in histories) {
             logger.verbose { "${type}(${id}) 历史屏蔽，跳过 ${source.id} ${source.created}" }
             return@filter false
         }
@@ -109,17 +109,15 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     private fun listen(id: K): Job = launch(SupervisorJob()) {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         val history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
-        val cache: MutableSet<Long> = HashSet()
-        for ((_, blog) in history) {
-            cache.add(blog.id)
-            cache.add(blog.retweeted?.id ?: continue)
-        }
+        val cache: MutableSet<Long> = HashSet(history.keys)
+        for ((_, blog) in history) cache.add(blog.retweeted?.id ?: continue)
 
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
                 val list = load(id).filter { predicate(it, id, cache) }
                 if (list.isEmpty()) continue
+                val task = tasks.getValue(id)
 
                 if (forward) {
                     sendMessageToTaskContacts(id) { contact ->
@@ -132,38 +130,27 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                                     "查看${list.size}条微博转发"
                             }
                             for (blog in list) {
-                                blog.title?.apply {
-                                    text = text.replace("他", "${tasks.getValue(id).name}#${id}")
-                                }
-                                contact.bot says blog.toMessage(contact)
+                                contact.bot at blog.created.toEpochSecond().toInt() says blog.toMessage(contact)
                             }
                         }
                     }
                 } else {
                     for (blog in list) {
-                        blog.title?.apply {
-                            text = text.replace("他", "${tasks.getValue(id).name}#${id}")
-                        }
-                        if (blog.created > tasks.getValue(id).last) {
-                            sendMessageToTaskContacts(id) { contact ->
-                                blog.toMessage(contact)
-                            }
+                        sendMessageToTaskContacts(id) { contact ->
+                            blog.toMessage(contact)
                         }
                     }
                 }
 
+                var last = OffsetDateTime.MIN
                 for (blog in list) {
+                    history[blog.id] = blog
+                    last = maxOf(blog.created, last)
                     cache.add(blog.id)
                     cache.add(blog.retweeted?.id ?: continue)
-                    history[blog.id] = blog
                 }
 
-                list.maxByOrNull { it.created }?.let { blog ->
-                    logger.verbose { "$type(${id})[${blog.username}]最新微博时间为<${blog.created}>" }
-                    tasks.compute(id) { _, info ->
-                        info?.copy(last = blog.created)
-                    }
-                }
+                tasks[id] = task.copy(last = last)
             } catch (exception: SerializationException) {
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
                 sendLoginMessage("$type(${id})监听任务序列化时失败")
