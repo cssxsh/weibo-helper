@@ -48,12 +48,6 @@ dependencies {
     testImplementation(kotlin("test", "1.6.0"))
 }
 
-mirai {
-    configureShadow {
-        exclude("module-info.class")
-    }
-}
-
 tasks {
     compileKotlin {
         kotlinOptions.freeCompilerArgs += "-Xunrestricted-builder-inference"
