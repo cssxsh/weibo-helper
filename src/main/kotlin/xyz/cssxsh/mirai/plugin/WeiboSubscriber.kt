@@ -115,29 +115,30 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
-                val list = load(id).filter { predicate(it, id) }
+                val list = load(id)
+                    .filter { predicate(it, id) }
+                    .filterNot { (it.retweeted?.id ?: it.id) in cache }
                 if (list.isEmpty()) continue
                 val task = tasks.getValue(id)
 
                 if (forward) {
+                    val strategy = object : ForwardMessage.DisplayStrategy {
+                        override fun generateTitle(forward: RawForwardMessage): String =
+                            "${type}-${id}有新微博"
+
+                        override fun generateSummary(forward: RawForwardMessage): String =
+                            "查看${list.size}条微博转发"
+                    }
                     sendMessageToTaskContacts(id) { contact ->
                         buildForwardMessage(contact) {
-                            displayStrategy = object : ForwardMessage.DisplayStrategy {
-                                override fun generateTitle(forward: RawForwardMessage): String =
-                                    "${type}-${id}有新微博"
-
-                                override fun generateSummary(forward: RawForwardMessage): String =
-                                    "查看${list.size}条微博转发"
-                            }
+                            displayStrategy = strategy
                             for (blog in list) {
-                                if ((blog.retweeted?.id ?: blog.id) in cache) continue
                                 contact.bot at blog.created.toEpochSecond().toInt() says blog.toMessage(contact)
                             }
                         }
                     }
                 } else {
                     for (blog in list) {
-                        if ((blog.retweeted?.id ?: blog.id) in cache) continue
                         sendMessageToTaskContacts(id) { contact ->
                             blog.toMessage(contact)
                         }

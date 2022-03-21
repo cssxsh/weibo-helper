@@ -14,7 +14,7 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
     ReadOnlyProperty<Any?, MutableMap<Long, MicroBlog>> {
     private val file = DataFolder.resolve(subscriber.type).resolve("$id.json")
 
-    private var cache: MutableMap<Long, MicroBlog> = HashMap()
+    private val cache: MutableMap<Long, MicroBlog> = HashMap()
 
     init {
         try {
