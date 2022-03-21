@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "xyz.cssxsh"
-version = "1.4.14"
+version = "1.4.15"
 
 mavenCentralPublish {
     useCentralS01()
