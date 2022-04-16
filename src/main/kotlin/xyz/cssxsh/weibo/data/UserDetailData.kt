@@ -66,7 +66,7 @@ data class UserInfo(
     @SerialName("avatar_large")
     override val avatarLarge: String,
     @SerialName("description")
-    val description: String,
+    val description: String? = null,
     @SerialName("favourites_count")
     val favourites: Int = 0,
     @SerialName("followers_count")
