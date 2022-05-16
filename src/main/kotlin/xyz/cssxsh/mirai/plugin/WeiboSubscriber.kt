@@ -115,11 +115,13 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
-                val list = load(id)
+                val task = tasks.getValue(id)
+                val list = load(id).asSequence()
+                    .filter { it.created >= task.last }
                     .filter { predicate(it, id) }
                     .filterNot { (it.retweeted?.id ?: it.id) in cache }
+                    .toList()
                 if (list.isEmpty()) continue
-                val task = tasks.getValue(id)
 
                 if (forward) {
                     val strategy = object : ForwardMessage.DisplayStrategy {
@@ -145,7 +147,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
                     }
                 }
 
-                var last = OffsetDateTime.MIN
+                var last = task.last
                 for (blog in list) {
                     history[blog.id] = blog
                     last = maxOf(blog.created, last)
