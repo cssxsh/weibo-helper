@@ -37,7 +37,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     override val regexes: List<Regex> by lazy { regexes_.map { it.toRegex() } }
 
     @ValueDescription("屏蔽URL类型，填入 39 可以屏蔽微博视频")
-    override val urls by value(emptySet<Int>())
+    override val urls: Set<Int> by value()
 
     @ValueDescription("发送微博视频文件")
     val video: Boolean by value(true)

@@ -43,7 +43,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     protected abstract val tasks: MutableMap<K, WeiboTaskInfo>
 
-    private val taskJobs = mutableMapOf<K, Job>()
+    private val taskJobs: MutableMap<K, Job> = HashMap()
 
     private fun infos(id: K) = tasks[id]?.contacts.orEmpty()
 
