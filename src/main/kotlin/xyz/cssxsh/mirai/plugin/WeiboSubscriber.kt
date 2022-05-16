@@ -111,13 +111,14 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         val history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
         val cache: MutableSet<Long> = HashSet(history.keys)
         for ((_, blog) in history) cache.add(blog.retweeted?.id ?: continue)
+        // XXX: 加载一次
+        for (blog in load(id)) cache.add(blog.id)
 
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
                 val task = tasks.getValue(id)
                 val list = load(id).asSequence()
-                    .filter { it.created >= task.last }
                     .filter { predicate(it, id) }
                     .filterNot { (it.retweeted?.id ?: it.id) in cache }
                     .toList()
