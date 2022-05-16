@@ -2,12 +2,12 @@ plugins {
     kotlin("jvm") version "1.6.0"
     kotlin("plugin.serialization") version "1.6.0"
 
-    id("net.mamoe.mirai-console") version  "2.10.1"
+    id("net.mamoe.mirai-console") version  "2.10.3"
     id("net.mamoe.maven-central-publish") version "0.7.1"
 }
 
 group = "xyz.cssxsh"
-version = "1.4.15"
+version = "1.4.16"
 
 mavenCentralPublish {
     useCentralS01()
@@ -21,7 +21,6 @@ mavenCentralPublish {
 repositories {
     mavenLocal()
     mavenCentral()
-    gradlePluginPortal()
 }
 
 kotlin {
@@ -33,7 +32,6 @@ kotlin {
 }
 
 dependencies {
-    // implementation(ktor("client-serialization", Versions.ktor))
     implementation("io.ktor:ktor-client-encoding:1.6.5") {
         exclude(group = "org.jetbrains.kotlin")
         exclude(group = "org.jetbrains.kotlinx")
@@ -42,7 +40,7 @@ dependencies {
     }
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.9")
-    compileOnly("net.mamoe:mirai-core-utils:2.10.0")
+    compileOnly("net.mamoe:mirai-core-utils:2.10.3")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
     testImplementation(kotlin("test", "1.6.0"))

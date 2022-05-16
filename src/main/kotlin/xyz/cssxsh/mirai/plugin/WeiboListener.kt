@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.console.permission.PermissionService.Companion.testPermission
 import net.mamoe.mirai.console.permission.PermitteeId.Companion.permitteeId
-import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.ContactUtils.render
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.*
@@ -12,16 +11,15 @@ import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.weibo.api.*
 
-@OptIn(ConsoleExperimentalApi::class)
 internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
 
     /**
-     * 1. https://m.weibo.cn/status/JFzsgd0CX
-     * 2. https://m.weibo.cn/status/4585001998353993
-     * 3. https://weibo.com/5594511989/JzFhZz3fP
-     * 4. https://weibo.com/detail/JzFhZz3fP
-     * 5. https://weibo.com/detail/4585001998353993
-     * 6. https://m.weibo.cn/detail/4585001998353993
+     * * [https://m.weibo.cn/status/JFzsgd0CX]
+     * * [https://m.weibo.cn/status/4585001998353993]
+     * * [https://weibo.com/5594511989/JzFhZz3fP]
+     * * [https://weibo.com/detail/JzFhZz3f]
+     * * [https://weibo.com/detail/4585001998353993]
+     * * [https://m.weibo.cn/detail/4585001998353993]
      */
     private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+""".toRegex()
 
