@@ -1,7 +1,7 @@
-package xyz.cssxsh.mirai.plugin.command
+package xyz.cssxsh.mirai.weibo.command
 
 import net.mamoe.mirai.console.command.*
-import xyz.cssxsh.mirai.plugin.*
+import xyz.cssxsh.mirai.weibo.*
 import xyz.cssxsh.weibo.api.*
 
 object WeiboDetailCommand : SimpleCommand(

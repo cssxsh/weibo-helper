@@ -1,4 +1,4 @@
-package xyz.cssxsh.mirai.plugin
+package xyz.cssxsh.mirai.weibo
 
 import io.ktor.client.*
 import io.ktor.client.features.cookies.*
@@ -20,7 +20,7 @@ import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import net.sf.image4j.codec.ico.*
 import org.apache.commons.text.*
-import xyz.cssxsh.mirai.plugin.data.*
+import xyz.cssxsh.mirai.weibo.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*

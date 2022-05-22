@@ -1,4 +1,4 @@
-package xyz.cssxsh.mirai.plugin
+package xyz.cssxsh.mirai.weibo
 
 interface WeiboFilter {
     val repost: Long

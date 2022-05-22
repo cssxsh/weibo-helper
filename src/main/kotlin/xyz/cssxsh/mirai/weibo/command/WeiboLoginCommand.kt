@@ -1,11 +1,11 @@
-package xyz.cssxsh.mirai.plugin.command
+package xyz.cssxsh.mirai.weibo.command
 
 import kotlinx.coroutines.*
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
-import xyz.cssxsh.mirai.plugin.*
+import xyz.cssxsh.mirai.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.*
 

@@ -1,4 +1,4 @@
-package xyz.cssxsh.mirai.plugin
+package xyz.cssxsh.mirai.weibo
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
@@ -17,7 +17,7 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
      * * [https://m.weibo.cn/status/JFzsgd0CX]
      * * [https://m.weibo.cn/status/4585001998353993]
      * * [https://weibo.com/5594511989/JzFhZz3fP]
-     * * [https://weibo.com/detail/JzFhZz3f]
+     * * [https://weibo.com/detail/JzFhZz3fP]
      * * [https://weibo.com/detail/4585001998353993]
      * * [https://m.weibo.cn/detail/4585001998353993]
      */

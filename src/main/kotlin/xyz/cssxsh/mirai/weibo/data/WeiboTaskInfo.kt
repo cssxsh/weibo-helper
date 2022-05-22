@@ -1,4 +1,4 @@
-package xyz.cssxsh.mirai.plugin.data
+package xyz.cssxsh.mirai.weibo.data
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*

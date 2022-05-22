@@ -1,8 +1,6 @@
-package xyz.cssxsh.mirai.plugin.data
+package xyz.cssxsh.mirai.weibo.data
 
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 
 internal class WeiboEmoticonDataTest {
 

@@ -1,11 +1,11 @@
-package xyz.cssxsh.mirai.plugin
+package xyz.cssxsh.mirai.weibo
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.*
 import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
-import xyz.cssxsh.mirai.plugin.data.*
+import xyz.cssxsh.mirai.weibo.data.*
 import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*

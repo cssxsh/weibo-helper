@@ -1,9 +1,9 @@
-package xyz.cssxsh.mirai.plugin.data
+package xyz.cssxsh.mirai.weibo.data
 
 import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.data.SerializableValue.Companion.serializableValueWith
 import net.mamoe.mirai.console.internal.data.*
-import xyz.cssxsh.mirai.plugin.*
+import xyz.cssxsh.mirai.weibo.*
 
 object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboFilter {
 

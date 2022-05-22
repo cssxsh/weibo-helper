@@ -1,4 +1,4 @@
-package xyz.cssxsh.mirai.plugin.data
+package xyz.cssxsh.mirai.weibo.data
 
 import net.mamoe.mirai.console.data.*
 
