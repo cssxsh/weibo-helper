@@ -9,6 +9,7 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
+import xyz.cssxsh.mirai.weibo.data.WeiboHelperSettings
 import xyz.cssxsh.weibo.api.*
 
 internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
@@ -25,10 +26,21 @@ internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("
 
     private val QuietGroup = WeiboHelperPlugin.registerPermission("quiet.group", "关闭链接监听")
 
+    private val interval get() = WeiboHelperSettings.interval
+
+    private val cache: MutableMap<Long, MutableMap<String, Long>> = HashMap()
+
+    private fun cache(subject: Contact, match: MatchResult): Boolean {
+        val history = cache.getOrPut(subject.id) { HashMap() }
+        val current = System.currentTimeMillis()
+        return current != history.merge(match.value, current) { old, new -> if (new - old > interval) new else old }
+    }
+
     fun start() {
         globalEventChannel().subscribeMessages {
             WEIBO_REGEX findingReply replier@{ result ->
                 if (subject is Group && QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null
+                if (cache(subject, result)) return@replier null
 
                 logger.info { "${sender.render()} 匹配WEIBO(${result.value})" }
                 try {

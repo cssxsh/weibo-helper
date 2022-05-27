@@ -66,4 +66,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     @ValueName("show_url")
     @ValueDescription("是否显示url")
     val showUrl: Boolean by value(true)
+
+    @ValueDescription("自动解析同样内容的间隔")
+    val interval: Long by value(600_000L)
 }
