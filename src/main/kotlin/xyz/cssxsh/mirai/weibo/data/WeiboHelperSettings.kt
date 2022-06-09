@@ -1,11 +1,15 @@
 package xyz.cssxsh.mirai.weibo.data
 
+import kotlinx.serialization.modules.*
 import net.mamoe.mirai.console.data.*
-import net.mamoe.mirai.console.data.SerializableValue.Companion.serializableValueWith
-import net.mamoe.mirai.console.internal.data.*
 import xyz.cssxsh.mirai.weibo.*
 
 object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboFilter {
+
+    override val serializersModule: SerializersModule = SerializersModule {
+        contextual(WeiboPicture.serializer())
+        contextual(RegexSerializer)
+    }
 
     @ValueDescription("登录状态失效联系人")
     val contact by value(12345L)
@@ -33,8 +37,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
 
     @ValueDescription("屏蔽的关键词正则表达式")
     @ValueName("regexes")
-    private val regexes_: Set<String> by value(setOf("女拳"))
-    override val regexes: List<Regex> by lazy { regexes_.map { it.toRegex() } }
+    override val regexes: List<Regex> by value(listOf("女拳".toRegex()))
 
     @ValueDescription("屏蔽URL类型，填入 39 可以屏蔽微博视频")
     override val urls: Set<Int> by value()
@@ -47,9 +50,7 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
 
     @ValueDescription("显示图片数设置")
     @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
-    val picture: WeiboPicture by LazyReferenceValueImpl<WeiboPicture>()
-        .serializableValueWith(WeiboPicture.serializer())
-        .apply { value = WeiboPicture.All() }
+    val picture: WeiboPicture by value(WeiboPicture.All())
 
     @ValueDescription("显示封面设置")
     val cover: Boolean by value(true)
