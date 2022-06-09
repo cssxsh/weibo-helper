@@ -2,12 +2,12 @@ plugins {
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.serialization") version "1.6.21"
 
-    id("net.mamoe.mirai-console") version  "2.11.0"
+    id("net.mamoe.mirai-console") version  "2.11.1"
     id("net.mamoe.maven-central-publish") version "0.7.1"
 }
 
 group = "xyz.cssxsh"
-version = "1.5.0"
+version = "1.5.1"
 
 mavenCentralPublish {
     useCentralS01()
@@ -33,7 +33,7 @@ dependencies {
     }
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.9")
-    compileOnly("net.mamoe:mirai-core-utils:2.11.0")
+    compileOnly("net.mamoe:mirai-core-utils:2.11.1")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
     testImplementation(kotlin("test", "1.6.21"))

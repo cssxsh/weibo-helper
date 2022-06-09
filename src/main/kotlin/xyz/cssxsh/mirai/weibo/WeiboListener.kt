@@ -9,7 +9,7 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.event.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
-import xyz.cssxsh.mirai.weibo.data.WeiboHelperSettings
+import xyz.cssxsh.mirai.weibo.data.*
 import xyz.cssxsh.weibo.api.*
 
 internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
