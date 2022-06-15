@@ -29,8 +29,6 @@ import java.net.*
 import java.time.*
 import javax.imageio.*
 
-internal const val LOGGER_PROPERTY = "xyz.cssxsh.mirai.plugin.logger"
-
 internal const val WEIBO_CACHE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.cache"
 
 internal const val WEIBO_EXPIRE_IMAGE_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.expire.image"
@@ -50,12 +48,14 @@ internal const val WEIBO_FORWARD_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.forwa
 internal const val WEIBO_URL_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.url"
 
 /**
- * @see [LOGGER_PROPERTY]
  * @see [WeiboHelperPlugin.logger]
  */
 internal val logger by lazy {
-    val open = System.getProperty(LOGGER_PROPERTY, "${true}").toBoolean()
-    if (open) WeiboHelperPlugin.logger else SilentLogger
+    try {
+        WeiboHelperPlugin.logger
+    } catch (_: Throwable) {
+        MiraiLogger.Factory.create(WeiboClient::class)
+    }
 }
 
 internal val client: WeiboClient by lazy {
