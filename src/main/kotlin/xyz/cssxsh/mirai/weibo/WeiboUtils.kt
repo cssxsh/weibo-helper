@@ -287,7 +287,7 @@ internal suspend fun MicroBlog.getImages(flush: Boolean = false) = supervisorSco
 
 internal suspend fun MicroBlog.getVideo(flush: Boolean = false) = supervisorScope {
     val media = requireNotNull(page?.media) { "MicroBlog(${mid}) Not Found Video" }
-    val title = media.titles.firstOrNull()?.title ?: media.title
+    val title = media.titles.firstOrNull()?.title ?: media.name
     val video = media.playbacks.maxOf { it.info }
 
     VideoCache.resolve("${id}-${title}.mp4").apply {
