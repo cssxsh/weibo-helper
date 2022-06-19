@@ -36,11 +36,13 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     override val users: Set<Long> by value(setOf(1191220232L))
 
     @ValueDescription("屏蔽的关键词正则表达式")
-    @ValueName("regexes")
     override val regexes: List<Regex> by value(listOf("女拳".toRegex()))
 
     @ValueDescription("屏蔽URL类型，填入 39 可以屏蔽微博视频")
     override val urls: Set<Int> by value()
+
+    @ValueDescription("屏蔽转发")
+    override val original: Boolean by value(false)
 
     @ValueDescription("发送微博视频文件")
     val video: Boolean by value(true)
@@ -49,7 +51,6 @@ object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboF
     val emoticon: Boolean by value(true)
 
     @ValueDescription("显示图片数设置")
-    @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
     val picture: WeiboPicture by value(WeiboPicture.All())
 
     @ValueDescription("显示封面设置")

@@ -5,4 +5,5 @@ interface WeiboFilter {
     val users: Set<Long>
     val regexes: List<Regex>
     val urls: Set<Int>
+    val original: Boolean
 }

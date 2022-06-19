@@ -80,6 +80,10 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
     protected open val reposts = true
 
     protected open val predicate: (MicroBlog, K) -> Boolean = filter@{ blog, id ->
+        if (filter.original && blog.retweeted != null) {
+            logger.verbose { "${type}(${id}) 转发屏蔽" }
+            return@filter false
+        }
         val source = blog.retweeted ?: blog
         if (reposts && source.reposts < filter.repost) {
             logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
