@@ -58,7 +58,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
         taskJobs.clear()
     }
 
-    private suspend fun sendMessageToTaskContacts(id: K, build: BuildMessage) {
+    private suspend fun sendMessageToTaskContacts(id: K, build: suspend (contact: Contact) -> Message) {
         for (delegate in infos(id)) {
             try {
                 requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->

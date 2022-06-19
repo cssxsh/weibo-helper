@@ -196,8 +196,6 @@ internal val ShowUrl: Boolean by lazy {
     System.getProperty(WEIBO_URL_PROPERTY)?.toBoolean() ?: WeiboHelperSettings.showUrl
 }
 
-typealias BuildMessage = suspend (contact: Contact) -> Message
-
 internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache.resolve("$id")): File {
     dir.mkdirs()
     if (!flush
