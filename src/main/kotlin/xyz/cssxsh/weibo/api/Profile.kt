@@ -52,11 +52,11 @@ suspend fun WeiboClient.setGroup(users: List<Long>, dest: List<Long>, origin: Li
 
         header(HttpHeaders.Referrer, "https://weibo.com/u/${info.uid}/")
 
-        body = buildJsonObject {
+        setBody(body = buildJsonObject {
             put("list_ids", dest.joinToString(","))
             put("origin_list_ids", origin.joinToString(","))
             put("uids", users.joinToString(","))
-        }
+        })
         contentType(ContentType.Application.Json)
     }
 }
@@ -68,10 +68,10 @@ suspend fun WeiboClient.follow(uid: Long): UserInfo = temp(FRIENDSHIPS_CREATE) {
 
     header(HttpHeaders.Referrer, "https://weibo.com/u/${info.uid}/")
 
-    body = buildJsonObject {
+    setBody(body = buildJsonObject {
         put("friend_uid", uid)
         put("lpage", "profile")
         put("page", "profile")
-    }
+    })
     contentType(ContentType.Application.Json)
 }

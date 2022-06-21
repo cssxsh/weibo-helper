@@ -3,7 +3,7 @@
 package xyz.cssxsh.weibo
 
 import io.ktor.client.call.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -32,7 +32,7 @@ data class TempData(
 const val ErrorMessageLength = 32
 
 suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestBuilder.() -> Unit): String {
-    return useHttpClient { client -> client.get(url, block) }
+    return useHttpClient { client -> client.get(url, block).body() }
 }
 
 suspend inline fun <reified T> WeiboClient.temp(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
@@ -73,21 +73,21 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
 }
 
 suspend fun WeiboClient.download(url: String, min: Long = 1024): ByteArray = useHttpClient { client ->
-    client.get<HttpResponse>(url) {
+    client.get(url) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
     }.also { response ->
         // 部分 response 没有 ContentLength, 直接返回，例如验证码
         val length = response.contentLength() ?: return@also
         if (length < min) {
-            throw ClientRequestException(response, response.receive())
+            throw ClientRequestException(response, response.body())
         }
-    }.receive()
+    }.body()
 }
 
 suspend fun WeiboClient.download(pid: String, index: Int): ByteArray = useHttpClient { client ->
     client.get(image(pid = pid, server = ImageServer.random(), index = index)) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
-    }
+    }.body()
 }
 
 suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<ByteArray> {
@@ -96,7 +96,7 @@ suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<Byte
         emit(useHttpClient { client ->
             client.get(video.url) {
                 header(HttpHeaders.Range, "bytes=${offset}-${limit}")
-            }
+            }.body()
         })
     }
 }

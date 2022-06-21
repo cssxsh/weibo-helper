@@ -2,9 +2,9 @@ package xyz.cssxsh.weibo
 
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
-import io.ktor.client.features.*
-import io.ktor.client.features.compression.*
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.compression.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*

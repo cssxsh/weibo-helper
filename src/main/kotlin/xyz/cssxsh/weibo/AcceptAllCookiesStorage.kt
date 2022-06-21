@@ -1,6 +1,6 @@
 package xyz.cssxsh.weibo
 
-import io.ktor.client.features.cookies.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.sync.*
 import kotlin.properties.*

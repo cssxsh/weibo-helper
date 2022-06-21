@@ -58,7 +58,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
         parameter("callback", "STK_${System.currentTimeMillis()}")
     }
 
-    send(Url(qrcode.image).copy(protocol = URLProtocol.HTTPS).toString())
+    send(qrcode.image)
 
     val token: LoginToken = supervisorScope {
         while (isActive) {
