@@ -3,9 +3,8 @@ package xyz.cssxsh.mirai.weibo
 import kotlinx.coroutines.*
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
+import net.mamoe.mirai.console.extension.*
 import net.mamoe.mirai.console.plugin.jvm.*
-import net.mamoe.mirai.event.events.*
-import net.mamoe.mirai.event.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.weibo.command.*
 import xyz.cssxsh.mirai.weibo.data.*
@@ -20,6 +19,24 @@ object WeiboHelperPlugin : KotlinPlugin(
 
     private var restore: Job? = null
 
+    override fun PluginComponentStorage.onLoad() {
+        runAfterStartup {
+            launch {
+                client.init()
+
+                clear = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
+                    clear()
+                }
+                restore = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
+                    restore()
+                }
+
+                WeiboListener.start()
+                WeiboSubscriber.start()
+            }
+        }
+    }
+
     override fun onEnable() {
         WeiboTaskData.reload()
         WeiboHelperSettings.reload()
@@ -32,20 +49,6 @@ object WeiboHelperPlugin : KotlinPlugin(
         }
 
         logger.info { "图片缓存位置 ${ImageCache.absolutePath}" }
-
-        globalEventChannel().subscribeOnce<BotOnlineEvent> {
-            client.init()
-
-            clear = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
-                clear()
-            }
-            restore = this@WeiboHelperPlugin.launch(Dispatchers.IO) {
-                restore()
-            }
-
-            WeiboListener.start()
-            WeiboSubscriber.start()
-        }
     }
 
     override fun onDisable() {
