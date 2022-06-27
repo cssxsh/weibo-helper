@@ -62,6 +62,7 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
         defaultRequest {
             header("x-xsrf-token", xsrf?.value)
         }
+        expectSuccess = true
     }
 
     companion object {
