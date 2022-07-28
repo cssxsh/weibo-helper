@@ -9,7 +9,7 @@ data class WeiboTaskInfo(
     @Serializable(OffsetDateTimeSerializer::class)
     val last: OffsetDateTime = OffsetDateTime.now(),
     @SerialName("name")
-    val name: String,
+    val name: String = "",
     @SerialName("contacts")
     val contacts: Set<Long> = emptySet()
 )

@@ -140,11 +140,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
                 if (forward) {
                     val strategy = object : ForwardMessage.DisplayStrategy {
-                        override fun generateTitle(forward: RawForwardMessage): String =
-                            "${type}-${id}有新微博"
-
-                        override fun generateSummary(forward: RawForwardMessage): String =
-                            "查看${list.size}条微博转发"
+                        override fun generateTitle(forward: RawForwardMessage): String = "${task.name} 有新微博"
+                        override fun generateSummary(forward: RawForwardMessage): String = "查看${list.size}条微博转发"
                     }
                     sendMessageToTaskContacts(id) { contact ->
                         buildForwardMessage(contact) {
@@ -192,8 +189,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
 
     fun add(id: K, name: String, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
-            with(info ?: WeiboTaskInfo(name = name)) {
-                copy(contacts = contacts + subject.delegate)
+            with(info ?: WeiboTaskInfo()) {
+                copy(contacts = contacts + subject.delegate, name = name)
             }
         }
         taskJobs.compute(id) { _, job ->
