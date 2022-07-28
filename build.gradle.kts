@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "xyz.cssxsh"
-version = "1.5.3"
+version = "1.5.4"
 
 mavenCentralPublish {
     useCentralS01()
@@ -15,7 +15,6 @@ mavenCentralPublish {
     licenseFromGitHubProject("AGPL-3.0", "master")
     publication {
         artifact(tasks.getByName("buildPlugin"))
-        artifact(tasks.getByName("buildPluginLegacy"))
     }
 }
 
