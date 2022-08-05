@@ -1,5 +1,3 @@
-
-
 package xyz.cssxsh.weibo.data
 
 import kotlinx.serialization.*
