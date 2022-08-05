@@ -484,7 +484,6 @@ internal suspend fun restore(interval: Long = 600_000) = supervisorScope {
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = supervisorScope {
     with(desktop(true).resolve("$month.json")) {
         if (exists() && month != YearMonth.now()) {

@@ -1,13 +1,11 @@
-@file:OptIn(
-    ExperimentalSerializationApi::class,
-    InternalSerializationApi::class
-)
+
 
 package xyz.cssxsh.weibo.data
 
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 import java.time.*
 import java.time.format.*
 import java.util.*
@@ -20,7 +18,6 @@ data class SetResult(
     val result: Boolean
 )
 
-@Serializer(forClass = OffsetDateTime::class)
 object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
     private val formatter: DateTimeFormatter =
@@ -35,7 +32,6 @@ object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
 }
 
-@Serializer(forClass = Locale::class)
 object LocaleSerializer : KSerializer<Locale> {
 
     override val descriptor: SerialDescriptor =
@@ -46,7 +42,6 @@ object LocaleSerializer : KSerializer<Locale> {
     override fun serialize(encoder: Encoder, value: Locale) = encoder.encodeString(value.language)
 }
 
-@Serializer(forClass = Boolean::class)
 object NumberToBooleanSerializer : KSerializer<Boolean> {
 
     override val descriptor: SerialDescriptor =
@@ -63,8 +58,7 @@ interface WeiboValue<T> {
 
 class WeiboEnumSerializer<E, T>(private val values: Array<E>) : KSerializer<E> where E : Enum<E>, E : WeiboValue<T> {
 
-    override val descriptor: SerialDescriptor =
-        buildSerialDescriptor(values.first()::class.qualifiedName!!, SerialKind.ENUM)
+    override val descriptor: SerialDescriptor = JsonPrimitive.serializer().descriptor
 
     override fun serialize(encoder: Encoder, value: E) {
         when (val enumValue = value.value) {

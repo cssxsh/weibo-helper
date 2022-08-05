@@ -1,11 +1,8 @@
-@file:OptIn(ExperimentalSerializationApi::class)
-
 package xyz.cssxsh.weibo
 
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
@@ -32,7 +29,7 @@ data class TempData(
 const val ErrorMessageLength = 32
 
 suspend inline fun WeiboClient.text(url: String, crossinline block: HttpRequestBuilder.() -> Unit): String {
-    return useHttpClient { client -> client.get(url, block).body() }
+    return useHttpClient { client -> client.prepareGet(url, block).body() }
 }
 
 suspend inline fun <reified T> WeiboClient.temp(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
@@ -73,19 +70,20 @@ suspend inline fun <reified T> WeiboClient.json(url: String, crossinline block: 
 }
 
 suspend fun WeiboClient.download(url: String, min: Long = 1024): ByteArray = useHttpClient { client ->
-    client.get(url) {
+    client.prepareGet(url) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
-    }.also { response ->
+    }.execute { response ->
         // 部分 response 没有 ContentLength, 直接返回，例如验证码
-        val length = response.contentLength() ?: return@also
+        val length = response.contentLength() ?: Long.MAX_VALUE
         if (length < min) {
             throw ClientRequestException(response, response.body())
         }
-    }.body()
+        response.body()
+    }
 }
 
 suspend fun WeiboClient.download(pid: String, index: Int): ByteArray = useHttpClient { client ->
-    client.get(image(pid = pid, server = ImageServer.random(), index = index)) {
+    client.prepareGet(image(pid = pid, server = ImageServer.random(), index = index)) {
         header(HttpHeaders.Referrer, INDEX_PAGE)
     }.body()
 }
@@ -94,7 +92,7 @@ suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<Byte
     for (offset in 0 until video.size step video.buffer) {
         val limit = (offset + video.buffer).coerceAtMost(video.size) - 1
         emit(useHttpClient { client ->
-            client.get(video.url) {
+            client.prepareGet(video.url) {
                 header(HttpHeaders.Range, "bytes=${offset}-${limit}")
             }.body()
         })
