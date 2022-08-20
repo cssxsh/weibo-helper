@@ -11,8 +11,14 @@ import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.weibo.data.*
 import xyz.cssxsh.weibo.api.*
+import kotlin.coroutines.*
 
-internal object WeiboListener : CoroutineScope by WeiboHelperPlugin.childScope("WeiboSubscriber") {
+internal object WeiboListener : CoroutineScope {
+
+    override val coroutineContext: CoroutineContext =
+        CoroutineName(name = "WeiboSubscriber") + SupervisorJob() + CoroutineExceptionHandler { context, throwable ->
+            logger.warning({ "$throwable in $context" }, throwable)
+        }
 
     /**
      * * [https://m.weibo.cn/status/JFzsgd0CX]

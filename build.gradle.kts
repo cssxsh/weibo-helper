@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
 
-    id("net.mamoe.mirai-console") version "2.12.1"
+    id("net.mamoe.mirai-console") version "2.13.0-M1"
     id("me.him188.maven-central-publish") version "1.0.0-dev-3"
 }
 
@@ -26,12 +26,12 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-client-okhttp:2.0.3") {
+    implementation("io.ktor:ktor-client-okhttp:2.1.0") {
         exclude(group = "org.jetbrains.kotlin")
         exclude(group = "org.jetbrains.kotlinx")
         exclude(group = "org.slf4j")
     }
-    implementation("io.ktor:ktor-client-encoding:2.0.3") {
+    implementation("io.ktor:ktor-client-encoding:2.1.0") {
         exclude(group = "org.jetbrains.kotlin")
         exclude(group = "org.jetbrains.kotlinx")
         exclude(group = "org.slf4j")
@@ -43,7 +43,6 @@ dependencies {
     }
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.9")
-    compileOnly("net.mamoe:mirai-core-utils:2.12.1")
 
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
     testImplementation(kotlin("test"))

@@ -11,9 +11,14 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import java.net.*
 import java.time.*
+import kotlin.coroutines.*
 
-abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) :
-    CoroutineScope by WeiboHelperPlugin.childScope("WeiboListener-$type") {
+abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineScope {
+
+    override val coroutineContext: CoroutineContext =
+        CoroutineName(name = "WeiboListener-$type") + SupervisorJob() + CoroutineExceptionHandler { context, throwable ->
+            logger.warning({ "$throwable in $context" }, throwable)
+        }
 
     companion object {
         private val all = mutableListOf<WeiboSubscriber<*>>()
