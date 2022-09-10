@@ -2,6 +2,7 @@ package xyz.cssxsh.mirai.weibo
 
 import kotlinx.coroutines.*
 import net.mamoe.mirai.console.MiraiConsole
+import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister
 import net.mamoe.mirai.console.extension.*
@@ -9,7 +10,6 @@ import net.mamoe.mirai.console.plugin.jvm.*
 import net.mamoe.mirai.console.plugin.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.utils.*
-import xyz.cssxsh.mirai.weibo.command.*
 import xyz.cssxsh.mirai.weibo.data.*
 
 object WeiboHelperPlugin : KotlinPlugin(
@@ -40,6 +40,17 @@ object WeiboHelperPlugin : KotlinPlugin(
         }
     }
 
+    @Suppress("INVISIBLE_MEMBER")
+    private inline fun <reified T : Any> services(): Lazy<List<T>> = lazy {
+        with(net.mamoe.mirai.console.internal.util.PluginServiceHelper) {
+            jvmPluginClasspath.pluginClassLoader
+                .findServices<T>()
+                .loadAllServices()
+        }
+    }
+
+    private val commands: List<Command> by services()
+
     override fun onEnable() {
         // XXX: mirai console version check
         check(SemVersion.parseRangeRequirement(">= 2.12.0-RC").test(MiraiConsole.version)) {
@@ -52,17 +63,13 @@ object WeiboHelperPlugin : KotlinPlugin(
         WeiboStatusData.reload()
         WeiboEmoticonData.reload()
 
-        for (command in WeiboHelperCommand) {
-            command.register()
-        }
+        for (command in commands) command.register()
 
         logger.info { "图片缓存位置 ${ImageCache.absolutePath}" }
     }
 
     override fun onDisable() {
-        for (command in WeiboHelperCommand) {
-            command.unregister()
-        }
+        for (command in commands) command.unregister()
 
         WeiboSubscriber.stop()
 

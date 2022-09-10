@@ -13,7 +13,7 @@ object WeiboGroupCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "wgroup", "微博分组",
     description = "微博分组指令",
-), WeiboHelperCommand {
+) {
 
     private val subscriber = object : WeiboSubscriber<Long>(primaryName) {
         override val load: suspend (Long) -> List<MicroBlog> = { id ->

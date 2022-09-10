@@ -8,7 +8,7 @@ object WeiboDetailCommand : SimpleCommand(
     owner = WeiboHelperPlugin,
     "wdetail", "blog", "微博详情",
     description = "微博详情指令",
-), WeiboHelperCommand {
+) {
 
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle(mid: String) = sendMessage { client.getMicroBlog(mid).toMessage(it) }
