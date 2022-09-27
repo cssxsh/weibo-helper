@@ -40,38 +40,37 @@ data class PageInfo(
         val titles: List<Title> = emptyList(),
         @SerialName("video_publish_time")
         val published: Long = 0,
-    ) {
+    )
 
-        @Serializable
-        data class PlayBack(
-            @SerialName("play_info")
-            val info: PlayInfo
-        )
+    @Serializable
+    data class PlayBack(
+        @SerialName("play_info")
+        val info: PlayInfo
+    )
 
-        @Serializable
-        data class PlayInfo(
-            @SerialName("height")
-            val height: Int = 0,
-            @SerialName("mime")
-            val mime: String,
-            @SerialName("bitrate")
-            val bitrate: Int = 0,
-            @SerialName("quality_label")
-            val quality: String,
-            @SerialName("size")
-            val size: Long = 0,
-            @SerialName("tcp_receive_buffer")
-            val buffer: Long,
-            @SerialName("type")
-            val type: Int,
-            @SerialName("url")
-            val url: String = "",
-            @SerialName("width")
-            val width: Int = 0
-        ) : Comparable<PlayInfo> {
+    @Serializable
+    data class PlayInfo(
+        @SerialName("height")
+        val height: Int = 0,
+        @SerialName("mime")
+        val mime: String,
+        @SerialName("bitrate")
+        val bitrate: Int = 0,
+        @SerialName("quality_label")
+        val quality: String = "",
+        @SerialName("size")
+        val size: Long = 0,
+        @SerialName("tcp_receive_buffer")
+        val buffer: Long = 1024,
+        @SerialName("type")
+        val type: Int,
+        @SerialName("url")
+        val url: String = "",
+        @SerialName("width")
+        val width: Int = 0
+    ) : Comparable<PlayInfo> {
 
-            override fun compareTo(other: PlayInfo): Int = bitrate.compareTo(other.bitrate)
-        }
+        override fun compareTo(other: PlayInfo): Int = bitrate.compareTo(other.bitrate)
     }
 
     @Serializable

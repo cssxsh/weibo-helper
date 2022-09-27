@@ -88,7 +88,7 @@ suspend fun WeiboClient.download(pid: String, index: Int): ByteArray = useHttpCl
     }.body()
 }
 
-suspend fun WeiboClient.download(video: PageInfo.MediaInfo.PlayInfo) = flow<ByteArray> {
+suspend fun WeiboClient.download(video: PageInfo.PlayInfo) = flow<ByteArray> {
     for (offset in 0 until video.size step video.buffer) {
         val limit = (offset + video.buffer).coerceAtMost(video.size) - 1
         emit(useHttpClient { client ->
