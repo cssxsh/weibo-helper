@@ -70,7 +70,6 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
             prettyPrint = true
             ignoreUnknownKeys = true
             isLenient = true
-            allowStructuredMapKeys = true
         }
 
         val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException }

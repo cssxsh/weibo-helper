@@ -53,7 +53,7 @@ internal const val WEIBO_URL_PROPERTY = "xyz.cssxsh.mirai.plugin.weibo.url"
 internal val logger by lazy {
     try {
         WeiboHelperPlugin.logger
-    } catch (_: Throwable) {
+    } catch (_: ExceptionInInitializerError) {
         MiraiLogger.Factory.create(WeiboClient::class)
     }
 }
@@ -519,6 +519,8 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
 
 internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
     when (throwable) {
+        is UnknownHostException,
+        is NoRouteToHostException -> false
         is okhttp3.internal.http2.StreamResetException -> true
         is IOException -> {
             logger.warning { "WeiboClient Ignore $throwable" }
