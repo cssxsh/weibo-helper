@@ -37,8 +37,8 @@ object WeiboGroupCommand : CompositeCommand(
     suspend fun CommandSender.stop(id: String, subject: Contact = subject()) {
         val gid = try {
             client.getFeedGroups()[id].gid
-        } catch (e: Throwable) {
-            logger.warning { "查询群组失败, $e" }
+        } catch (cause: Exception) {
+            logger.warning({ "查询群组失败" }, cause)
             return
         }
         subscriber.remove(id = gid, subject = subject)

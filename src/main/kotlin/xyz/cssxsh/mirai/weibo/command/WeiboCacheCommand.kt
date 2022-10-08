@@ -31,7 +31,7 @@ object WeiboCacheCommand : CompositeCommand(
                 }.onSuccess { record ->
                     count += record.size
                 }.onFailure {
-                    logger.warning("对@${info.screen}的${month}缓存下载失败", it)
+                    logger.warning({ "对@${info.screen}的${month}缓存下载失败" }, it)
                 }
             }
             sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statuses}")
@@ -70,7 +70,7 @@ object WeiboCacheCommand : CompositeCommand(
                 }.onSuccess { record ->
                     count += record.size
                 }.onFailure {
-                    logger.warning("对@${info.screen}的${month}缓存下载失败", it)
+                    logger.warning({ "对@${info.screen}的${month}缓存下载失败" }, it)
                 }
             }
             sendMessage("对@${info.screen}的缓存下载完成, ${count}/${info.statuses}")
@@ -89,11 +89,11 @@ object WeiboCacheCommand : CompositeCommand(
         Emoticons.values.onEach { emoticon ->
             try {
                 emoticon.file()
-            } catch (e: Throwable) {
-                logger.warning { "表情${emoticon.phrase} 下载失败 ${emoticon.url} $e" }
+            } catch (cause: Exception) {
+                logger.warning({ "表情${emoticon.phrase} 下载失败 ${emoticon.url}" }, cause)
             }
-        }.joinToString { info ->
+        }.joinTo(MessageChainBuilder()) { info ->
             "${info.category.ifBlank { "默认" }}/${info.phrase}"
-        }.toPlainText()
+        }.build()
     }
 }

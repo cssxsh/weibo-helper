@@ -50,8 +50,8 @@ suspend inline fun <reified T> WeiboClient.callback(url: String, crossinline blo
     val json = text(url, block).substringAfter('(').substringBefore(')')
     return try {
         WeiboClient.Json.decodeFromString(json)
-    } catch (e: Throwable) {
-        throw IllegalArgumentException(json, e)
+    } catch (cause: Throwable) {
+        throw IllegalArgumentException(json, cause)
     }
 }
 

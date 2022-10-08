@@ -209,8 +209,8 @@ internal fun UserBaseInfo.desktop(flush: Boolean = false, dir: File = ImageCache
         if (following) {
             try {
                 ICOEncoder.write(ImageIO.read(URL(avatarLarge)), dir.resolve("avatar.ico"))
-            } catch (e: Throwable) {
-                logger.warning({ "头像下载失败" }, e)
+            } catch (cause: Exception) {
+                logger.warning({ "头像下载失败" }, cause)
             }
             appendLine("IconResource=avatar.ico")
         }
@@ -244,8 +244,8 @@ internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope
             val data = client.getLongText(mid)
             content = requireNotNull(data.content) { "长文本为空 mid: $mid" }
             links = data.urls
-        } catch (e: Throwable) {
-            logger.warning({ "获取微博[${id}]长文本失败" }, e)
+        } catch (cause: Exception) {
+            logger.warning({ "获取微博[${id}]长文本失败" }, cause)
         }
     }
     links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
@@ -350,8 +350,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                     val file = getVideo()
                     contact as FileSupported
                     file.toExternalResource().use { contact.files.uploadNewFile(file.name, it) }
-                } catch (e: Throwable) {
-                    logger.warning({ "$contact 无法发送文件" }, e)
+                } catch (cause: Exception) {
+                    logger.warning({ "$contact 无法发送文件" }, cause)
                 }
             }
         }
@@ -371,8 +371,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
             for ((index, deferred) in getImages().withIndex()) {
                 try {
                     add(deferred.await().uploadAsImage(contact))
-                } catch (e: Throwable) {
-                    logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, e)
+                } catch (cause: Exception) {
+                    logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, cause)
                     appendLine("获取微博[${id}]图片[${pictures[index]}]失败")
                 }
             }
@@ -385,8 +385,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                 }
                 try {
                     add(deferred.await().uploadAsImage(contact))
-                } catch (e: Throwable) {
-                    logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, e)
+                } catch (cause: Exception) {
+                    logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, cause)
                     appendLine("获取微博[${id}]图片[${pictures[index]}]失败")
                 }
             }
@@ -396,8 +396,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
                 for ((index, deferred) in getImages().withIndex()) {
                     try {
                         add(deferred.await().uploadAsImage(contact))
-                    } catch (e: Throwable) {
-                        logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, e)
+                    } catch (cause: Exception) {
+                        logger.warning({ "获取微博[${id}]图片[${pictures[index]}]失败" }, cause)
                         appendLine("获取微博[${id}]图片[${pictures[index]}]失败")
                     }
                 }
@@ -410,8 +410,8 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     if (WeiboHelperSettings.cover && hasPage) {
         try {
             add(getCover().uploadAsImage(contact))
-        } catch (e: Throwable) {
-            logger.warning({ "获取微博[${id}]封面失败" }, e)
+        } catch (cause: Exception) {
+            logger.warning({ "获取微博[${id}]封面失败" }, cause)
             appendLine("获取微博[${id}]封面失败")
         }
     }
@@ -490,9 +490,10 @@ internal suspend fun UserBaseInfo.getRecord(month: YearMonth, interval: Long) = 
             WeiboClient.Json.decodeFromString(readText())
         } else {
             val blogs = try {
-                WeiboClient.Json.decodeFromString<List<MicroBlog>>(readText()).associateBy { it.id }.toMutableMap()
-            } catch (e: Throwable) {
-                mutableMapOf()
+                WeiboClient.Json.decodeFromString<List<MicroBlog>>(readText())
+                    .associateByTo(HashMap()) { it.id }
+            } catch (cause: Exception) {
+                hashMapOf()
             }
             var page = 1
             var run = true

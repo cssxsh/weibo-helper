@@ -17,40 +17,35 @@ object WeiboLoginCommand : SimpleCommand(
 
     @Handler
     suspend fun CommandSenderOnMessage<*>.hendle() = quote { contact ->
-        client.runCatching {
-            qrcode { url ->
-                logger.info("qrcode: $url")
-                launch {
-                    val image = try {
-                        withTimeout(60_000) {
-                            client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
-                        }
-                    } catch (_: Throwable) {
-                        url.toPlainText()
+        val result = client.qrcode { url ->
+            logger.info("qrcode: $url")
+            launch {
+                val image = try {
+                    withTimeout(60_000) {
+                        client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
                     }
-
-                    sendMessage(image)
+                } catch (_: Throwable) {
+                    url.toPlainText()
                 }
+
+                sendMessage(image)
             }
-        }.onFailure {
-            logger.warning(it)
-        }.mapCatching {
-            "@${it.info.display}#${it.info.uid} 登陆成功".toPlainText()
-        }.getOrThrow()
+        }
+        "@${result.info.display}#${result.info.uid} 登陆成功".toPlainText()
     }
 
     @Handler
     suspend fun ConsoleCommandSender.hendle() {
-        client.runCatching {
-            qrcode { url ->
+        val message = try {
+            val result = client.qrcode { url ->
                 launch {
                     sendMessage(url)
                 }
             }
-        }.onFailure {
-            logger.warning(it)
-        }.mapCatching {
-            sendMessage("@${it.info.display}#${it.info.uid} 登陆成功")
-        }.getOrThrow()
+            "@${result.info.display}#${result.info.uid} 登陆成功"
+        } catch (cause: Exception) {
+            cause.message ?: cause.toString()
+        }
+        sendMessage(message)
     }
 }

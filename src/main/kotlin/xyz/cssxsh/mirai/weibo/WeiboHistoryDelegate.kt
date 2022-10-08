@@ -23,8 +23,8 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
                 file.parentFile.mkdirs()
                 file.writeText("{}")
             }
-        } catch (e: Throwable) {
-            logger.warning({ "${file.absolutePath} 读取失败" }, e)
+        } catch (cause: Exception) {
+            logger.warning({ "${file.absolutePath} 读取失败" }, cause)
         }
         subscriber.launch(SupervisorJob()) {
             while (isActive) {
@@ -46,8 +46,8 @@ class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber
                 cache
             }
             file.writeText(WeiboClient.Json.encodeToString(write))
-        } catch (e: Throwable) {
-            logger.warning({ "WeiboHistory ${file.absolutePath} 保存失败" }, e)
+        } catch (cause: Exception) {
+            logger.warning({ "WeiboHistory ${file.absolutePath} 保存失败" }, cause)
         }
     }
 

@@ -69,8 +69,8 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
                 requireNotNull(findContact(delegate)) { "找不到用户" }.let { contact ->
                     contact.sendMessage(build(contact))
                 }
-            } catch (e: Throwable) {
-                logger.warning({ "对[${delegate}]构建消息失败" }, e)
+            } catch (cause: Exception) {
+                logger.warning({ "对[${delegate}]构建消息失败" }, cause)
             }
         }
     }
