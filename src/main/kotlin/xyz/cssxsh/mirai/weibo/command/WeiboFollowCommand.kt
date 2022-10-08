@@ -11,5 +11,5 @@ object WeiboFollowCommand : SimpleCommand(
 ) {
 
     @Handler
-    suspend fun CommandSenderOnMessage<*>.hendle(uid: Long) = sendMessage { client.follow(uid).toMessage(subject()) }
+    suspend fun CommandSenderOnMessage<*>.hendle(uid: Long) = quote { client.follow(uid).toMessage(subject()) }
 }

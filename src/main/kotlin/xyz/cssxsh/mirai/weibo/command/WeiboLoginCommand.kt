@@ -16,7 +16,7 @@ object WeiboLoginCommand : SimpleCommand(
 ) {
 
     @Handler
-    suspend fun CommandSenderOnMessage<*>.hendle() = sendMessage { contact ->
+    suspend fun CommandSenderOnMessage<*>.hendle() = quote { contact ->
         client.runCatching {
             qrcode { url ->
                 logger.info("qrcode: $url")

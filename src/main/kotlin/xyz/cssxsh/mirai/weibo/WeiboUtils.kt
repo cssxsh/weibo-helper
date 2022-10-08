@@ -558,27 +558,13 @@ internal suspend fun WeiboClient.init() = supervisorScope {
     }.isSuccess
 }
 
-internal val SendLimit = """本群每分钟只能发\d+条消息""".toRegex()
-
-internal const val SendDelay = 60 * 1000L
-
-internal suspend fun <T : CommandSenderOnMessage<*>> T.sendMessage(block: suspend T.(Contact) -> Message): Boolean {
+internal suspend fun <T : CommandSenderOnMessage<*>> T.quote(block: suspend T.(Contact) -> Message): Boolean {
     return try {
         quoteReply(block(fromEvent.subject))
         true
     } catch (cause: Throwable) {
-        logger.warning {
-            "发送消息失败, $cause"
-        }
-        when {
-            SendLimit in cause.message.orEmpty() -> {
-                delay(SendDelay)
-                quoteReply(SendLimit.find(cause.message!!)!!.value)
-            }
-            else -> {
-                quoteReply("发送消息失败， ${cause.message}")
-            }
-        }
+        logger.warning({ "发送消息失败" }, cause)
+        quoteReply("发送消息失败， ${cause.message}")
         false
     }
 }

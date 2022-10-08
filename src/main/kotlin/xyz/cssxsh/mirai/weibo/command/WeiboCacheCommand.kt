@@ -16,7 +16,7 @@ object WeiboCacheCommand : CompositeCommand(
 ) {
 
     @SubCommand
-    suspend fun CommandSenderOnMessage<*>.user(uid: Long, second: Int = 10, reposts: Int = 100) = sendMessage {
+    suspend fun CommandSenderOnMessage<*>.user(uid: Long, second: Int = 10, reposts: Int = 100) = quote {
         val interval = second * 1000L
         val info = client.getUserInfo(uid).user
         val history = client.getUserHistory(uid)
@@ -40,7 +40,7 @@ object WeiboCacheCommand : CompositeCommand(
     }
 
     @SubCommand
-    suspend fun CommandSenderOnMessage<*>.group(gid: Long, second: Int = 10, reposts: Int = 100) = sendMessage {
+    suspend fun CommandSenderOnMessage<*>.group(gid: Long, second: Int = 10, reposts: Int = 100) = quote {
         val interval = second * 1000L
         val members = flow {
             var page = 1
@@ -79,13 +79,13 @@ object WeiboCacheCommand : CompositeCommand(
     }
 
     @SubCommand
-    suspend fun CommandSenderOnMessage<*>.clean(following: Boolean, num: Int) = sendMessage {
+    suspend fun CommandSenderOnMessage<*>.clean(following: Boolean, num: Int) = quote {
         ImageCache.clean(following, num)
         "清理完成".toPlainText()
     }
 
     @SubCommand
-    suspend fun CommandSenderOnMessage<*>.emoticon() = sendMessage {
+    suspend fun CommandSenderOnMessage<*>.emoticon() = quote {
         Emoticons.values.onEach { emoticon ->
             try {
                 emoticon.file()

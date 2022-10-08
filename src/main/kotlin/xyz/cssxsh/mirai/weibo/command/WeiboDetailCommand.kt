@@ -11,5 +11,5 @@ object WeiboDetailCommand : SimpleCommand(
 ) {
 
     @Handler
-    suspend fun CommandSenderOnMessage<*>.hendle(mid: String) = sendMessage { client.getMicroBlog(mid).toMessage(it) }
+    suspend fun CommandSenderOnMessage<*>.hendle(mid: String) = quote { client.getMicroBlog(mid).toMessage(it) }
 }
