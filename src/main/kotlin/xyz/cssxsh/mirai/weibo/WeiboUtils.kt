@@ -546,10 +546,12 @@ internal suspend fun WeiboClient.init() = supervisorScope {
             logger.warning { "模拟游客失败, ${it.message}" }
         }
     }.isSuccess && runCatching {
-        val emoticon = getEmoticon().emoticon
-        for (map in (emoticon.brand.values + emoticon.usual + emoticon.more)) {
-            for ((_, list) in map) {
-                Emoticons.putAll(list.associateBy { it.phrase })
+        val data = getEmoticon()
+        for ((_, map) in data.emoticon) {
+            for ((category, emoticons) in map) {
+                for (emoticon in emoticons) {
+                    Emoticons[emoticon.phrase] = emoticon.copy(category = category)
+                }
             }
         }
     }.onSuccess {

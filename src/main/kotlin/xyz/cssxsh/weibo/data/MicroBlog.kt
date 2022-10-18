@@ -133,39 +133,17 @@ data class UserBlog(
 @Serializable
 data class EmotionData(
     @SerialName("emoticon")
-    val emoticon: EmoticonMap
-)
-
-@Serializable
-data class EmoticonMap(
-    @SerialName("brand")
-    val brand: Map<String, Map<String, List<Emoticon>>>,
-    @SerialName("more")
-    val more: Map<String, List<Emoticon>>,
-    @SerialName("usual")
-    val usual: Map<String, List<Emoticon>>
+    val emoticon: Map<String, Map<String, List<Emoticon>>>
 )
 
 @Serializable
 data class Emoticon(
     @SerialName("category")
-    val category: String,
-    @SerialName("common")
-    val common: Boolean,
-    @SerialName("hot")
-    val hot: Boolean,
-    @SerialName("icon")
-    val icon: String,
+    val category: String = "null",
     @SerialName("phrase")
     val phrase: String,
-    @SerialName("picid")
-    val id: String,
-    @SerialName("type")
-    val type: String,
     @SerialName("url")
-    val url: String,
-    @SerialName("value")
-    val value: String
+    val url: String
 )
 
 @Serializable
