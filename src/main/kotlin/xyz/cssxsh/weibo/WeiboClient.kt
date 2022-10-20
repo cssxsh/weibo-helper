@@ -14,7 +14,6 @@ import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.data.*
 import java.io.IOException
 import kotlin.coroutines.*
-import kotlin.coroutines.cancellation.*
 
 open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {
     override val coroutineContext: CoroutineContext
@@ -79,14 +78,16 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
 
     suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = supervisorScope {
         var count = 0
+        var cause: Throwable? = null
         while (isActive) {
             try {
                 return@supervisorScope block(client)
-            } catch (cause: Throwable) {
+            } catch (throwable: Throwable) {
+                cause = throwable
                 count++
-                if (count > max || ignore(cause).not()) throw cause
+                if (count > max || ignore(throwable).not()) throw throwable
             }
         }
-        throw CancellationException(null)
+        throw CancellationException(null, cause)
     }
 }

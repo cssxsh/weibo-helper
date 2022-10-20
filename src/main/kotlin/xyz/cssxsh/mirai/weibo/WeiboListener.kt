@@ -51,20 +51,20 @@ internal object WeiboListener : CoroutineScope {
                 logger.info { "${sender.render()} 匹配WEIBO(${result.value})" }
                 try {
                     message.quote() + client.getMicroBlog(mid = result.value).toMessage(contact = subject)
-                } catch (throwable: SerializationException) {
-                    logger.warning({ "构建WEIBO(${result.value})序列化时失败" }, throwable)
+                } catch (exception: SerializationException) {
+                    logger.warning({ "构建WEIBO(${result.value})序列化时失败" }, exception)
                     sendLoginMessage("构建WEIBO(${result.value})任务序列化时失败")
-                    throwable.message
-                } catch (throwable: Throwable) {
-                    logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, throwable)
+                    exception.message
+                } catch (cause: Exception) {
+                    logger.warning({ "构建WEIBO(${result.value})信息失败，尝试重新刷新" }, cause)
                     try {
                         client.restore()
                         null
-                    } catch (cause: Throwable) {
-                        logger.warning({ "WEIBO登陆状态失效，需要重新登陆, $cause" }, cause)
+                    } catch (cause: Exception) {
+                        logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
                         sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin")
                         cause.message
-                    } ?: throwable.message
+                    } ?: cause.message
                 }
             }
         }

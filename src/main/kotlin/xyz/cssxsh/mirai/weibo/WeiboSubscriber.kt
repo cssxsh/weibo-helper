@@ -179,11 +179,11 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
                 continue
             } catch (exception: UnknownHostException) {
                 //
-            } catch (exception: Throwable) {
+            } catch (exception: Exception) {
                 logger.warning({ "WEIBO登陆状态将刷新" }, exception)
                 try {
                     client.restore()
-                } catch (_: Throwable) {
+                } catch (_: Exception) {
                     //
                 }
             } finally {

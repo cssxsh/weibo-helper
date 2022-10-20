@@ -150,13 +150,13 @@ internal fun sendLoginMessage(message: String) {
     try {
         WeiboHelperPlugin
     } catch (_: Throwable) {
-        CoroutineScope(Dispatchers.IO)
-    }.launch(SupervisorJob()) {
+        CoroutineScope(Dispatchers.IO) + SupervisorJob()
+    }.launch {
         while (isActive) {
             try {
                 LoginContact.sendMessage(message)
                 break
-            } catch (cause: Throwable) {
+            } catch (cause: Exception) {
                 logger.warning({ "向 ${LoginContact.render()} 发送消息失败" }, cause)
             }
             delay(60_000L)
@@ -473,10 +473,10 @@ internal suspend fun restore(interval: Long = 600_000) = supervisorScope {
             val result = client.restore()
             logger.info { "WEIBO登陆状态已刷新 $result" }
             continue
-        } catch (throwable: SerializationException) {
-            logger.warning({ "WEIBO RESTORE 任务序列化时失败" }, throwable)
+        } catch (exception: SerializationException) {
+            logger.warning({ "WEIBO RESTORE 任务序列化时失败" }, exception)
             sendLoginMessage("WEIBO RESTORE 任务序列化时失败")
-        } catch (cause: Throwable) {
+        } catch (cause: Exception) {
             logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
             sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin")
         }
@@ -565,7 +565,7 @@ internal suspend fun <T : CommandSenderOnMessage<*>> T.quote(block: suspend T.(C
     return try {
         quoteReply(block(fromEvent.subject))
         true
-    } catch (cause: Throwable) {
+    } catch (cause: Exception) {
         logger.warning({ "发送消息失败" }, cause)
         quoteReply("发送消息失败， ${cause.message}")
         false

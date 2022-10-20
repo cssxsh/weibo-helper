@@ -24,7 +24,7 @@ object WeiboLoginCommand : SimpleCommand(
                     withTimeout(60_000) {
                         client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
                     }
-                } catch (_: Throwable) {
+                } catch (_: Exception) {
                     url.toPlainText()
                 }
 
