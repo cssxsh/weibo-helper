@@ -176,9 +176,10 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
             } catch (exception: SerializationException) {
                 logger.warning({ "$type(${id})监听任务序列化时失败" }, exception)
                 sendLoginMessage("$type(${id})监听任务序列化时失败")
-                continue
             } catch (exception: UnknownHostException) {
-                //
+                logger.warning({ "$type(${id})监听任务, 网络异常" }, exception)
+            } catch (exception: SocketException) {
+                logger.warning({ "$type(${id})监听任务, 网络异常" }, exception)
             } catch (exception: Exception) {
                 logger.warning({ "WEIBO登陆状态将刷新" }, exception)
                 try {
