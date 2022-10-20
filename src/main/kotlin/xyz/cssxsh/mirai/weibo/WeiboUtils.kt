@@ -523,8 +523,8 @@ internal val ClientIgnore: suspend (Throwable) -> Boolean = { throwable ->
         is UnknownHostException,
         is NoRouteToHostException -> false
         is okhttp3.internal.http2.StreamResetException -> true
-        is IOException -> {
-            logger.warning { "WeiboClient Ignore $throwable" }
+        is SocketException -> {
+            logger.warning { "Weibo Client Ignore $throwable" }
             true
         }
         else -> false
