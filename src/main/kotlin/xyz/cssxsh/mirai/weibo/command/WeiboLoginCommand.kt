@@ -6,8 +6,8 @@ import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.ExternalResource.Companion.toExternalResource
 import net.mamoe.mirai.utils.ExternalResource.Companion.uploadAsImage
 import xyz.cssxsh.mirai.weibo.*
-import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.*
+import xyz.cssxsh.weibo.api.*
 
 object WeiboLoginCommand : SimpleCommand(
     owner = WeiboHelperPlugin,

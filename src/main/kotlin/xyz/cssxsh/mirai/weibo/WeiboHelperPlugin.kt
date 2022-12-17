@@ -1,7 +1,7 @@
 package xyz.cssxsh.mirai.weibo
 
 import kotlinx.coroutines.*
-import net.mamoe.mirai.console.MiraiConsole
+import net.mamoe.mirai.console.*
 import net.mamoe.mirai.console.command.*
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.unregister

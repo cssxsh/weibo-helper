@@ -8,11 +8,11 @@ import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.*
 import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.data.*
-import java.io.IOException
 import kotlin.coroutines.*
 
 open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {

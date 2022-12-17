@@ -6,8 +6,8 @@ import net.mamoe.mirai.contact.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.weibo.data.*
-import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.*
+import xyz.cssxsh.weibo.data.*
 import xyz.cssxsh.weibo.api.*
 import java.net.*
 import java.time.*

@@ -143,7 +143,7 @@ internal val LoginContact by lazy {
     for (bot in Bot.instances) {
         return@lazy bot.getContactOrNull(id) ?: continue
     }
-    throw NoSuchElementException("Not Found LoginContact $id")
+    throw NoSuchElementException("Not Found Login Contact $id")
 }
 
 internal fun sendLoginMessage(message: String) {
