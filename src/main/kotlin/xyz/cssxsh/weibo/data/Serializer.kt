@@ -8,15 +8,15 @@ import java.time.*
 import java.time.format.*
 import java.util.*
 
-typealias HistoryInfo = Map<Int, List<Int>>
+public typealias HistoryInfo = Map<Int, List<Int>>
 
 @Serializable
-data class SetResult(
+public data class SetResult(
     @SerialName("result")
     val result: Boolean
 )
 
-object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
+public object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
     private val formatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("E MMM d HH:mm:ss Z yyyy", Locale.ENGLISH)
@@ -26,35 +26,36 @@ object WeiboDateTimeSerializer : KSerializer<OffsetDateTime> {
 
     override fun deserialize(decoder: Decoder): OffsetDateTime = OffsetDateTime.parse(decoder.decodeString(), formatter)
 
-    override fun serialize(encoder: Encoder, value: OffsetDateTime) = encoder.encodeString(value.format(formatter))
+    override fun serialize(encoder: Encoder, value: OffsetDateTime): Unit = encoder.encodeString(value.format(formatter))
 
 }
 
-object LocaleSerializer : KSerializer<Locale> {
+public object LocaleSerializer : KSerializer<Locale> {
 
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor(Locale::class.qualifiedName!!, PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Locale = Locale(decoder.decodeString())
 
-    override fun serialize(encoder: Encoder, value: Locale) = encoder.encodeString(value.language)
+    override fun serialize(encoder: Encoder, value: Locale): Unit = encoder.encodeString(value.language)
 }
 
-object NumberToBooleanSerializer : KSerializer<Boolean> {
+public object NumberToBooleanSerializer : KSerializer<Boolean> {
 
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("NumberToBooleanSerializer", PrimitiveKind.BOOLEAN)
 
     override fun deserialize(decoder: Decoder): Boolean = decoder.decodeLong() != 0L
 
-    override fun serialize(encoder: Encoder, value: Boolean) = encoder.encodeLong(if (value) 1L else 0L)
+    override fun serialize(encoder: Encoder, value: Boolean): Unit = encoder.encodeLong(if (value) 1L else 0L)
 }
 
-interface WeiboValue<T> {
-    val value: T
+public interface WeiboValue<T> {
+    public val value: T
 }
 
-class WeiboEnumSerializer<E, T>(private val values: Array<E>) : KSerializer<E> where E : Enum<E>, E : WeiboValue<T> {
+public class WeiboEnumSerializer<E, T>(private val values: Array<E>) :
+    KSerializer<E> where E : Enum<E>, E : WeiboValue<T> {
 
     override val descriptor: SerialDescriptor = JsonPrimitive.serializer().descriptor
 
@@ -79,30 +80,30 @@ class WeiboEnumSerializer<E, T>(private val values: Array<E>) : KSerializer<E> w
 }
 
 @Suppress("FunctionName")
-inline fun <reified E, T> WeiboEnumSerializer(): WeiboEnumSerializer<E, T> where E : Enum<E>, E : WeiboValue<T> {
+public inline fun <reified E, T> WeiboEnumSerializer(): WeiboEnumSerializer<E, T> where E : Enum<E>, E : WeiboValue<T> {
     return WeiboEnumSerializer(enumValues())
 }
 
 @Serializable(with = PictureType.Companion::class)
-enum class PictureType(override val value: String) : WeiboValue<String> {
+public enum class PictureType(override val value: String) : WeiboValue<String> {
     PICTURE(value = "pic"),
     GIF(value = "gif"),
     LIVE_PHOTO(value = "livephoto");
 
-    companion object : KSerializer<PictureType> by WeiboEnumSerializer()
+    public companion object : KSerializer<PictureType> by WeiboEnumSerializer()
 }
 
 @Serializable(with = GenderType.Companion::class)
-enum class GenderType(override val value: String) : WeiboValue<String> {
+public enum class GenderType(override val value: String) : WeiboValue<String> {
     MALE(value = "m"),
     FEMALE(value = "f"),
     NONE(value = "n");
 
-    companion object : KSerializer<GenderType> by WeiboEnumSerializer()
+    public companion object : KSerializer<GenderType> by WeiboEnumSerializer()
 }
 
 @Serializable(with = UserGroupType.Companion::class)
-enum class UserGroupType(override val value: Int) : WeiboValue<Int> {
+public enum class UserGroupType(override val value: Int) : WeiboValue<Int> {
     USER(value = 0),
     ALL(value = 1),
     QUIETLY(value = 5),
@@ -111,14 +112,14 @@ enum class UserGroupType(override val value: Int) : WeiboValue<Int> {
     FILTER(value = 20),
     SYSTEM(value = 8888);
 
-    companion object : KSerializer<UserGroupType> by WeiboEnumSerializer()
+    public companion object : KSerializer<UserGroupType> by WeiboEnumSerializer()
 }
 
 /**
  * verified_type < 8 ? "微博官方认证" : "微博个人认证"
  */
 @Serializable(with = VerifiedType.Companion::class)
-enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
+public enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
     NONE(value = -1),
     PERSONAL(value = 0),
     GOVERNMENT(value = 1),
@@ -135,5 +136,5 @@ enum class VerifiedType(override val value: Int) : WeiboValue<Int> {
     SENIOR(value = 220),
     DECEASED(value = 400);
 
-    companion object : KSerializer<VerifiedType> by WeiboEnumSerializer()
+    public companion object : KSerializer<VerifiedType> by WeiboEnumSerializer()
 }

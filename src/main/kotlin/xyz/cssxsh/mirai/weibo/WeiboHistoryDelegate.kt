@@ -9,7 +9,7 @@ import java.time.*
 import kotlin.properties.*
 import kotlin.reflect.*
 
-class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber<K>) :
+public class WeiboHistoryDelegate<K : Comparable<K>>(id: K, subscriber: WeiboSubscriber<K>) :
     ReadOnlyProperty<Any?, MutableMap<Long, MicroBlog>> {
     private val file = DataFolder.resolve(subscriber.type).resolve("$id.json")
 

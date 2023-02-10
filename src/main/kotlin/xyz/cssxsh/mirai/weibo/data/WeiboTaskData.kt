@@ -2,7 +2,8 @@ package xyz.cssxsh.mirai.weibo.data
 
 import net.mamoe.mirai.console.data.*
 
-object WeiboTaskData : AutoSavePluginData("WeiboTaskData") {
+@PublishedApi
+internal object WeiboTaskData : AutoSavePluginData("WeiboTaskData") {
 
     @ValueDescription("微博用户订阅器，KEY是UID")
     val users: MutableMap<Long, WeiboTaskInfo> by value()

@@ -4,14 +4,14 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import java.time.*
 
-val MicroBlog.isLongText get() = (continueTag != null)
+public val MicroBlog.isLongText: Boolean get() = (continueTag != null)
 
-val MicroBlog.hasVideo get() = (page?.form == "video")
+public val MicroBlog.hasVideo: Boolean get() = (page?.form == "video")
 
-val MicroBlog.hasPage get() = (page != null)
+public val MicroBlog.hasPage: Boolean get() = (page != null)
 
 @Serializable
-data class MicroBlog(
+public data class MicroBlog(
     /**
      * 点赞数
      */
@@ -57,7 +57,7 @@ data class MicroBlog(
 )
 
 @Serializable
-data class UrlStruct(
+public data class UrlStruct(
     @SerialName("long_url")
     val long: String = "",
     @SerialName("short_url")
@@ -69,19 +69,19 @@ data class UrlStruct(
 )
 
 @Serializable
-data class TopTitle(
+public data class TopTitle(
     @SerialName("text")
     val text: String
 )
 
 @Serializable
-data class ScreenSuffix(
+public data class ScreenSuffix(
     @SerialName("content")
     val content: String
 )
 
 @Serializable
-data class MicroBlogUser(
+public data class MicroBlogUser(
     @SerialName("avatar_hd")
     override val avatarHighDefinition: String = "",
     @SerialName("avatar_large")
@@ -105,7 +105,7 @@ data class MicroBlogUser(
 ) : UserBaseInfo
 
 @Serializable
-data class LongTextContent(
+public data class LongTextContent(
     @SerialName("longTextContent")
     val content: String? = null,
     @SerialName("url_struct")
@@ -113,7 +113,7 @@ data class LongTextContent(
 )
 
 @Serializable
-data class TimelineData(
+public data class TimelineData(
     @SerialName("max_id")
     val maxId: Long = 0,
     @SerialName("since_id")
@@ -123,7 +123,7 @@ data class TimelineData(
 )
 
 @Serializable
-data class UserBlog(
+public data class UserBlog(
     @SerialName("since_id")
     val sinceId: String? = null,
     @SerialName("list")
@@ -131,13 +131,13 @@ data class UserBlog(
 )
 
 @Serializable
-data class EmotionData(
+public data class EmotionData(
     @SerialName("emoticon")
     val emoticon: Map<String, Map<String, List<Emoticon>>>
 )
 
 @Serializable
-data class Emoticon(
+public data class Emoticon(
     @SerialName("category")
     val category: String = "null",
     @SerialName("phrase")
@@ -147,7 +147,7 @@ data class Emoticon(
 )
 
 @Serializable
-data class SearchResult(
+public data class SearchResult(
     @SerialName("cardlist_title")
     val title: String,
     @SerialName("cards")
@@ -155,7 +155,7 @@ data class SearchResult(
 )
 
 @Serializable
-data class SearchResultCard(
+public data class SearchResultCard(
     @SerialName("card_group")
     val group: List<SearchResultCard> = emptyList(),
     @SerialName("card_type")

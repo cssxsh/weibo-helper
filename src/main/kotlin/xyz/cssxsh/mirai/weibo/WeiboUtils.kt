@@ -13,6 +13,7 @@ import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.console.util.ContactUtils.getContactOrNull
 import net.mamoe.mirai.console.util.ContactUtils.render
 import net.mamoe.mirai.contact.*
+import net.mamoe.mirai.message.*
 import net.mamoe.mirai.message.data.*
 import net.mamoe.mirai.message.data.MessageSource.Key.quote
 import net.mamoe.mirai.utils.*
@@ -287,7 +288,7 @@ internal suspend fun MicroBlog.getVideo(flush: Boolean = false) = supervisorScop
     val media = requireNotNull(page?.media) { "MicroBlog(${mid}) Not Found Video" }
     val title = media.titles.firstOrNull()?.title ?: media.name
     val video = media.playbacks.maxOf { it.info }
-
+    // TODO: safe file name
     VideoCache.resolve("${id}-${title}.mp4").apply {
         if (flush || exists().not()) {
             parentFile.mkdirs()
@@ -572,19 +573,23 @@ internal suspend fun <T : CommandSenderOnMessage<*>> T.quote(block: suspend T.(C
     }
 }
 
-suspend fun CommandSenderOnMessage<*>.quoteReply(message: Message) = sendMessage(fromEvent.message.quote() + message)
+public suspend fun CommandSenderOnMessage<*>.quoteReply(message: Message): MessageReceipt<Contact>? {
+    return sendMessage(fromEvent.message.quote() + message)
+}
 
-suspend fun CommandSenderOnMessage<*>.quoteReply(message: String) = quoteReply(message.toPlainText())
+public suspend fun CommandSenderOnMessage<*>.quoteReply(message: String): MessageReceipt<Contact>? {
+    return quoteReply(message.toPlainText())
+}
 
 /**
  * 通过正负号区分群和用户
  */
-val Contact.delegate get() = if (this is Group) id * -1 else id
+public val Contact.delegate: Long get() = if (this is Group) id * -1 else id
 
 /**
  * 查找Contact
  */
-fun findContact(delegate: Long): Contact? {
+public fun findContact(delegate: Long): Contact? {
     for (bot in Bot.instances) {
         if (delegate < 0) {
             for (group in bot.groups) {

@@ -3,7 +3,7 @@ package xyz.cssxsh.weibo.data
 import kotlinx.serialization.*
 
 @Serializable
-data class PageInfo(
+public data class PageInfo(
     @SerialName("media_info")
     val media: MediaInfo? = null,
     @SerialName("object_type")
@@ -19,7 +19,7 @@ data class PageInfo(
 ) {
 
     @Serializable
-    data class MediaInfo(
+    public data class MediaInfo(
         @SerialName("author_info")
         val author: UserInfo? = null,
         @SerialName("duration")
@@ -43,13 +43,13 @@ data class PageInfo(
     )
 
     @Serializable
-    data class PlayBack(
+    public data class PlayBack(
         @SerialName("play_info")
         val info: PlayInfo
     )
 
     @Serializable
-    data class PlayInfo(
+    public data class PlayInfo(
         @SerialName("height")
         val height: Int = 0,
         @SerialName("mime")
@@ -74,7 +74,7 @@ data class PageInfo(
     }
 
     @Serializable
-    data class Title(
+    public data class Title(
         @SerialName("default")
         val default: Boolean = false,
         @SerialName("title")

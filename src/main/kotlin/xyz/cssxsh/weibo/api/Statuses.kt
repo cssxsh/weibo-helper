@@ -6,7 +6,7 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 import java.time.*
 
-enum class FeatureType(private val value: Int) {
+public enum class FeatureType(private val value: Int) {
     ALL(0),
     ORIGINAL(1),
     HOT(2),
@@ -15,7 +15,7 @@ enum class FeatureType(private val value: Int) {
     override fun toString(): String = value.toString()
 }
 
-enum class ChannelType(val id: Int) {
+public enum class ChannelType(public val id: Int) {
     ALL(1),
     USER(3),
     NOW(61),
@@ -28,11 +28,11 @@ enum class ChannelType(val id: Int) {
     ;
 }
 
-suspend fun WeiboClient.getEmoticon(): EmotionData = temp(STATUSES_CONFIG) {
+public suspend fun WeiboClient.getEmoticon(): EmotionData = temp(STATUSES_CONFIG) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/home")
 }
 
-suspend fun WeiboClient.getUserMicroBlogs(
+public suspend fun WeiboClient.getUserMicroBlogs(
     uid: Long,
     page: Int,
     feature: FeatureType = FeatureType.ALL,
@@ -46,7 +46,7 @@ suspend fun WeiboClient.getUserMicroBlogs(
     parameter("stat_date", month?.run { "%04d%02d".format(year, monthValue) })
 }
 
-suspend fun WeiboClient.getUserHot(uid: Long, page: Int): UserBlog = temp(PROFILE_MY_HOT) {
+public suspend fun WeiboClient.getUserHot(uid: Long, page: Int): UserBlog = temp(PROFILE_MY_HOT) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/u/${uid}")
 
     parameter("uid", uid)
@@ -54,23 +54,23 @@ suspend fun WeiboClient.getUserHot(uid: Long, page: Int): UserBlog = temp(PROFIL
     parameter("feature", FeatureType.HOT)
 }
 
-suspend fun WeiboClient.getMicroBlog(id: Long) = getMicroBlog(id.toString())
+public suspend fun WeiboClient.getMicroBlog(id: Long): MicroBlog = getMicroBlog(mid = id.toString())
 
-suspend fun WeiboClient.getMicroBlog(mid: String): MicroBlog = json(STATUSES_SHOW) {
+public suspend fun WeiboClient.getMicroBlog(mid: String): MicroBlog = json(STATUSES_SHOW) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")
 
     parameter("id", mid)
 }
 
-suspend fun WeiboClient.getLongText(id: Long) = getLongText(id.toString())
+public suspend fun WeiboClient.getLongText(id: Long): LongTextContent = getLongText(mid = id.toString())
 
-suspend fun WeiboClient.getLongText(mid: String): LongTextContent = temp(STATUSES_LONGTEXT) {
+public suspend fun WeiboClient.getLongText(mid: String): LongTextContent = temp(STATUSES_LONGTEXT) {
     header(HttpHeaders.Referrer, "https://www.weibo.com/detail/${mid}")
 
     parameter("id", mid)
 }
 
-suspend fun WeiboClient.getMentions(author: Boolean = false, type: Boolean = false): UserMention {
+public suspend fun WeiboClient.getMentions(author: Boolean = false, type: Boolean = false): UserMention {
     return temp(STATUSES_MENTIONS) {
         header(HttpHeaders.Referrer, "https://weibo.com/at/weibo")
 
@@ -79,7 +79,7 @@ suspend fun WeiboClient.getMentions(author: Boolean = false, type: Boolean = fal
     }
 }
 
-suspend fun WeiboClient.search(
+public suspend fun WeiboClient.search(
     keyword: String,
     type: ChannelType = ChannelType.ALL,
     page: Int = 1,

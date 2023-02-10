@@ -4,7 +4,8 @@ import net.mamoe.mirai.console.command.*
 import xyz.cssxsh.mirai.weibo.*
 import xyz.cssxsh.weibo.api.*
 
-object WeiboFollowCommand : SimpleCommand(
+@PublishedApi
+internal object WeiboFollowCommand : SimpleCommand(
     owner = WeiboHelperPlugin,
     "wfollow", "微博关注",
     description = "微博关注指令",

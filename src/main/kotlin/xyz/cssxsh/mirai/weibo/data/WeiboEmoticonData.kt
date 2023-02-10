@@ -8,7 +8,8 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 import java.io.*
 
-object WeiboEmoticonData : AutoSavePluginData("WeiboEmoticonData") {
+@PublishedApi
+internal object WeiboEmoticonData : AutoSavePluginData("WeiboEmoticonData") {
 
     internal fun default(): Map<String, Emoticon> {
         val url = this::class.java.getResource("Emoticons.json") ?: throw FileNotFoundException("Emoticons.json")

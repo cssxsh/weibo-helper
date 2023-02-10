@@ -13,23 +13,23 @@ import java.net.*
 import java.time.*
 import kotlin.coroutines.*
 
-abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineScope {
+public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String) : CoroutineScope {
 
     override val coroutineContext: CoroutineContext =
         CoroutineName(name = "WeiboListener-$type") + SupervisorJob() + CoroutineExceptionHandler { context, throwable ->
             logger.warning({ "$throwable in $context" }, throwable)
         }
 
-    companion object {
+    public companion object {
         private val all = mutableListOf<WeiboSubscriber<*>>()
 
-        fun start() {
+        public fun start() {
             for (subscriber in all) {
                 subscriber.start()
             }
         }
 
-        fun stop() {
+        public fun stop() {
             for (subscriber in all) {
                 subscriber.stop()
             }
@@ -40,7 +40,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
         let(all::add)
     }
 
-    abstract val load: suspend (id: K) -> List<MicroBlog>
+    public abstract val load: suspend (id: K) -> List<MicroBlog>
 
     protected open val filter: WeiboFilter get() = WeiboHelperSettings
 
@@ -52,13 +52,13 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
 
     private fun infos(id: K) = tasks[id]?.contacts.orEmpty()
 
-    fun start(): Unit = synchronized(taskJobs) {
+    public fun start(): Unit = synchronized(taskJobs) {
         for ((id, _) in tasks) {
             taskJobs[id] = listen(id)
         }
     }
 
-    fun stop(): Unit = synchronized(taskJobs) {
+    public fun stop(): Unit = synchronized(taskJobs) {
         coroutineContext.cancelChildren()
         taskJobs.clear()
     }
@@ -82,7 +82,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
         return values.map { it.created.toLocalTime() - time }.any { it.abs() < IntervalSlow }
     }
 
-    protected open val reposts = true
+    protected open val reposts: Boolean = true
 
     protected open val predicate: (MicroBlog, K) -> Boolean = filter@{ blog, id ->
         if (filter.original && blog.retweeted != null) {
@@ -193,7 +193,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
         }
     }
 
-    fun add(id: K, name: String, subject: Contact): Unit = synchronized(tasks) {
+    public fun add(id: K, name: String, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             with(info ?: WeiboTaskInfo()) {
                 copy(contacts = contacts + subject.delegate, name = name)
@@ -204,7 +204,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
         }
     }
 
-    fun remove(id: K, subject: Contact): Unit = synchronized(tasks) {
+    public fun remove(id: K, subject: Contact): Unit = synchronized(tasks) {
         tasks.compute(id) { _, info ->
             info?.run {
                 copy(contacts = contacts - subject.delegate)
@@ -216,7 +216,7 @@ abstract class WeiboSubscriber<K : Comparable<K>>(val type: String) : CoroutineS
         }
     }
 
-    fun detail(subject: Contact): String = buildString {
+    public fun detail(subject: Contact): String = buildString {
         appendLine("# 订阅列表")
         appendLine("| NAME | ID | LAST | ACTIVE |")
         appendLine("|------|----|------|--------|")

@@ -5,7 +5,7 @@ import java.time.*
 import java.util.*
 
 @Serializable
-data class UserDetail(
+public data class UserDetail(
     @SerialName("birthday")
     val birthday: String,
     @SerialName("created_at")
@@ -26,7 +26,7 @@ data class UserDetail(
 )
 
 @Serializable
-data class UserFollower(
+public data class UserFollower(
     @SerialName("avatar_large")
     val avatar: String,
     @SerialName("id")
@@ -36,7 +36,7 @@ data class UserFollower(
 )
 
 @Serializable
-data class UserFollowers(
+public data class UserFollowers(
     @SerialName("total_number")
     val total: Int,
     @SerialName("users")
@@ -44,23 +44,23 @@ data class UserFollowers(
 )
 
 @Serializable
-data class UserInfoData(
+public data class UserInfoData(
     @SerialName("tabList")
     val tabs: List<UserTab> = emptyList(),
     @SerialName("user")
     val user: UserInfo
 )
 
-interface UserBaseInfo {
-    val avatarHighDefinition: String
-    val avatarLarge: String
-    val id: Long
-    val screen: String
-    val following: Boolean
+public interface UserBaseInfo {
+    public val avatarHighDefinition: String
+    public val avatarLarge: String
+    public val id: Long
+    public val screen: String
+    public val following: Boolean
 }
 
 @Serializable
-data class UserInfo(
+public data class UserInfo(
     @SerialName("avatar_hd")
     override val avatarHighDefinition: String,
     @SerialName("avatar_large")
@@ -111,7 +111,7 @@ data class UserInfo(
 ) : UserBaseInfo
 
 @Serializable
-data class UserTab(
+public data class UserTab(
     @SerialName("name")
     val name: String,
     @SerialName("tabName")

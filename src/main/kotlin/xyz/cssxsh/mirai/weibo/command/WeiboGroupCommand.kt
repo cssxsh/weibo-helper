@@ -9,7 +9,8 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 
-object WeiboGroupCommand : CompositeCommand(
+@PublishedApi
+internal object WeiboGroupCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "wgroup", "微博分组",
     description = "微博分组指令",

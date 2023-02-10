@@ -15,36 +15,43 @@ import kotlinx.serialization.json.*
 import xyz.cssxsh.weibo.data.*
 import kotlin.coroutines.*
 
-open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnore) : CoroutineScope, Closeable {
+public open class WeiboClient(
+    public val ignore: suspend (Throwable) -> Boolean = DefaultIgnore
+) : CoroutineScope, Closeable {
     override val coroutineContext: CoroutineContext
         get() = client.coroutineContext
 
-    override fun close() = client.close()
+    override fun close(): Unit = client.close()
 
-    protected val cookies get() = storage.container.filter { it.expires != null }.map(::renderSetCookieHeader)
+    protected val cookies: List<String>
+        get() = storage.container.filter { it.expires != null }.map(::renderSetCookieHeader)
 
-    fun status() = LoginStatus(info, cookies)
+    public fun status(): LoginStatus = LoginStatus(info, cookies)
 
-    fun load(status: LoginStatus) = runBlocking(coroutineContext) {
+    public fun load(status: LoginStatus): Boolean = runBlocking(coroutineContext) {
         info = status.info
         storage.mutex.withLock {
             storage.container.addAll(status.cookies.map(::parseServerSetCookieHeader))
         }
     }
 
-    protected val storage = AcceptAllCookiesStorage()
+    protected open val storage: CookiesStorage = AcceptAllCookiesStorage()
 
+    @PublishedApi
     internal open var info: LoginUserInfo = LoginUserInfo("", 0)
 
-    internal val xsrf get() = storage.container["XSRF-TOKEN"]
+    @PublishedApi
+    internal val xsrf: Cookie? get() = storage.container["XSRF-TOKEN"]
 
-    internal val srf get() = storage.container["SRF"]
+    @PublishedApi
+    internal val srf: Cookie? get() = storage.container["SRF"]
 
-    internal val wbpsess get() = storage.container["WBPSESS"]
+    @PublishedApi
+    internal val wbpsess: Cookie? get() = storage.container["WBPSESS"]
 
     protected open val timeout: Long = 30_000 // attr(open) ok ?
 
-    protected open val client = HttpClient(OkHttp) {
+    protected open val client: HttpClient = HttpClient(OkHttp) {
         install(HttpTimeout) {
             socketTimeoutMillis = timeout
             connectTimeoutMillis = timeout
@@ -64,19 +71,19 @@ open class WeiboClient(val ignore: suspend (Throwable) -> Boolean = DefaultIgnor
         expectSuccess = true
     }
 
-    companion object {
-        val Json = Json {
+    public companion object {
+        public val Json: Json = Json {
             prettyPrint = true
             ignoreUnknownKeys = true
             isLenient = true
         }
 
-        val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException }
+        public val DefaultIgnore: suspend (Throwable) -> Boolean = { it is IOException }
     }
 
-    protected open val max = 32
+    protected open val max: Int = 32
 
-    suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = supervisorScope {
+    public suspend fun <T> useHttpClient(block: suspend (HttpClient) -> T): T = supervisorScope {
         var count = 0
         var cause: Throwable? = null
         while (isActive) {

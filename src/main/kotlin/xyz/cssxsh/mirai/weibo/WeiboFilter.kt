@@ -1,9 +1,9 @@
 package xyz.cssxsh.mirai.weibo
 
-interface WeiboFilter {
-    val repost: Long
-    val users: Set<Long>
-    val regexes: List<Regex>
-    val urls: Set<Int>
-    val original: Boolean
+public interface WeiboFilter {
+    public val repost: Long
+    public val users: Set<Long>
+    public val regexes: List<Regex>
+    public val urls: Set<Int>
+    public val original: Boolean
 }

@@ -9,7 +9,8 @@ import xyz.cssxsh.mirai.weibo.*
 import xyz.cssxsh.weibo.api.*
 import java.time.*
 
-object WeiboCacheCommand : CompositeCommand(
+@PublishedApi
+internal object WeiboCacheCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "wcache", "微博缓存",
     description = "微博缓存指令",

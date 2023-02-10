@@ -8,17 +8,20 @@ import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 import java.lang.*
 
-const val SUCCESS_CODE = 20000000
+public const val SUCCESS_CODE: Int = 20000000
 
-const val NO_USE_CODE = 50114001
+public const val NO_USE_CODE: Int = 50114001
 
-const val USED_CODE = 50114002
+public const val USED_CODE: Int = 50114002
 
-const val QRCODE_SIZE = 180
+public const val QRCODE_SIZE: Int = 180
 
-const val CheckDelay = 3 * 1000L
+public const val CheckDelay: Long = 3 * 1000L
 
-suspend inline fun <reified T> WeiboClient.data(url: String, crossinline block: HttpRequestBuilder.() -> Unit): T {
+public suspend inline fun <reified T> WeiboClient.data(
+    url: String,
+    crossinline block: HttpRequestBuilder.() -> Unit
+): T {
     return with(callback<LoginData>(url, block)) {
         check(code == SUCCESS_CODE) { toString() }
         WeiboClient.Json.decodeFromJsonElement(data)
@@ -45,7 +48,7 @@ private suspend fun WeiboClient.login(urls: List<String>): LoginResult {
     return result
 }
 
-suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginResult {
+public suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginResult {
     // Set Cookie
     download(PASSPORT_VISITOR)
 
@@ -103,7 +106,7 @@ suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): LoginRes
     return login(urls = flush.urls)
 }
 
-suspend fun WeiboClient.restore(): LoginResult {
+public suspend fun WeiboClient.restore(): LoginResult {
     // Set Cookie
     var location: String? = INDEX_PAGE
     while (location != null) {
@@ -147,7 +150,7 @@ suspend fun WeiboClient.restore(): LoginResult {
     return login(urls = flush.urls)
 }
 
-suspend fun WeiboClient.incarnate(): Int {
+public suspend fun WeiboClient.incarnate(): Int {
     val visitor = data<LoginVisitor>(PASSPORT_GEN_VISITOR) {
         header(HttpHeaders.Host, url.host)
         header(HttpHeaders.Referrer, PASSPORT_VISITOR)

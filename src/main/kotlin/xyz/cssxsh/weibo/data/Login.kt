@@ -4,7 +4,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 @Serializable
-data class LoginData(
+public data class LoginData(
     @SerialName("data")
     val `data`: JsonElement,
     @SerialName("msg")
@@ -14,7 +14,7 @@ data class LoginData(
 )
 
 @Serializable
-data class LoginQrcode(
+public data class LoginQrcode(
     @SerialName("image")
     val image: String,
     @SerialName("qrid")
@@ -22,7 +22,7 @@ data class LoginQrcode(
 )
 
 @Serializable
-data class LoginToken(
+public data class LoginToken(
     @SerialName("alt")
     val alt: String,
     @SerialName("savestate")
@@ -30,7 +30,7 @@ data class LoginToken(
 )
 
 @Serializable
-data class LoginVisitor(
+public data class LoginVisitor(
     @SerialName("tid")
     val tid: String,
     @SerialName("new_tid")
@@ -40,7 +40,7 @@ data class LoginVisitor(
 )
 
 @Serializable
-data class LoginResult(
+public data class LoginResult(
     @SerialName("result")
     val result: Boolean,
     @SerialName("userinfo")
@@ -48,7 +48,7 @@ data class LoginResult(
 )
 
 @Serializable
-data class LoginUserInfo(
+public data class LoginUserInfo(
     @SerialName("displayname")
     val display: String = "",
     @SerialName("uniqueid")
@@ -56,7 +56,7 @@ data class LoginUserInfo(
 )
 
 @Serializable
-data class LoginFlush(
+public data class LoginFlush(
     @SerialName("crossDomainUrlList")
     val urls: List<String>,
     @SerialName("nick")
@@ -68,7 +68,7 @@ data class LoginFlush(
 )
 
 @Serializable
-data class LoginCrossFlush(
+public data class LoginCrossFlush(
     @SerialName("arrURL")
     val urls: List<String>,
     @SerialName("retcode")
@@ -76,7 +76,7 @@ data class LoginCrossFlush(
 )
 
 @Serializable
-data class LoginStatus(
+public data class LoginStatus(
     @SerialName("info")
     val info: LoginUserInfo = LoginUserInfo(),
     @SerialName("cookies")

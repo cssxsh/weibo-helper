@@ -3,7 +3,7 @@ package xyz.cssxsh.weibo.data
 import kotlinx.serialization.*
 
 @Serializable
-data class UserGroupData(
+public data class UserGroupData(
     @SerialName("feed_default")
     @Serializable(NumberToBooleanSerializer::class)
     val feedDefault: Boolean,
@@ -20,7 +20,7 @@ data class UserGroupData(
 )
 
 @Serializable
-data class UserTypeGroup(
+public data class UserTypeGroup(
     @SerialName("group")
     val list: List<UserGroup>,
     @SerialName("group_type")
@@ -33,7 +33,7 @@ data class UserTypeGroup(
 )
 
 @Serializable
-data class UserGroup(
+public data class UserGroup(
     @SerialName("count")
     val count: Int,
     @SerialName("frequency")
@@ -53,7 +53,7 @@ data class UserGroup(
 )
 
 @Serializable
-data class UserMention(
+public data class UserMention(
     @SerialName("statuses")
     val statuses: List<MicroBlog> = emptyList(),
     @SerialName("total_number")
@@ -61,7 +61,7 @@ data class UserMention(
 )
 
 @Serializable
-data class UserGroupMembers(
+public data class UserGroupMembers(
     @SerialName("id")
     val id: Long? = null,
     @SerialName("total_number")

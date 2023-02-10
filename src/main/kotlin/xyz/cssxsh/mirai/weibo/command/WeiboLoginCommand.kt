@@ -9,7 +9,8 @@ import xyz.cssxsh.mirai.weibo.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.api.*
 
-object WeiboLoginCommand : SimpleCommand(
+@PublishedApi
+internal object WeiboLoginCommand : SimpleCommand(
     owner = WeiboHelperPlugin,
     "wlogin", "微博登录",
     description = "微博登录指令",

@@ -4,7 +4,8 @@ import kotlinx.serialization.modules.*
 import net.mamoe.mirai.console.data.*
 import xyz.cssxsh.mirai.weibo.*
 
-object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboFilter {
+@PublishedApi
+internal object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"), WeiboFilter {
 
     override val serializersModule: SerializersModule = SerializersModule {
         contextual(WeiboPicture.serializer())

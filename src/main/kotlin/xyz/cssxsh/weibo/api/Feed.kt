@@ -5,16 +5,17 @@ import io.ktor.http.*
 import xyz.cssxsh.weibo.*
 import xyz.cssxsh.weibo.data.*
 
-suspend fun WeiboClient.getFeedGroups(isNewSegment: Boolean = true, fetchHot: Boolean = true): UserGroupData {
-    return json(FEED_ALL_GROUPS) {
-        header(HttpHeaders.Referrer, INDEX_PAGE)
+public suspend fun WeiboClient.getFeedGroups(
+    isNewSegment: Boolean = true,
+    fetchHot: Boolean = true
+): UserGroupData = json(FEED_ALL_GROUPS) {
+    header(HttpHeaders.Referrer, INDEX_PAGE)
 
-        parameter("is_new_segment", isNewSegment.toInt())
-        parameter("fetch_hot", fetchHot.toInt())
-    }
+    parameter("is_new_segment", isNewSegment.toInt())
+    parameter("fetch_hot", fetchHot.toInt())
 }
 
-suspend fun WeiboClient.getGroupsTimeline(
+public suspend fun WeiboClient.getGroupsTimeline(
     gid: Long,
     count: Int = PAGE_SIZE,
     refresh: Boolean = true,
@@ -32,7 +33,7 @@ suspend fun WeiboClient.getGroupsTimeline(
     parameter("count", count)
 }
 
-suspend fun WeiboClient.getUnreadTimeline(
+public suspend fun WeiboClient.getUnreadTimeline(
     gid: Long,
     count: Int = PAGE_SIZE,
     refresh: Boolean = true,
@@ -50,7 +51,7 @@ suspend fun WeiboClient.getUnreadTimeline(
     parameter("count", count)
 }
 
-suspend fun WeiboClient.getFriendsTimeline(
+public suspend fun WeiboClient.getFriendsTimeline(
     gid: Long,
     count: Int = PAGE_SIZE,
     refresh: Boolean = true,
@@ -68,7 +69,7 @@ suspend fun WeiboClient.getFriendsTimeline(
     parameter("count", count)
 }
 
-suspend fun WeiboClient.getHotTimeline(
+public suspend fun WeiboClient.getHotTimeline(
     gid: Long,
     max: Long? = null,
     extend: List<String> = listOf("discover", "new_feed"),
@@ -85,7 +86,7 @@ suspend fun WeiboClient.getHotTimeline(
     parameter("refresh", refresh.toInt())
 }
 
-suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when (group.type) {
+public suspend fun WeiboClient.getTimeline(group: UserGroup): TimelineData = when (group.type) {
     UserGroupType.USER, UserGroupType.QUIETLY -> {
         getGroupsTimeline(group.gid)
     }

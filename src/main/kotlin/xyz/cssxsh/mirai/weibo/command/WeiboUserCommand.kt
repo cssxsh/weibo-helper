@@ -7,7 +7,8 @@ import xyz.cssxsh.mirai.weibo.data.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
 
-object WeiboUserCommand : CompositeCommand(
+@PublishedApi
+internal object WeiboUserCommand : CompositeCommand(
     owner = WeiboHelperPlugin,
     "wuser", "微博用户",
     description = "微博用户指令",
