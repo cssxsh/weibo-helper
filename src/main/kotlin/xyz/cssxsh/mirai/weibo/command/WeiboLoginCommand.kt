@@ -25,7 +25,8 @@ internal object WeiboLoginCommand : SimpleCommand(
                     withTimeout(60_000) {
                         client.download(url).toExternalResource().use { it.uploadAsImage(contact) }
                     }
-                } catch (_: Exception) {
+                } catch (cause: Exception) {
+                    logger.warning("qrcode download or upload fail.", cause)
                     url.toPlainText()
                 }
 

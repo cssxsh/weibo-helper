@@ -115,25 +115,27 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
         true
     }
 
-    private fun listen(id: K): Job = launch(SupervisorJob()) {
+    private fun listen(id: K): Job = launch {
         logger.info { "添加对$type(${tasks.getValue(id).name}#${id})的监听任务" }
         val history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
         val cache: MutableSet<Long> = HashSet(history.keys)
         for ((_, blog) in history) cache.add(blog.retweeted?.id ?: continue)
+        logger.debug { "添加对$type(${tasks.getValue(id).name}#${id})的 cache: $cache" }
         var init = true
-
+        logger.debug { "添加对$type(${tasks.getValue(id).name}#${id})的 target: ${infos(id)}" }
         while (isActive && infos(id).isNotEmpty()) {
             delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
             try {
                 if (init) {
                     // XXX: 加载一次
-                    init = false
                     val list = load(id)
                     for (blog in list) {
                         history[blog.id] = blog
                         cache.add(blog.id)
                         cache.add(blog.retweeted?.id ?: continue)
                     }
+                    init = false
+                    logger.debug { "添加对$type(${tasks.getValue(id).name}#${id})的 init: $cache" }
                     continue
                 }
                 val task = tasks.getValue(id)
@@ -188,7 +190,7 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
                     //
                 }
             } finally {
-                logger.info { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
+                logger.debug { "$type(${id}): ${tasks[id]}监听任务完成一次, 即将进入延时" }
             }
         }
     }
