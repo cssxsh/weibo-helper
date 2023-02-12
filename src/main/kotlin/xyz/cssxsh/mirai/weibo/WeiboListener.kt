@@ -30,7 +30,7 @@ internal object WeiboListener : CoroutineScope {
      */
     private val WEIBO_REGEX = """(?<=(weibo\.(cn|com)/(\d{1,32}|detail|status)/))[0-9A-z]+""".toRegex()
 
-    private val QuietGroup = WeiboHelperPlugin.registerPermission("quiet.group", "关闭链接监听")
+    private val Parser = WeiboHelperPlugin.registerPermission("auto.parser", "自动解析微博链接")
 
     private val interval get() = WeiboHelperSettings.interval
 
@@ -45,7 +45,11 @@ internal object WeiboListener : CoroutineScope {
     fun start() {
         globalEventChannel().subscribeMessages {
             WEIBO_REGEX findingReply replier@{ result ->
-                if (subject is Group && QuietGroup.testPermission((subject as Group).permitteeId)) return@replier null
+                if (subject is Group) {
+                    val permitteeId = (sender as? NormalMember ?: return@replier null).permitteeId
+                    if (Parser.testPermission(permitteeId).not()) return@replier null
+                }
+
                 if (cache(subject, result)) return@replier null
 
                 logger.info { "${sender.render()} 匹配WEIBO(${result.value})" }
