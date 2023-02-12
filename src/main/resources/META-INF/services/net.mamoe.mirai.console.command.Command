@@ -5,3 +5,4 @@ xyz.cssxsh.mirai.weibo.command.WeiboGroupCommand
 xyz.cssxsh.mirai.weibo.command.WeiboHotCommand
 xyz.cssxsh.mirai.weibo.command.WeiboLoginCommand
 xyz.cssxsh.mirai.weibo.command.WeiboUserCommand
+xyz.cssxsh.mirai.weibo.command.WeiboSuperChatCommand

@@ -13,4 +13,7 @@ internal object WeiboTaskData : AutoSavePluginData("WeiboTaskData") {
 
     @ValueDescription("微博热搜订阅器，KEY是 KEYWORD")
     val hots: MutableMap<String, WeiboTaskInfo> by value()
+
+    @ValueDescription("微博超话订阅器，KEY是 SID")
+    val scs: MutableMap<String, WeiboTaskInfo> by value()
 }

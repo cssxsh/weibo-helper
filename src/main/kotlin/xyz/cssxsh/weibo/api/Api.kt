@@ -68,3 +68,6 @@ public const val SSO_QRCODE_IMAGE: String = "https://login.sina.com.cn/sso/qrcod
 public const val SSO_QRCODE_CHECK: String = "https://login.sina.com.cn/sso/qrcode/check"
 public const val PASSPORT_VISITOR: String = "https://passport.weibo.com/visitor/visitor"
 public const val PASSPORT_GEN_VISITOR: String = "https://passport.weibo.com/visitor/genvisitor"
+
+// SUPER CHAT
+public const val SUPER_CHAT_LIST: String = "https://www.weibo.com/p/aj/v6/mblog/mbloglist"
