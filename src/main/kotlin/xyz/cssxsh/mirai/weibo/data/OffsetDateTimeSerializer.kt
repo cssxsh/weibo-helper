@@ -6,6 +6,7 @@ import kotlinx.serialization.encoding.*
 import java.time.*
 import java.time.format.*
 
+@PublishedApi
 internal object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
 
     private val formatter: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME

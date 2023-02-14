@@ -4,6 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
@@ -30,6 +31,9 @@ public data class TempData(
 @PublishedApi
 internal const val ErrorMessageLength: Int = 32
 
+@PublishedApi
+internal const val SERIALIZATION_EXCEPTION_SAVE: String = "xyz.cssxsh.weibo.json.save"
+
 public suspend inline fun WeiboClient.text(
     url: String,
     crossinline block: HttpRequestBuilder.() -> Unit
@@ -48,10 +52,21 @@ public suspend inline fun <reified T> WeiboClient.temp(
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {
-            text.substring(0, minOf(ErrorMessageLength, text.length))
+            text
         }
     }
-    return WeiboClient.Json.decodeFromJsonElement(data)
+    return try {
+        WeiboClient.Json.decodeFromJsonElement(data)
+    } catch (cause: SerializationException) {
+        supervisorScope {
+            System.getProperty(SERIALIZATION_EXCEPTION_SAVE)?.let { path ->
+                val folder = java.io.File(path)
+                folder.mkdirs()
+                folder.resolve("${System.currentTimeMillis()}.json").writeText(text)
+            }
+        }
+        throw IllegalStateException("${temp.httpCode} - ${temp.url}", cause)
+    }
 }
 
 public suspend inline fun <reified T> WeiboClient.callback(
@@ -77,10 +92,21 @@ public suspend inline fun <reified T> WeiboClient.json(
         if (temp.url.orEmpty().startsWith(LOGIN_PAGE)) {
             "登陆状态无效，请登录"
         } else {
-            text.substring(0, minOf(ErrorMessageLength, text.length))
+            text
         }
     }
-    return WeiboClient.Json.decodeFromString(text)
+    return try {
+        WeiboClient.Json.decodeFromString(text)
+    } catch (cause: SerializationException) {
+        supervisorScope {
+            System.getProperty(SERIALIZATION_EXCEPTION_SAVE)?.let { path ->
+                val folder = java.io.File(path)
+                folder.mkdirs()
+                folder.resolve("${System.currentTimeMillis()}.json").writeText(text)
+            }
+        }
+        throw IllegalStateException("${temp.httpCode} - ${temp.url}", cause)
+    }
 }
 
 public suspend fun WeiboClient.download(

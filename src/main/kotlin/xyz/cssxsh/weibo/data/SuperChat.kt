@@ -86,9 +86,9 @@ public data class SuperChatMicroBlog(
 @Serializable
 public data class SuperChatPageInfo(
     @SerialName("containerid")
-    val containerId: String,
+    val containerId: String = "",
     @SerialName("desc")
-    val description: String,
+    val description: String = "",
     @SerialName("detail_desc")
     val detail: String = "",
     @SerialName("nick")
