@@ -141,10 +141,11 @@ internal val IntervalSlow: Duration by lazy {
 @OptIn(ConsoleExperimentalApi::class)
 internal val LoginContact by lazy {
     val id = System.getProperty(WEIBO_CONTACT_PROPERTY)?.toLong() ?: WeiboHelperSettings.contact
+    if (id == 12345L) throw IllegalArgumentException("没有设置登录失效联系人")
     for (bot in Bot.instances) {
         return@lazy bot.getContactOrNull(id) ?: continue
     }
-    throw NoSuchElementException("Not Found Login Contact $id")
+    throw NoSuchElementException("无法联系 $id")
 }
 
 internal fun sendLoginMessage(message: String) {
