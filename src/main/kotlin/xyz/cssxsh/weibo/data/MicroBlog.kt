@@ -26,7 +26,7 @@ public data class MicroBlog(
     @Serializable(WeiboDateTimeSerializer::class)
     val created: OffsetDateTime,
     @SerialName("continue_tag")
-    internal val continueTag: JsonObject? = null,
+    internal val continueTag: JsonElement? = null,
     @SerialName("favorited")
     val favorited: Boolean = false,
     @SerialName("id")
@@ -58,8 +58,10 @@ public data class MicroBlog(
 
 @Serializable
 public data class UrlStruct(
+    @SerialName("h5_target_url")
+    val h5: String? = null,
     @SerialName("long_url")
-    val long: String = "",
+    val long: String? = null,
     @SerialName("short_url")
     val short: String,
     @SerialName("url_title")

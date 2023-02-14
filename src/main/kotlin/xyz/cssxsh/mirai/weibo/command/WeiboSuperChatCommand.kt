@@ -22,6 +22,7 @@ internal object WeiboSuperChatCommand : CompositeCommand(
                     for (group in card.group) {
                         add(group.blog?.toMicroBlog() ?: continue)
                     }
+                    add(card.blog?.toMicroBlog() ?: continue)
                 }
             }
         }

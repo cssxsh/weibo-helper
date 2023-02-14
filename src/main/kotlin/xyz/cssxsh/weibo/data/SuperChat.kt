@@ -21,6 +21,8 @@ public data class SuperChatData(
 public data class SuperChatCard(
     @SerialName("card_group")
     val group: List<SuperChatCardGroup> = emptyList(),
+    @SerialName("mblog")
+    val blog: SuperChatMicroBlog? = null,
     @SerialName("card_type")
     val type: String = ""
 )
@@ -76,7 +78,7 @@ public data class SuperChatMicroBlog(
             reposts = reposts,
             raw = text,
             user = user,
-            continueTag = if (isLongText) JsonObject(emptyMap()) else null
+            continueTag = if (isLongText) JsonNull else null
         )
     }
 }
