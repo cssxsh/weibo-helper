@@ -108,9 +108,11 @@ public suspend fun WeiboClient.qrcode(send: suspend (qrcode: String) -> Unit): L
 
 public suspend fun WeiboClient.restore(): LoginResult {
     // Set Cookie
-    var location: String? = INDEX_PAGE
-    while (location != null) {
-        location = location(text(location) {})
+    withTimeoutOrNull(10_000) {
+        var location: String? = INDEX_PAGE
+        while (isActive && location != null) {
+            location = location(text(location) {})
+        }
     }
 
     checkNotNull(srf) { "SRF Cookie 为空" }

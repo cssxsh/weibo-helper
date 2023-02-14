@@ -86,12 +86,12 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
 
     protected open val predicate: (MicroBlog, K) -> Boolean = filter@{ blog, id ->
         if (filter.original && blog.retweeted != null) {
-            logger.verbose { "${type}(${id}) 转发屏蔽" }
+            logger.debug { "${type}(${id}) 转发屏蔽" }
             return@filter false
         }
         val source = blog.retweeted ?: blog
         if (reposts && source.reposts < filter.repost) {
-            logger.verbose { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
+            logger.debug { "${type}(${id}) 转发数屏蔽，跳过 ${source.id} ${source.reposts}" }
             return@filter false
         }
         if (source.uid in filter.users) {
@@ -105,7 +105,7 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
             }
         }
         if (blog.urls.any { it.type.toIntOrNull() in filter.urls }) {
-            logger.verbose { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
+            logger.debug { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
             return@filter false
         }
         if (blog.title != null && "赞过的微博" in blog.title.text) {
@@ -120,11 +120,11 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
         val history by WeiboHistoryDelegate(id, this@WeiboSubscriber)
         val cache: MutableSet<Long> = HashSet(history.keys)
         for ((_, blog) in history) cache.add(blog.retweeted?.id ?: continue)
-        logger.debug { "添加对$type(${tasks.getValue(id).name}#${id})的 cache: $cache" }
+        logger.debug { "$type(${tasks.getValue(id).name}#${id})的 cache: $cache" }
         var init = true
-        logger.debug { "添加对$type(${tasks.getValue(id).name}#${id})的 target: ${infos(id)}" }
+        logger.debug { "$type(${tasks.getValue(id).name}#${id})的 target: ${infos(id)}" }
         while (isActive && infos(id).isNotEmpty()) {
-            delay((if (history.near()) IntervalFast else IntervalSlow).toMillis())
+            delay((if (history.near() || init) IntervalFast else IntervalSlow).toMillis())
             try {
                 if (init) {
                     // XXX: 加载一次
@@ -135,7 +135,7 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
                         cache.add(blog.retweeted?.id ?: continue)
                     }
                     init = false
-                    logger.debug { "添加对$type(${tasks.getValue(id).name}#${id})的 init: $cache" }
+                    logger.debug { "$type(${tasks.getValue(id).name}#${id})的 init: $cache" }
                     continue
                 }
                 val task = tasks.getValue(id)

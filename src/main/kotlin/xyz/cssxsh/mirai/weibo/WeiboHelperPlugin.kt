@@ -16,7 +16,7 @@ import xyz.cssxsh.weibo.*
 
 @PublishedApi
 internal object WeiboHelperPlugin : KotlinPlugin(
-    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.5.9") {
+    JvmPluginDescription("xyz.cssxsh.mirai.plugin.weibo-helper", "1.6.0") {
         name("weibo-helper")
         author("cssxsh")
     }

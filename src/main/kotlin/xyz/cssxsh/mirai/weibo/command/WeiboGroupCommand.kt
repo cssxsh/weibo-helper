@@ -31,7 +31,7 @@ internal object WeiboGroupCommand : CompositeCommand(
     suspend fun CommandSender.task(id: String, subject: Contact = subject()) {
         val group = client.getFeedGroups()[id]
         subscriber.add(id = group.gid, name = group.title, subject = subject)
-        sendMessage("对${group.title}#${group.gid}的监听任务, 添加完成")
+        sendMessage("对<${group.title}#${group.gid}>的监听任务, 添加完成")
     }
 
     @SubCommand("stop", "停止")
