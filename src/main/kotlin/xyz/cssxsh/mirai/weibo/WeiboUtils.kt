@@ -238,7 +238,7 @@ internal suspend fun Emoticon.file(): File {
     }
 }
 
-internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope {
+internal suspend fun MicroBlog.getContent(showUrl: Boolean = true): String = supervisorScope {
     var content = raw
     var links = urls
     if (isLongText) {
@@ -250,12 +250,25 @@ internal suspend fun MicroBlog.getContent(url: Boolean = true) = supervisorScope
             logger.warning({ "获取微博[${id}]长文本失败" }, cause)
         }
     }
-    links.fold(StringEscapeUtils.unescapeHtml4(content).orEmpty()) { acc, struct ->
-        if (struct.long.isBlank()) return@fold acc
-        if (url) {
-            acc.replace(struct.short, "[${struct.title}]<${struct.type}>(${struct.long})")
-        } else {
-            acc.replace(struct.short, "[${struct.title}]")
+    buildString {
+        append(StringEscapeUtils.unescapeHtml4(content))
+
+        for (struct in links) {
+            if (struct.type.isEmpty()) continue
+            val url = struct.h5 ?: struct.long ?: struct.short
+            val target = if (showUrl) {
+                "[${struct.title}]<${struct.type}>(${url})"
+            } else {
+                "[${struct.title}]"
+            }
+
+            var index = 0
+            while (index < length) {
+                index =  indexOf(struct.short, index)
+                if (index < 0) break
+                replace(index, index + struct.short.length, target)
+                index += struct.short.length.coerceAtLeast(1)
+            }
         }
     }
 }
@@ -359,7 +372,7 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
         }
     }
 
-    val content = getContent(url = ShowUrl)
+    val content = getContent(showUrl = ShowUrl)
 
     if (WeiboHelperSettings.emoticon && Emoticons.isNotEmpty()) {
         add(emoticon(content, contact))
