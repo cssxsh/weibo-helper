@@ -11,6 +11,7 @@ import net.mamoe.mirai.console.plugin.*
 import net.mamoe.mirai.console.util.*
 import net.mamoe.mirai.utils.*
 import xyz.cssxsh.mirai.weibo.data.*
+import xyz.cssxsh.weibo.*
 
 @PublishedApi
 internal object WeiboHelperPlugin : KotlinPlugin(
@@ -24,6 +25,7 @@ internal object WeiboHelperPlugin : KotlinPlugin(
     private var restore: Job? = null
 
     override fun PluginComponentStorage.onLoad() {
+        System.setProperty(SERIALIZATION_EXCEPTION_SAVE, dataFolderPath.toString())
         runAfterStartup {
             launch {
                 client.init()
