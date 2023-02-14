@@ -32,8 +32,13 @@ internal object WeiboSuperChatCommand : CompositeCommand(
 
     @SubCommand("add", "task", "订阅")
     suspend fun CommandSender.task(id: String, subject: Contact = subject()) {
-        val title = client.getSuperChatData(id = id).info.title
-        subscriber.add(id = id, name = title, subject = subject)
+        val chat = if (id.length > 10) {
+            id
+        } else {
+            client.getSuperChatHome(name = id)
+        }
+        val title = client.getSuperChatData(id = chat).info.title
+        subscriber.add(id = chat, name = title, subject = subject)
         sendMessage("对<${title}>的监听任务, 添加完成")
     }
 
