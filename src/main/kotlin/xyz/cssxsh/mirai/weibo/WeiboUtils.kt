@@ -487,15 +487,15 @@ internal suspend fun restore(interval: Long = 600_000) = supervisorScope {
         try {
             val result = client.restore()
             logger.info { "WEIBO登陆状态已刷新 $result" }
-            continue
         } catch (exception: SerializationException) {
             logger.warning({ "WEIBO RESTORE 任务序列化时失败" }, exception)
             sendLoginMessage("WEIBO RESTORE 任务序列化时失败")
         } catch (cause: Exception) {
             logger.warning({ "WEIBO登陆状态失效，需要重新登陆" }, cause)
             sendLoginMessage("WEIBO登陆状态失效，需要重新登陆 /wlogin")
+        } finally {
+            delay(interval)
         }
-        delay(interval)
     }
 }
 
