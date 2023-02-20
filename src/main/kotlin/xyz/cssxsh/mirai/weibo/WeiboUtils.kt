@@ -480,8 +480,9 @@ internal suspend fun clear(interval: Long = 3600_000) = supervisorScope {
 internal suspend fun restore(interval: Long = 600_000) = supervisorScope {
     while (isActive) {
         val timestamp = client.wbpsess?.expires?.timestamp
-        if (timestamp != null) {
-            delay((timestamp - System.currentTimeMillis()).coerceAtMost(interval))
+        val current = System.currentTimeMillis()
+        if (timestamp != null && current < timestamp) {
+            delay((timestamp - current).coerceAtMost(interval))
             continue
         }
         try {
