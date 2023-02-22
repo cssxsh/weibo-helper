@@ -125,18 +125,21 @@
 * `{ type: limit, value: { total: 3 } }` 最多显示total张
 * `{ type: top, value: { total: 3 } }` 超过total张一张也不显示
 
-### quiet.group
+### 自动解析
 
-安静群聊, 不解析URL链接, 通过权限系统配置  
-`/perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group`
+~~安静群聊, 不解析URL链接, 通过权限系统配置~~  
+`/perm add g12345 xyz.cssxsh.mirai.plugin.weibo-helper:quiet.group`  
+改为 `xyz.cssxsh.mirai.plugin.weibo-helper:auto.parser`  
+持有权限的用户(群员)才会触发自动解析
 
 ## 安装
 
 ### MCL 指令安装
 
-`./mcl --update-package xyz.cssxsh:weibo-helper --channel stable --type plugin`
+**请确认 mcl.jar 的版本是 2.1.0+**  
+`./mcl --update-package xyz.cssxsh:weibo-helper --channel maven-stable --type plugins`
 
 ### 手动安装
 
-* 运行 [Mirai Console](https://github.com/mamoe/mirai-console) 生成 `plugins` 文件夹
-* 从 [Releases](https://github.com/cssxsh/weibo-helper/releases) 下载 `jar` 并将其放入 `plugins` 文件夹中
+1. 从 [Releases](https://github.com/cssxsh/weibo-helper/releases) 或者 [Maven](https://repo1.maven.org/maven2/xyz/cssxsh/weibo-helper/) 下载 `mirai2.jar`
+2. 将其放入 `plugins` 文件夹中
