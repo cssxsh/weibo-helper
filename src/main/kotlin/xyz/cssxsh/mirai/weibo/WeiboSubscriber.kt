@@ -108,7 +108,7 @@ public abstract class WeiboSubscriber<K : Comparable<K>>(public val type: String
             logger.debug { "${type}(${id}) Url屏蔽，跳过 ${source.id} ${blog.urls}" }
             return@filter false
         }
-        if (blog.title != null && "赞过的微博" in blog.title.text) {
+        if (blog.title != null && "赞过的微博" in blog.title.text && filter.likes.not()) {
             logger.info { "${type}(${id}) 赞过的微博屏蔽，跳过 ${source.id} ${source.created}" }
             return@filter false
         }

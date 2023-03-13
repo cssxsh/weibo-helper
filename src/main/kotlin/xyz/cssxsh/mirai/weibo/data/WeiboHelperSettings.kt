@@ -45,6 +45,9 @@ internal object WeiboHelperSettings : ReadOnlyPluginConfig("WeiboHelperSettings"
     @ValueDescription("屏蔽转发")
     override val original: Boolean by value(false)
 
+    @ValueDescription("屏蔽点赞转发")
+    override val likes: Boolean by value(false)
+
     @ValueDescription("发送微博视频文件")
     val video: Boolean by value(true)
 

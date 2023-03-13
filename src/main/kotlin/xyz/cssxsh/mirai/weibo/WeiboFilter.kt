@@ -6,4 +6,5 @@ public interface WeiboFilter {
     public val regexes: List<Regex>
     public val urls: Set<Int>
     public val original: Boolean
+    public val likes: Boolean
 }
