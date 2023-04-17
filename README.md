@@ -120,10 +120,35 @@
 
 有四种设置方案
 
-* `{ type: none, value: {} }` 一张也不显示
-* `{ type: all, value: {} }` 全部显示
-* `{ type: limit, value: { total: 3 } }` 最多显示total张
-* `{ type: top, value: { total: 3 } }` 超过total张一张也不显示
+* 一张也不显示
+```yaml
+picture: 
+  type: none
+  value: {}
+```
+
+* 全部显示
+```yaml
+picture: 
+  type: all
+  value: {}
+```
+
+* 最多显示total张
+```yaml
+picture: 
+  type: limit
+  value:
+    total: 3
+```
+
+* 超过total张一张也不显示
+```yaml
+picture: 
+  type: top
+  value:
+    total: 3
+```
 
 ### 自动解析
 
