@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "xyz.cssxsh"
-version = "1.6.1"
+version = "1.6.2"
 
 mavenCentralPublish {
     useCentralS01()
@@ -28,7 +28,7 @@ repositories {
 dependencies {
     implementation("org.jclarion:image4j:0.7")
     implementation("org.apache.commons:commons-text:1.10.0")
-    implementation("org.jsoup:jsoup:1.15.3")
+    implementation("org.jsoup:jsoup:1.15.4")
     testImplementation(kotlin("test"))
     testImplementation("net.mamoe.yamlkt:yamlkt-jvm:0.10.2")
     //
