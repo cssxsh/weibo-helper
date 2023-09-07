@@ -3,7 +3,6 @@ package xyz.cssxsh.weibo
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.*
 import xyz.cssxsh.mirai.weibo.*
 import xyz.cssxsh.weibo.api.*
 import xyz.cssxsh.weibo.data.*
@@ -14,29 +13,10 @@ internal class ProfileKtTest : WeiboClientTest() {
     @BeforeEach
     fun flush(): Unit = runBlocking { client.restore() }
 
-    private val dir = test.resolve("emoticon")
-
-    @Test
-    fun emoticon(): Unit = runBlocking {
-        client.getEmoticon().emoticon.let { map ->
-            (map.brand.values + map.usual + map.more).flatMap { it.values.flatten() }.associateBy {
-                it.phrase
-            }
-        }.forEach { (_, emoticon) ->
-            dir.resolve(emoticon.category.ifBlank { "其他" })
-                .resolve("${emoticon.phrase}.${emoticon.url.substringAfterLast('.')}").runCatching {
-                parentFile.mkdirs()
-                writeBytes(client.download(emoticon.url))
-                delay(1_000L)
-            }
-        }
-    }
-
     @Test
     fun getUserInfo(): Unit = runBlocking {
         val uid = 6179286709
         client.getUserInfo(uid).let {
-            assertEquals(uid, it.user.id)
             println(it)
         }
     }

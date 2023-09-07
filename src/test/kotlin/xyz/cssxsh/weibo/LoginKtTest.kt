@@ -1,27 +1,42 @@
 package xyz.cssxsh.weibo
 
-import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.*
+import net.mamoe.mirai.console.util.*
 import org.junit.jupiter.api.*
 import xyz.cssxsh.weibo.api.*
+import javax.imageio.*
 
-internal class LoginKtTest: WeiboClientTest() {
+internal class LoginKtTest : WeiboClientTest() {
 
     @Test
     fun flush(): Unit = runBlocking {
         client.restore()
+        println(client.status().info)
     }
 
     @Test
     fun qrcode(): Unit = runBlocking {
-        val channel = Channel<ByteArray>()
-        val job = launch {
-            client.qrcode(channel::send)
+        client.qrcode { url ->
+            println(url)
         }
-        qrcode.writeBytes(channel.receive())
-        Runtime.getRuntime().exec("cmd /c ${qrcode.absolutePath}")
-        job.join()
         println(client.status().info)
+    }
+
+    @Test
+    fun code() {
+        val image = ImageIO.read(qrcode)
+        val message = buildAnsiMessage {
+            for (y in 4 until 175 step 3) {
+                for (x in 4 until 175 step 3) {
+                    val rgb = image.getRGB(x, y)
+                    if (rgb != -1) ansi("\u001b[40m")
+                    append('　')
+                    reset()
+                }
+                appendLine()
+            }
+        }
+        println(message)
     }
 
     @Test

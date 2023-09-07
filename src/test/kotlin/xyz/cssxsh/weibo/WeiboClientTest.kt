@@ -16,11 +16,11 @@ internal abstract class WeiboClientTest {
 
     val client by lazy { WeiboClient().apply { load(status) } }
 
-    val test = File("./test/")
+    val folder = File("./run/")
 
-    val qrcode = test.resolve("qrcode.jpg")
+    val qrcode = folder.resolve("qrcode.jpg")
 
-    val yaml = test.resolve("status.yaml")
+    val yaml = folder.resolve("status.yaml")
 
     fun MicroBlog.toText() = buildString {
         appendLine("微博 $username 有新动态：")

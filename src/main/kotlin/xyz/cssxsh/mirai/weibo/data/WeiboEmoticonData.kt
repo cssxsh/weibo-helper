@@ -1,7 +1,6 @@
 package xyz.cssxsh.mirai.weibo.data
 
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import net.mamoe.mirai.console.data.*
 import net.mamoe.mirai.console.util.*
 import xyz.cssxsh.weibo.*
@@ -11,6 +10,7 @@ import java.io.*
 @PublishedApi
 internal object WeiboEmoticonData : AutoSavePluginData("WeiboEmoticonData") {
 
+    @PublishedApi
     internal fun default(): Map<String, Emoticon> {
         val url = this::class.java.getResource("Emoticons.json") ?: throw FileNotFoundException("Emoticons.json")
         return WeiboClient.Json.decodeFromString(url.readText())
