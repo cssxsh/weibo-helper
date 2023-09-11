@@ -361,11 +361,30 @@ internal suspend fun MicroBlog.toMessage(contact: Contact): MessageChain = build
     if (WeiboHelperSettings.video && hasVideo) {
         supervisorScope {
             launch {
+                val video = try {
+                    getVideo()
+                } catch (cause: Throwable) {
+                    logger.warning({ "下载视频失败, $link" }, cause)
+                    return@launch
+                }
+
+                val cover = getCover().toExternalResource()
                 try {
-                    val file = getVideo()
+                    val message = video.toExternalResource().use {
+                        contact.uploadShortVideo(thumbnail = cover, video = it, fileName = mid)
+                    }
+                    contact.sendMessage(message)
+                    return@launch
+                } catch (cause: Throwable) {
+                    logger.warning({ "$contact 无法发送视频" }, cause)
+                } finally {
+                    cover.close()
+                }
+
+                try {
                     contact as FileSupported
-                    file.toExternalResource().use { contact.files.uploadNewFile(file.name, it) }
-                } catch (cause: Exception) {
+                    video.toExternalResource().use { contact.files.uploadNewFile(video.name, it) }
+                } catch (cause: Throwable) {
                     logger.warning({ "$contact 无法发送文件" }, cause)
                 }
             }
