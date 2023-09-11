@@ -141,6 +141,7 @@ public suspend fun WeiboClient.download(
         val limit = (offset + video.buffer).coerceAtMost(video.size) - 1
         emit(useHttpClient { client ->
             client.prepareGet(video.url) {
+                header(HttpHeaders.Referrer, INDEX_PAGE)
                 header(HttpHeaders.Range, "bytes=${offset}-${limit}")
             }.body()
         })
